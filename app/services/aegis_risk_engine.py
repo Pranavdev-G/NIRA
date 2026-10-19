@@ -28,6 +28,7 @@ from app.models.schemas import (
 )
 from app.services.context_engine import ContextEngine
 from app.services.baseline_engine import PersonalBaselineEngine
+from app.services.risk_intelligence import MultimodalRiskIntelligence, ExplainableRiskResult
 
 
 class AegisRiskEngine:
@@ -229,6 +230,13 @@ class AegisRiskEngine:
         now_iso = datetime.now(timezone.utc).isoformat()
         elapsed_ms = (time.perf_counter() - start_time) * 1000.0
 
+        # Compute rich explainable factors across all 14 dimensions
+        explainable = MultimodalRiskIntelligence.evaluate(
+            event=event,
+            context=context,
+            voice_response=voice_response
+        )
+
         telemetry = {
             "composite_score": round(bounded_score, 1),
             "baseline_deviation": dev_score,
@@ -237,7 +245,11 @@ class AegisRiskEngine:
             "voice_intent": voice_intent,
             "is_confirmed_fall": is_confirmed_fall,
             "has_zero_movement": has_zero_movement,
-            "has_abnormal_vitals": has_abnormal_vitals
+            "has_abnormal_vitals": has_abnormal_vitals,
+            "contributing_factors": [f.model_dump() for f in explainable.contributing_factors],
+            "suppressed_factors": [f.model_dump() for f in explainable.suppressed_factors],
+            "sensor_conflict_detected": explainable.sensor_conflict_detected,
+            "explainable_risk": explainable.model_dump()
         }
 
         return RiskAssessmentResponse(
@@ -251,4 +263,20 @@ class AegisRiskEngine:
             telemetry_breakdown=telemetry,
             evaluated_at=now_iso,
             latency_ms=round(elapsed_ms, 2)
+        )
+
+    @classmethod
+    def evaluate_explainable(
+        cls,
+        event: Event,
+        context: Context,
+        voice_response: Optional[VoiceResponse] = None,
+        correlation_id: Optional[str] = None
+    ) -> ExplainableRiskResult:
+        """Direct access to full multimodal explainable risk result."""
+        return MultimodalRiskIntelligence.evaluate(
+            event=event,
+            context=context,
+            voice_response=voice_response,
+            correlation_id=correlation_id
         )

@@ -138,6 +138,35 @@ def build_payload(
     }
 
 
+def build_unified_event(
+    scenario_key: str = "critical_fall_bathroom",
+    resident_id: str = "user_eleanor_vance",
+    override_loc: Optional[str] = None,
+    override_movement: Optional[str] = None,
+    override_conf: Optional[float] = None
+) -> Dict[str, Any]:
+    """Builds a payload strictly adhering to the NIRA UnifiedEvent data contract."""
+    import uuid
+    legacy = build_payload(scenario_key, override_loc, override_movement, override_conf)
+    ev = legacy["event"]
+    ctx = legacy["context"]
+    now_iso = datetime.now(timezone.utc).isoformat()
+    return {
+        "event_id": f"evt-sim-{uuid.uuid4().hex[:8]}",
+        "timestamp": now_iso,
+        "resident_id": resident_id,
+        "room_id": ev["location"],
+        "source": "camera_pose" if "fall" in ev["event_type"] else "radar",
+        "event_type": ev["event_type"],
+        "payload": {
+            "movement_after_event": ev["movement_after_event"],
+            "context": ctx
+        },
+        "confidence": ev["confidence"],
+        "correlation_id": f"corr-{uuid.uuid4().hex[:8]}"
+    }
+
+
 def emit_event(
     target_url: str,
     payload: Dict[str, Any],

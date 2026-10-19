@@ -14,8 +14,15 @@ from app.models.schemas import (
 )
 
 
+from app.adapters.simulated_adapters import (
+    default_sms_adapter,
+    default_push_adapter,
+    default_alexa_adapter
+)
+
+
 class CaregiverService:
-    """Dispatches real-time caregiver alerts for MODERATE and HIGH risk conditions."""
+    """Dispatches real-time caregiver alerts for MODERATE and HIGH risk conditions using simulated adapters."""
 
     @classmethod
     async def dispatch_notification(cls, request: NotifyCaregiverRequest) -> CaregiverNotificationResponse:
@@ -46,14 +53,33 @@ class CaregiverService:
 
         for ch in channels:
             ch_start = time.perf_counter()
-            # Fast mock dispatch
-            recipient = settings.PRIMARY_CAREGIVER_NAME
+            adapter_res = None
             if ch == "sms":
                 recipient = settings.PRIMARY_CAREGIVER_PHONE
+                adapter_res = await default_sms_adapter.send_message(
+                    recipient=recipient,
+                    headline=headline,
+                    body=body,
+                    priority=request.risk.risk_level
+                )
             elif ch == "alexa_drop_in":
                 recipient = settings.PRIMARY_CAREGIVER_DEVICE_ID
+                adapter_res = await default_alexa_adapter.send_message(
+                    recipient=recipient,
+                    headline=headline,
+                    body=body,
+                    priority=request.risk.risk_level
+                )
             elif ch == "push_notification":
-                recipient = f"push_token_sarah_vance_ios"
+                recipient = "push_token_sarah_vance_ios"
+                adapter_res = await default_push_adapter.send_message(
+                    recipient=recipient,
+                    headline=headline,
+                    body=body,
+                    priority=request.risk.risk_level
+                )
+            else:
+                recipient = settings.PRIMARY_CAREGIVER_NAME
 
             ch_elapsed_ms = (time.perf_counter() - ch_start) * 1000.0 + 2.5
 
@@ -62,7 +88,9 @@ class CaregiverService:
                     channel=ch,
                     status="DELIVERED",
                     recipient=recipient,
-                    delivery_latency_ms=round(ch_elapsed_ms, 2)
+                    delivery_latency_ms=round(ch_elapsed_ms, 2),
+                    integration_type=adapter_res.integration_type if adapter_res else "SIMULATED",
+                    disclaimer=adapter_res.disclaimer if adapter_res else "SIMULATION ADAPTER - Outbound caregiver notification simulated."
                 )
             )
 
@@ -74,5 +102,8 @@ class CaregiverService:
             body=body,
             channels_delivered=delivered_channels,
             dispatched_at=timestamp,
-            caregiver_contact=f"{settings.PRIMARY_CAREGIVER_NAME} ({settings.PRIMARY_CAREGIVER_PHONE})"
+            caregiver_contact=f"{settings.PRIMARY_CAREGIVER_NAME} ({settings.PRIMARY_CAREGIVER_PHONE})",
+            integration_type="SIMULATED",
+            disclaimer="SIMULATION ADAPTER - Caregiver notification simulated via adapter layer; no live telecom or APNs push invoked."
         )
+

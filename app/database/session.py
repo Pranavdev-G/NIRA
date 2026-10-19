@@ -42,6 +42,38 @@ def init_db():
     """Initializes tables and seeds default senior profile (Eleanor Vance)."""
     Base.metadata.create_all(bind=engine)
 
+    # Safe lightweight SQLite column migration if tables pre-existed
+    if DATABASE_URL.startswith("sqlite"):
+        try:
+            from sqlalchemy import text
+            with engine.connect() as conn:
+                res = conn.execute(text("PRAGMA table_info(incidents);")).fetchall()
+                existing_cols = {row[1] for row in res}
+                if existing_cols:
+                    if "workflow_state" not in existing_cols:
+                        conn.execute(text("ALTER TABLE incidents ADD COLUMN workflow_state VARCHAR(64) DEFAULT 'DETECTED';"))
+                    if "correlation_id" not in existing_cols:
+                        conn.execute(text("ALTER TABLE incidents ADD COLUMN correlation_id VARCHAR(64);"))
+                    if "idempotency_key" not in existing_cols:
+                        conn.execute(text("ALTER TABLE incidents ADD COLUMN idempotency_key VARCHAR(128);"))
+
+                res_t = conn.execute(text("PRAGMA table_info(incident_timelines);")).fetchall()
+                existing_t_cols = {row[1] for row in res_t}
+                if existing_t_cols:
+                    if "previous_state" not in existing_t_cols:
+                        conn.execute(text("ALTER TABLE incident_timelines ADD COLUMN previous_state VARCHAR(64);"))
+                    if "new_state" not in existing_t_cols:
+                        conn.execute(text("ALTER TABLE incident_timelines ADD COLUMN new_state VARCHAR(64);"))
+                    if "reason" not in existing_t_cols:
+                        conn.execute(text("ALTER TABLE incident_timelines ADD COLUMN reason TEXT;"))
+                    if "evidence" not in existing_t_cols:
+                        conn.execute(text("ALTER TABLE incident_timelines ADD COLUMN evidence JSON;"))
+                    if "correlation_id" not in existing_t_cols:
+                        conn.execute(text("ALTER TABLE incident_timelines ADD COLUMN correlation_id VARCHAR(64);"))
+                conn.commit()
+        except Exception:
+            pass
+
     # Seed default user profile if absent
     with SessionLocal() as db:
         user = db.query(UserModel).filter(UserModel.id == "user_eleanor_vance").first()

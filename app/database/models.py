@@ -66,6 +66,9 @@ class IncidentModel(Base):
     risk_reasons = Column(JSON, default=list)
 
     status = Column(String(32), default="ACTIVE", index=True)  # "ACTIVE", "RESOLVED", "ESCALATED_CAREGIVER", "ESCALATED_CAD"
+    workflow_state = Column(String(64), default="DETECTED", index=True)
+    correlation_id = Column(String(64), nullable=True, index=True)
+    idempotency_key = Column(String(128), nullable=True, index=True)
     recommended_action = Column(String(128), nullable=True)
     
     context_snapshot = Column(JSON, default=dict)
@@ -86,8 +89,13 @@ class IncidentTimelineModel(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     incident_id = Column(String(64), ForeignKey("incidents.id"), nullable=False, index=True)
     timestamp = Column(DateTime(timezone=True), default=utc_now, index=True)
-    action_type = Column(String(64), nullable=False)  # "VISION_EVENT_INGESTED", "WELLNESS_CHECK_INITIATED", etc.
+    action_type = Column(String(64), nullable=False)  # "VISION_EVENT_INGESTED", "STATE_TRANSITION", etc.
     actor = Column(String(64), default="AEGIS_SYSTEM")  # "VISION_AI", "ALEXA_VOICE_AGENT", "PATIENT", etc.
+    previous_state = Column(String(64), nullable=True)
+    new_state = Column(String(64), nullable=True)
+    reason = Column(Text, nullable=True)
+    evidence = Column(JSON, default=dict)
+    correlation_id = Column(String(64), nullable=True, index=True)
     description = Column(Text, nullable=False)
     metadata_json = Column(JSON, default=dict)
 
@@ -109,3 +117,24 @@ class EmergencyPacketModel(Base):
 
     # Relationships
     incident = relationship("IncidentModel", back_populates="emergency_packet")
+
+
+class TelemetryEventModel(Base):
+    """
+    Persistent log for the NIRA Unified Multimodal Event Pipeline.
+    Records every incoming sensor, radar, vision, wearable, and conversational event.
+    """
+    __tablename__ = "telemetry_events"
+
+    id = Column(String(64), primary_key=True, index=True)  # event_id
+    correlation_id = Column(String(64), nullable=False, index=True)
+    resident_id = Column(String(64), nullable=False, index=True)
+    room_id = Column(String(64), nullable=False, index=True)
+    source = Column(String(64), nullable=False)
+    event_type = Column(String(64), nullable=False, index=True)
+    confidence = Column(Float, default=1.0)
+    payload_json = Column(JSON, default=dict)
+    timestamp = Column(DateTime(timezone=True), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), default=utc_now)
+    safety_state_after = Column(String(32), default="NORMAL")
+    evidence_summary = Column(JSON, default=list)

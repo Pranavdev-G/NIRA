@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.database.session import init_db
-from app.routers import health, tools_http, mcp_server, risk_api, incidents_api
+from app.routers import health, tools_http, mcp_server, risk_api, incidents_api, events_api
 
 
 @asynccontextmanager
@@ -40,6 +40,18 @@ async def lifespan(app: FastAPI):
         environment="well_lit"
     )
     _ = RiskEngine.evaluate(dummy_event, dummy_context)
+
+    # State restart-recovery: re-hydrate active emergency state & recent evidence from persistent storage
+    from app.database.session import SessionLocal
+    from app.services.event_pipeline import global_pipeline
+    db = SessionLocal()
+    try:
+        global_pipeline.recover_state_from_database(db)
+    except Exception:
+        pass
+    finally:
+        db.close()
+
     yield
 
 
@@ -89,6 +101,7 @@ async def add_latency_timing_header(request: Request, call_next):
 # Mount Routers
 # ---------------------------------------------------------------------------
 app.include_router(health.router)
+app.include_router(events_api.router)
 app.include_router(incidents_api.router)
 app.include_router(risk_api.router)
 app.include_router(tools_http.router)

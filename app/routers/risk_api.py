@@ -52,3 +52,24 @@ async def reassess_risk_api(request: ReassessRiskRequest, response: Response):
     result.latency_ms = round(elapsed_ms, 2)
     response.headers["X-Response-Time-Ms"] = str(result.latency_ms)
     return result
+
+
+from app.services.risk_intelligence import ExplainableRiskResult
+
+
+@router.post("/risk/explain", response_model=ExplainableRiskResult)
+async def explain_risk_api(request: ReassessRiskRequest):
+    """
+    Exposes full explainable risk breakdown:
+      - contributing_factors with weights
+      - suppressed_factors with mitigating weights
+      - sensor_conflict_detected
+      - missing_sensors
+      - hysteresis stabilization
+    """
+    result = AegisRiskEngine.evaluate_explainable(
+        event=request.event,
+        context=request.context,
+        voice_response=request.voice_response
+    )
+    return result

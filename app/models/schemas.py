@@ -151,6 +151,8 @@ class CaregiverNotificationChannelResult(BaseModel):
     status: str
     recipient: str
     delivery_latency_ms: float
+    integration_type: str = "SIMULATED"
+    disclaimer: Optional[str] = "SIMULATION ADAPTER - Simulated channel delivery."
 
 
 class CaregiverNotificationResponse(BaseModel):
@@ -162,6 +164,9 @@ class CaregiverNotificationResponse(BaseModel):
     channels_delivered: List[CaregiverNotificationChannelResult]
     dispatched_at: str
     caregiver_contact: str
+    integration_type: str = "SIMULATED"
+    disclaimer: str = "SIMULATION ADAPTER - Multi-channel caregiver notification simulated."
+
 
 
 # ---------------------------------------------------------------------------
@@ -229,3 +234,7 @@ class EscalateEmergencyResponse(BaseModel):
     door_lock_unlocked: bool
     transmitted_at: str
     dispatch_notes: str
+    integration_type: str = "SIMULATED"
+    disclaimer: str = "SIMULATION ADAPTER - Not connected to live external carrier/PSAP. No real 911 dispatch occurred."
+    smart_lock_pin: Optional[str] = None
+
