@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aegis Ambient Care — Family Admin Guardian Console</title>
+  <meta name="description" content="Detailed administrative telemetry and control console for family guardians and sons.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/dashboard.css">
+  <style>
+    .admin-badge {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.25) 100%);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #fbbf24;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.05em;
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    @media (max-width: 1040px) {
+      .admin-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .telemetry-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 840px) {
+      .telemetry-row {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .metric-card {
+      background: var(--bg-surface);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-inner);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: var(--card-shadow);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .metric-card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      background: var(--bg-surface-elevated);
+      transform: translateY(-2px);
+    }
+
+    .metric-card .label {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+    }
+
+    .metric-card .val {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: #fff;
+      margin: 8px 0;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+
+    .metric-card .sub {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
+
+    .json-box {
+      background: #03050a;
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-inner);
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--neon-cyan);
+      max-height: 240px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6);
+    }
+
+    .timeline-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+
+    .timeline-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-glass);
+      border-left: 3px solid var(--neon-blue);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .timeline-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .timeline-item.critical {
+      border-left-color: var(--neon-red);
+      background: rgba(255, 59, 87, 0.08);
+      border-color: rgba(255, 59, 87, 0.25);
+    }
+
+    .timeline-item.warning {
+      border-left-color: var(--neon-amber);
+      background: rgba(245, 158, 11, 0.08);
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+
+    .timeline-item.safe {
+      border-left-color: var(--neon-green);
+      background: rgba(16, 185, 129, 0.08);
+      border-color: rgba(16, 185, 129, 0.25);
+    }
+
+    .timeline-time {
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      color: var(--neon-cyan);
+      font-weight: 600;
+    }
+
+    .timeline-title {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .timeline-desc {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .btn-action-admin {
+      background: linear-gradient(135deg, #0284c7 0%, #00cae0 100%);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 10px 16px;
+      border-radius: var(--radius-inner);
+      font-weight: 700;
+      font-size: 0.84rem;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(0, 202, 224, 0.25);
+    }
+
+    .btn-action-admin:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 202, 224, 0.4);
+    }
+
+    .btn-danger-admin {
+      background: linear-gradient(135deg, #dc2626 0%, #ff3b57 100%);
+      box-shadow: 0 4px 14px rgba(255, 59, 87, 0.25);
+    }
+
+    .btn-danger-admin:hover {
+      box-shadow: 0 6px 22px rgba(255, 59, 87, 0.45);
+    }
+
+    .quick-explainer-banner {
+      background: var(--bg-surface);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: var(--radius-card);
+      padding: 18px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+      box-shadow: var(--card-shadow);
+    }
+
+    .explainer-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .explainer-icon {
+      width: 44px;
+      height: 44px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fbbf24;
+      flex-shrink: 0;
+    }
+
+    .explainer-text {
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+
+    .floorplan-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .room-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-inner);
+      padding: 14px;
+      transition: all 0.25s ease;
+    }
+
+    .room-box.has-alert {
+      border-color: var(--neon-red);
+      background: rgba(255, 59, 87, 0.1);
+      box-shadow: 0 0 20px rgba(255, 59, 87, 0.2);
+    }
+
+    .room-name {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .room-info {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+    }
+
+    .person-tag {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 59, 87, 0.2);
+      color: #fda4af;
+      border: 1px solid rgba(255, 59, 87, 0.4);
+    }
+
+    .view-toggle-strip {
+      display: inline-flex;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-glass);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 4px;
+    }
+
+    .btn-view-toggle {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .btn-view-toggle.active {
+      background: rgba(56, 189, 248, 0.2);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+
+    .visual-factors-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 600px) {
+      .visual-factors-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .factor-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      transition: all 0.2s ease;
+    }
+
+    .factor-card:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .factor-icon-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 18px;
+    }
+
+    .factor-title {
+      font-size: 0.74rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      margin-bottom: 2px;
+    }
+
+    .factor-val {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .factor-sub {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      margin-top: 3px;
+      line-height: 1.35;
+    }
+
+    .ai-decision-formula-banner {
+      background: linear-gradient(135deg, rgba(255, 59, 87, 0.12) 0%, rgba(245, 158, 11, 0.1) 100%);
+      border: 1px solid rgba(255, 59, 87, 0.35);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+    }
+
+    .formula-step-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 0.72rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      margin: 2px 4px 2px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrap">
+
+    <!-- Top Navigation Header -->
+    <header class="top-nav">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="brand-title-wrap">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <h1 data-i18n="appTitle">Aegis Ambient Care</h1>
+            <span class="admin-badge">GUARDIAN CONSOLE</span>
+          </div>
+          <p>
+            <span class="brand-live-dot"></span> 
+            <span>Beacon Hill Unit 4B Telemetry Hub &bull; Deep Diagnostics & CAD Overrides</span>
+          </p>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <!-- Language Selector -->
+        <div>
+          <select id="langSelector" class="lang-select" onchange="setLanguage(this.value)">
+            <option value="en">English (US)</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+            <option value="pt">Português</option>
+            <option value="ar">العربية (Arabic)</option>
+            <option value="ja">日本語 (Japanese)</option>
+            <option value="ru">Русский (Russian)</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+            <option value="zh">中文 (Chinese)</option>
+          </select>
+        </div>
+
+        <!-- Switch to Senior View -->
+        <a href="/" class="btn-luxury-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          </svg>
+          <span>Senior & Home View &rarr;</span>
+        </a>
+
+        <!-- Admin Profile Badge -->
+        <div class="senior-badge" style="border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.08);">
+          <div class="senior-avatar" style="color: #fbbf24;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <div class="senior-details">
+            <div class="name">David Vance (Son)</div>
+            <div class="sub">Primary Guardian &bull; <a href="/login" style="color: var(--neon-blue);" onclick="logoutUser()">Logout</a></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Top Admin Quick Control Strip -->
+    <div class="quick-explainer-banner">
+      <div class="explainer-left">
+        <div class="explainer-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </div>
+        <div class="explainer-text">
+          <strong style="color: #fff;">Family Admin Authority Active:</strong> Viewing Eleanor Vance's live ambient safety telemetry. You can override smart locks, review multimodal risk equations, trigger direct Echo Drop-In calls, and monitor first responder CAD dispatch.
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="btn-action-admin" onclick="openVideoDemoModal()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          <span>Watch Video Demo Reel</span>
+        </button>
+        <button class="btn-action-admin" onclick="triggerEchoDropIn()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          </svg>
+          <span>Echo Drop-In Call</span>
+        </button>
+        <button class="btn-action-admin btn-danger-admin" id="btnToggleDoor" onclick="toggleDoorOverride()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+          </svg>
+          <span>Override Door Lock</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 4 High-Level Telemetry Cards -->
+    <div class="telemetry-row">
+      <div class="metric-card">
+        <div class="label">Multimodal Risk Level</div>
+        <div class="val" id="adminRiskVal" style="color: var(--neon-red);">CRITICAL</div>
+        <div class="sub" id="adminRiskSub">Score: 0.94 &bull; Inactivity Triage</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="label">Heart Rate (Apple Watch)</div>
+        <div class="val" id="adminHrVal" style="color: var(--neon-red);">138 BPM</div>
+        <div class="sub">Baseline: 72 BPM (+91.6% Surge)</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="label">Gait Speed Deviation</div>
+        <div class="val" id="adminGaitVal" style="color: var(--neon-amber);">0.88 / 1.0</div>
+        <div class="sub">Expected 0.95 m/s &bull; Anomaly Detected</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="label">Front Door Smart Lock</div>
+        <div class="val" id="adminDoorVal" style="color: var(--neon-red);">UNLOCKED</div>
+        <div class="sub">Emergency PIN: <strong>8492</strong> (911 Active)</div>
+      </div>
+    </div>
+
+    <!-- Main Admin Split Grid -->
+    <div class="admin-grid">
+
+      <!-- Left Column: Detailed AI Risk Inspector & Live Sensor Telemetry -->
+      <div>
+
+        <!-- Multimodal AI Engine Logic Card -->
+        <div class="card-box" style="margin-bottom: 24px;">
+          <div class="card-box-header">
+            <span style="display: flex; align-items: center; gap: 8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--neon-cyan)" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 16v-4M12 8h.01"/>
+              </svg>
+              <span>Aegis Multimodal Risk Intelligence Engine</span>
+            </span>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 0.74rem; font-family: var(--font-mono); color: var(--neon-cyan);">Sub-500ms Voice SLA</span>
+              <div class="view-toggle-strip">
+                <button class="btn-view-toggle active" id="btnViewVisual" onclick="switchPayloadView('visual')">Visual Breakdown</button>
+                <button class="btn-view-toggle" id="btnViewJson" onclick="switchPayloadView('json')">{ } Raw JSON</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Plain English / Clear Human Explanation -->
+          <div class="ai-decision-formula-banner" id="visualFormulaBanner">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+              <strong style="color: #ff6b81; font-size: 0.88rem; display: flex; align-items: center; gap: 6px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                AI Reasoning: Why This Incident Was Triaged as "CRITICAL"
+              </strong>
+              <span style="font-family: var(--font-mono); font-size: 0.72rem; color: #fff; background: rgba(255, 59, 87, 0.3); padding: 2px 8px; border-radius: 4px;">
+                CONFIDENCE: 94% &bull; SCORE: 0.94 / 1.0
+              </span>
+            </div>
+            <div style="font-size: 0.82rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 8px;">
+              Aegis synthesized 4 synchronized telemetry signals in <strong>18ms</strong> to confirm this was an acute emergency requiring 911:
+            </div>
+            <div>
+              <span class="formula-step-pill" style="color: #fda4af; border: 1px solid rgba(255, 59, 87, 0.3);">1. Vision Fall (94%)</span>
+              <span style="color: #94a3b8; font-size: 0.75rem;">+</span>
+              <span class="formula-step-pill" style="color: #fda4af; border: 1px solid rgba(255, 59, 87, 0.3);">2. Vitals (138 BPM Surge)</span>
+              <span style="color: #94a3b8; font-size: 0.75rem;">+</span>
+              <span class="formula-step-pill" style="color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3);">3. Wet Floor Hazard (1.55x)</span>
+              <span style="color: #94a3b8; font-size: 0.75rem;">+</span>
+              <span class="formula-step-pill" style="color: #fda4af; border: 1px solid rgba(255, 59, 87, 0.3);">4. 20s Voice Silence</span>
+              <span style="color: #94a3b8; font-size: 0.75rem;">➔</span>
+              <span class="formula-step-pill" style="background: rgba(255, 59, 87, 0.3); color: #fff; border: 1px solid #ff3b57;">911 CAD + Smart Door Auto-Unlocked</span>
+            </div>
+          </div>
+
+          <!-- 4 Clear Factor Cards (Visual View) -->
+          <div class="visual-factors-grid" id="visualFactorsGrid">
+            <!-- Factor 1: Camera & Motion -->
+            <div class="factor-card">
+              <div class="factor-icon-box" style="background: rgba(255, 59, 87, 0.15); color: #ff3b57;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              </div>
+              <div>
+                <div class="factor-title">1. Camera & mmWave Radar</div>
+                <div class="factor-val" style="color: #fda4af;">Sudden Fall Detected</div>
+                <div class="factor-sub">Downward vertical velocity: 1.82 m/s &bull; Zero post-impact movement (motionless on floor).</div>
+              </div>
+            </div>
+
+            <!-- Factor 2: Wearable Vitals -->
+            <div class="factor-card">
+              <div class="factor-icon-box" style="background: rgba(255, 59, 87, 0.15); color: #ff3b57;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </div>
+              <div>
+                <div class="factor-title">2. Apple Watch Vitals</div>
+                <div class="factor-val" style="color: #fda4af;">138 BPM Tachycardia</div>
+                <div class="factor-sub">Resting baseline is 72 BPM (+91.6% acute cardiac surge indicating shock or severe physical trauma).</div>
+              </div>
+            </div>
+
+            <!-- Factor 3: Environmental Context -->
+            <div class="factor-card">
+              <div class="factor-icon-box" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              </div>
+              <div>
+                <div class="factor-title">3. Room Hazard & Routine</div>
+                <div class="factor-val" style="color: #fbbf24;">Bathroom (Wet Floor &bull; Dark)</div>
+                <div class="factor-sub">1.55x high-hazard room multiplier &bull; 15 Lux (pitch dark) &bull; Routine deviation: 0.88 at 2:14 AM.</div>
+              </div>
+            </div>
+
+            <!-- Factor 4: Alexa Voice Check -->
+            <div class="factor-card">
+              <div class="factor-icon-box" style="background: rgba(255, 59, 87, 0.15); color: #ff3b57;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+              </div>
+              <div>
+                <div class="factor-title">4. Alexa Voice Check-In</div>
+                <div class="factor-val" style="color: #fda4af;">20s Silence (No Answer)</div>
+                <div class="factor-sub">Echo Show asked "Eleanor, are you okay?". 20 seconds elapsed with zero reply (presumed unconscious).</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Raw Standardized JSON Payload Box (Toggleable) -->
+          <div id="jsonPayloadWrapper" style="display: none;">
+            <div style="font-size: 0.74rem; font-weight: 800; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; justify-content: space-between;">
+              <span>Standardized MCP Data Contract (assess_risk):</span>
+              <span style="color: var(--neon-cyan);">Format: JSON-RPC 2.0</span>
+            </div>
+            <div class="json-box" id="rawJsonBox">{
+  "event_type": "possible_fall",
+  "confidence": 0.94,
+  "location": "bathroom",
+  "timestamp": "2026-10-17T02:14:32Z",
+  "movement_after_event": "none",
+  "vitals": {
+    "heart_rate_bpm": 138,
+    "respiration_rate": 26,
+    "fall_detected_flag": true
+  },
+  "environmental_context": {
+    "moisture": "wet_floor",
+    "ambient_lux": 15,
+    "temperature_c": 21.8
+  },
+  "alexa_voice_verification": {
+    "prompt": "Eleanor, are you okay?",
+    "response": "none_timeout_20s",
+    "presumed_unconscious": true
+  },
+  "escalation": {
+    "boston_ems_dispatched": true,
+    "front_door_smart_lock": "UNLOCKED",
+    "emergency_pin": 8492,
+    "primary_guardian_alerted": "David Vance (Son)"
+  }
+}</div>
+          </div>
+        </div>
+
+        <!-- Room Sensor Telemetry Matrix -->
+        <div class="card-box">
+          <div class="card-box-header">
+            <span style="display: flex; align-items: center; gap: 8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--neon-green)" stroke-width="2">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+              </svg>
+              <span>Ambient Sensor Array Telemetry</span>
+            </span>
+            <span style="font-size: 0.74rem; color: var(--neon-green); font-family: var(--font-mono);">4 ROOMS ONLINE</span>
+          </div>
+
+          <div class="floorplan-grid">
+            <div class="room-box has-alert" id="adminRoomBath">
+              <div class="room-name">Bathroom (Alert Zone)</div>
+              <div class="room-info">Moisture: <strong>WET</strong> &bull; Lux: 15 &bull; Motion: <strong>None</strong></div>
+              <div class="person-tag">Eleanor (Fall Event)</div>
+            </div>
+
+            <div class="room-box" id="adminRoomLiving">
+              <div class="room-name">Living Room</div>
+              <div class="room-info">Dry &bull; 380 Lux &bull; Echo Show 15 Online</div>
+            </div>
+
+            <div class="room-box" id="adminRoomKitchen">
+              <div class="room-name">Kitchen</div>
+              <div class="room-info">Dry &bull; 22.0°C &bull; Radar Pod Active</div>
+            </div>
+
+            <div class="room-box" id="adminRoomBed">
+              <div class="room-name">Bedroom</div>
+              <div class="room-info">Rest Zone &bull; 2 Lux &bull; Quiet</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Audit Timeline & Guardian Actions -->
+      <div>
+
+        <div class="card-box" style="margin-bottom: 24px;">
+          <div class="card-box-header">
+            <span>Guardian Simulation Triggers</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button class="btn-action-admin" style="justify-content: center; width: 100%; background: rgba(16, 185, 129, 0.15); border-color: var(--neon-green); color: #34d399;" onclick="triggerTestSimulation('false_alarm')">
+              Simulate Scenario 1 (False Alarm)
+            </button>
+            <button class="btn-action-admin" style="justify-content: center; width: 100%; background: rgba(245, 158, 11, 0.15); border-color: var(--neon-amber); color: #fbbf24;" onclick="triggerTestSimulation('responsive')">
+              Simulate Scenario 2 (Calls for Help)
+            </button>
+            <button class="btn-action-admin btn-danger-admin" style="justify-content: center; width: 100%;" onclick="triggerTestSimulation('silent')">
+              Simulate Scenario 3 (Silent Emergency)
+            </button>
+          </div>
+
+          <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-glass);">
+            <div style="font-size: 0.74rem; font-weight: 800; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase;">Emergency Contacts on File:</div>
+            <div style="font-size: 0.82rem; font-weight: 700; color: #fff;">1. David Vance (Son) - +1-555-019-2834</div>
+            <div style="font-size: 0.82rem; font-weight: 700; color: #fff; margin-top: 4px;">2. Boston EMS Priority CAD Dispatch (911)</div>
+            <div style="font-size: 0.82rem; font-weight: 700; color: #fff; margin-top: 4px;">3. Mass General Geriatrics (Dr. Chen)</div>
+          </div>
+        </div>
+
+        <!-- Real-Time Chronological Timeline -->
+        <div class="card-box">
+          <div class="card-box-header">
+            <span style="display: flex; align-items: center; gap: 8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--neon-blue)" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <span>Chronological Incident Audit Log</span>
+            </span>
+            <span style="font-size: 0.74rem; font-family: var(--font-mono); color: var(--text-secondary);" id="logCountBadge">4 Events</span>
+          </div>
+
+          <div class="timeline-list" id="timelineList">
+            <div class="timeline-item critical">
+              <div class="timeline-time">Just now &bull; 02:15:12 UTC</div>
+              <div class="timeline-title">Boston EMS 911 Dispatched</div>
+              <div class="timeline-desc">Medic-14 dispatched with trauma packet. Front door smart lock automatically UNLOCKED with PIN 8492.</div>
+            </div>
+
+            <div class="timeline-item warning">
+              <div class="timeline-time">2 mins ago &bull; 02:14:52 UTC</div>
+              <div class="timeline-title">Alexa Check-In Timed Out</div>
+              <div class="timeline-desc">Echo Show asked "Eleanor, are you okay?". 20 seconds elapsed with zero verbal reply. Risk escalated to CRITICAL.</div>
+            </div>
+
+            <div class="timeline-item warning">
+              <div class="timeline-time">3 mins ago &bull; 02:14:32 UTC</div>
+              <div class="timeline-title">Multimodal Risk Engine Triaged Event</div>
+              <div class="timeline-desc">Bathroom moisture sensor reported wet floor. Heart rate surged to 138 BPM. Routine deviation flagged at 0.88.</div>
+            </div>
+
+            <div class="timeline-item safe">
+              <div class="timeline-time">3 mins ago &bull; 02:14:30 UTC</div>
+              <div class="timeline-title">Edge Vision Detected Sudden Drop</div>
+              <div class="timeline-desc">Bathroom ceiling camera reported high downward vertical velocity (1.82 m/s). Confidence: 94%.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Operational Video Demo Modal -->
+  <div class="video-demo-modal" id="videoDemoModal">
+    <div class="video-demo-window">
+      <div class="video-demo-header">
+        <div class="video-demo-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--neon-cyan)" stroke-width="2">
+            <polygon points="23 7 16 12 23 17 23 7"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+          <span>Aegis Operational Video Demo Reel</span>
+        </div>
+        <button class="btn-close-modal" onclick="closeVideoDemoModal()">&times;</button>
+      </div>
+
+      <div class="video-screen-container">
+        <canvas id="demoVideoCanvas"></canvas>
+      </div>
+
+      <div class="video-controls-bar">
+        <div class="video-scrub-row">
+          <button class="btn-action-admin" id="btnVideoPlayPause" onclick="videoReel.togglePlay()" style="padding: 7px 16px; font-size: 0.8rem;">
+            Pause
+          </button>
+          <button class="btn-action-admin" id="btnVideoMute" onclick="videoReel.toggleMute()" style="padding: 7px 14px; font-size: 0.8rem; background: rgba(255, 255, 255, 0.08); color: var(--neon-cyan);">
+            Audio: ON
+          </button>
+          <input type="range" id="videoProgressBar" class="video-progress-slider" min="0" max="100" value="0" oninput="videoReel.seek((this.value/100)*videoReel.duration)">
+          <div class="video-time-tag" id="videoTimeDisplay">00:00 / 00:50</div>
+        </div>
+
+        <div class="video-action-row">
+          <div style="font-size: 0.74rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase;">Chapters:</div>
+          <div class="chapter-btn-strip">
+            <button class="btn-chapter" onclick="seekVideoToScene(0)">1. Setup</button>
+            <button class="btn-chapter" onclick="seekVideoToScene(1)">2. Fall Detected</button>
+            <button class="btn-chapter" onclick="seekVideoToScene(2)">3. Alexa Check-In</button>
+            <button class="btn-chapter" onclick="seekVideoToScene(3)">4. Son Alerted</button>
+            <button class="btn-chapter" onclick="seekVideoToScene(4)">5. 911 & Door Unlock</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="video-subtitles-bar">
+        <div class="subtitles-icon" style="color: var(--neon-cyan);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <div class="subtitles-text">
+          <strong id="videoCaptionTitle">1. Senior Living Alone</strong>
+          <p id="videoCaptionSub">Eleanor Vance (Age 79) lives independently in Beacon Hill Unit 4B with ambient radar monitoring.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-area" id="toastContainer"></div>
+
+  <script src="/static/three.min.js"></script>
+  <script src="/static/i18n.js?v=4.0"></script>
+  <script src="/static/voice_audio.js?v=4.0"></script>
+  <script src="/static/video_reel.js?v=4.0"></script>
+  <script src="/static/admin.js?v=4.0"></script>
+</body>
+</html>

@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aegis Ambient Care — Senior Safety Intelligence</title>
+  <meta name="description" content="Visual AI camera, voice notes, and ambient elder safety monitoring system for Amazon Developer Hackathon 2026.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/dashboard.css?v=6.0">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Tesla-Style Minimalist Top Header -->
+    <header class="app-header">
+      <div class="brand-section">
+        <div class="brand-logo-shield">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-name">
+            <span data-i18n="appTitle">Aegis Ambient Care</span>
+          </div>
+          <div class="brand-subtitle">
+            <span class="status-dot-pulse"></span>
+            <span data-i18n="tagline">Ambient AI Elder Safety</span> &bull; 
+            <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent-blue);">MCP STREAM LIVE (18ms SLA)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Global Language Selector -->
+        <select id="langSelector" class="lang-select-box" onchange="setLanguage(this.value)">
+          <option value="en">English (US)</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+          <option value="pt">Português</option>
+          <option value="ar">العربية (Arabic)</option>
+          <option value="ja">日本語 (Japanese)</option>
+          <option value="ru">Русский (Russian)</option>
+          <option value="hi">हिन्दी (Hindi)</option>
+          <option value="zh">中文 (Chinese)</option>
+        </select>
+
+        <!-- Switch to Son's Admin Portal -->
+        <a href="/admin" class="btn-admin-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <span data-i18n="adminLink">Family Admin Portal &rarr;</span>
+        </a>
+
+        <!-- Senior Profile Capsule -->
+        <div class="header-chip">
+          <div class="avatar-chip">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <div>
+            <div style="font-size: 0.82rem; font-weight: 700; color: #fff;" data-i18n="seniorName">Eleanor Vance (Age 79)</div>
+            <div style="font-size: 0.7rem; color: var(--text-secondary);" data-i18n="seniorLoc">Beacon Hill &bull; Unit 4B</div>
+          </div>
+        </div>
+
+        <!-- User Role Session -->
+        <div class="header-chip" id="userSessionBadge">
+          <div class="avatar-chip" id="userAvatar">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+            </svg>
+          </div>
+          <div>
+            <div style="font-size: 0.82rem; font-weight: 700; color: #fff;" id="userName">David Vance (Son)</div>
+            <div style="font-size: 0.7rem; color: var(--text-secondary);">
+              <span id="userRole" data-i18n="userRole">Primary Guardian</span> &bull; 
+              <a href="/login" onclick="logoutUser()">Switch</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Tesla Driving Mode Style Scenario Controller -->
+    <div class="scenario-bar-container">
+      <div class="scenario-bar-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polygon points="10 8 16 12 10 16 10 8"/>
+        </svg>
+        <span>Test Scenario Modes:</span>
+      </div>
+      <div class="scenario-buttons-strip">
+        <button class="pill-scenario-btn btn-green" id="tabScenario1" onclick="switchScenario('false_alarm')">
+          <span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981;"></span>
+          <span data-i18n="tabScenario1Title">Normal / Safe (False Alarm)</span>
+        </button>
+        <button class="pill-scenario-btn btn-amber" id="tabScenario2" onclick="switchScenario('responsive')">
+          <span style="width: 7px; height: 7px; border-radius: 50%; background: #f59e0b;"></span>
+          <span data-i18n="tabScenario2Title">Assisted (Caregiver Alert)</span>
+        </button>
+        <button class="pill-scenario-btn btn-red active" id="tabScenario3" onclick="switchScenario('silent')">
+          <span style="width: 7px; height: 7px; border-radius: 50%; background: #f43f5e;"></span>
+          <span data-i18n="tabScenario3Title">Emergency (911 CAD Dispatch)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Apple iOS / macOS Style Multi-View Tab Navigation -->
+    <nav class="tab-navigation-strip">
+      <button class="tab-nav-btn active" id="tabBtnOverview" onclick="switchTab('overview')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/>
+          <rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        <span>1. Overview & Health Vitals</span>
+      </button>
+
+      <button class="tab-nav-btn" id="tabBtnVision" onclick="switchTab('vision')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 7l-7 5 7 5V7z"/>
+          <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+        </svg>
+        <span>2. Live Vision & Floorplan</span>
+      </button>
+
+      <button class="tab-nav-btn" id="tabBtnVoice" onclick="switchTab('voice')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/>
+          <line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+        <span>3. Voice AI & Conversational Hub</span>
+      </button>
+
+      <button class="tab-nav-btn" id="tabBtnDispatch" onclick="switchTab('dispatch')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+          <polyline points="2 17 12 22 22 17"/>
+          <polyline points="2 12 12 17 22 12"/>
+        </svg>
+        <span>4. 911 CAD & Caregiver Dispatch</span>
+      </button>
+    </nav>
+
+    <!-- ======================================================================
+         TAB 1: OVERVIEW & HEALTH VITALS (Executive Health Snapshot)
+         ====================================================================== -->
+    <div class="tab-content-panel active" id="panelOverview">
+      <!-- 1-Glance Reassurance Banner -->
+      <section class="hero-ribbon is-critical" id="heroStatusCard">
+        <div class="ribbon-info-left">
+          <div class="ribbon-emblem" id="heroStatusIcon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+          <div class="ribbon-text">
+            <div class="title" id="heroStatusTitle" style="color: var(--accent-red);" data-i18n="emergencyStatus">
+              Emergency Action Active: Boston EMS 911 Dispatched
+            </div>
+            <div class="sub" id="heroStatusSub">
+              Bathroom fall at 2:14 AM. Eleanor is silent. Smart door lock is UNLOCKED for medics.
+            </div>
+          </div>
+        </div>
+
+        <div class="ribbon-action-buttons">
+          <button class="btn-luxury-primary" onclick="openVideoDemoModal()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            <strong>Watch Video Demo Reel</strong>
+          </button>
+
+          <button class="btn-luxury-secondary" onclick="window.voiceAudio.testAudio()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            </svg>
+            <strong>Test Speech</strong>
+          </button>
+
+          <button class="btn-luxury-secondary" onclick="openVideoGuideModal()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+            <span data-i18n="videoGuideBtn">Operation Guide</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Apple Health-Style 3 Activity Rings -->
+      <div class="overview-stats-grid">
+        <!-- Heart Rate Ring -->
+        <div class="stat-ring-card">
+          <div class="ring-svg-wrap">
+            <svg class="ring-svg" viewBox="0 0 36 36">
+              <path class="ring-circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path class="ring-circle-fill" id="ringHrFill" stroke="var(--accent-red)" stroke-dasharray="100, 100" stroke-dashoffset="15" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            </svg>
+            <div class="ring-icon-center" style="color: var(--accent-red);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-details">
+            <div class="stat-label" data-i18n="heartRate">Heart Rate Vitals</div>
+            <div class="stat-value" id="vitalsHR" style="color: var(--accent-red);">138 BPM</div>
+            <div class="stat-subtext" id="vitalsHRSub">Acute tachycardia (+91% surge)</div>
+          </div>
+        </div>
+
+        <!-- Movement Ring -->
+        <div class="stat-ring-card">
+          <div class="ring-svg-wrap">
+            <svg class="ring-svg" viewBox="0 0 36 36">
+              <path class="ring-circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path class="ring-circle-fill" id="ringMoveFill" stroke="var(--accent-amber)" stroke-dasharray="100, 100" stroke-dashoffset="95" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            </svg>
+            <div class="ring-icon-center" style="color: var(--accent-amber);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="5" r="2"/>
+                <path d="M10 22v-5l-2-2v-4l4-2 3 3v5"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-details">
+            <div class="stat-label" data-i18n="movement">Post-Fall Movement</div>
+            <div class="stat-value" id="vitalsMove" style="color: var(--accent-red);">None</div>
+            <div class="stat-subtext" id="vitalsMoveSub">Motionless on floor (Acute hazard)</div>
+          </div>
+        </div>
+
+        <!-- Apple Watch Connection -->
+        <div class="stat-ring-card">
+          <div class="ring-svg-wrap">
+            <svg class="ring-svg" viewBox="0 0 36 36">
+              <path class="ring-circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path class="ring-circle-fill" stroke="var(--accent-green)" stroke-dasharray="100, 100" stroke-dashoffset="16" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            </svg>
+            <div class="ring-icon-center" style="color: var(--accent-green);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="6" y="7" width="12" height="10" rx="2"/>
+                <path d="M9 7V3h6v4M9 17v4h6v-4"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-details">
+            <div class="stat-label" data-i18n="appleWatch">Apple Watch & Radar</div>
+            <div class="stat-value" style="color: var(--accent-green);" data-i18n="connected">Connected</div>
+            <div class="stat-subtext">Battery: 84% &bull; mmWave 60GHz Active</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Summary Row -->
+      <div class="two-col-grid">
+        <!-- Room Location & Smart Lock -->
+        <div class="content-card">
+          <div class="card-header-bar">
+            <span>Location & Residence Security</span>
+            <span style="font-size: 0.76rem; color: var(--accent-blue); font-weight: 700;">Live Sensor Stream</span>
+          </div>
+
+          <div class="door-lock-bar" id="doorLockBar">
+            <div class="door-icon" id="doorIcon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+              </svg>
+            </div>
+            <div class="door-text">
+              <div class="door-title" id="doorTitle" data-i18n="doorUnlocked">Front Door Smart Lock: UNLOCKED FOR 911</div>
+              <div class="door-sub" id="doorSub" data-i18n="doorPinSub">Auto-unlocked for Boston EMS First Responders (PIN: 8492)</div>
+            </div>
+          </div>
+
+          <div>
+            <button class="btn-luxury-secondary" style="width: 100%; justify-content: center;" onclick="switchTab('vision')">
+              Open Full Vision & Architectural Floorplan &rarr;
+            </button>
+          </div>
+        </div>
+
+        <!-- Caregiver & EMS Quick Snapshot -->
+        <div class="content-card">
+          <div class="card-header-bar">
+            <span>Active Dispatch Status</span>
+            <span style="font-size: 0.74rem; color: var(--accent-green); font-family: var(--font-mono);">SYNCED</span>
+          </div>
+
+          <div class="outcomes-grid">
+            <div class="outcome-card" id="cardSarah">
+              <div class="outcome-icon" id="iconSarah" style="color: var(--accent-amber);">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                  <line x1="12" y1="18" x2="12.01" y2="18"/>
+                </svg>
+              </div>
+              <div class="outcome-text">
+                <div class="title" id="titleSarah" data-i18n="sonTitle">David Vance (Son &bull; Guardian)</div>
+                <div class="sub" id="descSarah">Echo Drop-In Active & SMS Sent</div>
+              </div>
+            </div>
+
+            <div class="outcome-card" id="cardEms" style="border-color: rgba(244, 63, 94, 0.4); background: rgba(244, 63, 94, 0.08);">
+              <div class="outcome-icon" id="iconEms" style="color: var(--accent-red);">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                  <polyline points="2 17 12 22 22 17"/>
+                  <polyline points="2 12 12 17 22 12"/>
+                </svg>
+              </div>
+              <div class="outcome-text">
+                <div class="title" id="titleEms" data-i18n="emsTitle">Boston EMS 911 Dispatch</div>
+                <div class="sub" id="descEms" style="color: var(--accent-red); font-weight: 700;">Medic-14 Dispatched &bull; Smart Door UNLOCKED</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <button class="btn-luxury-primary" id="btnPlayStory" style="width: 100%; justify-content: center;" onclick="playStepByStepStory()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+              <span data-i18n="playAnimation">Play Story Walkthrough Animation</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         TAB 2: LIVE VISION & ARCHITECTURAL FLOORPLAN
+         ====================================================================== -->
+    <div class="tab-content-panel" id="panelVision">
+      <div class="two-col-grid">
+        <!-- Live YOLO Pose Estimation Camera Viewport -->
+        <section class="camera-cinema-card">
+          <div class="camera-cinema-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="camHeaderIcon" style="display: inline-flex; align-items: center; color: var(--accent-blue);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 7l-7 5 7 5V7z"/>
+                  <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                </svg>
+              </span>
+              <span id="camHeaderTitle" style="font-size: 0.92rem; font-weight: 700; color: #fff;">Live Camera & Radar Feed: Bathroom</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <button class="btn-luxury-secondary" id="btnToggle3DMode" onclick="toggleMain3DMode()" style="padding: 5px 12px; font-size: 0.74rem;">
+                3D Digital Twin View
+              </button>
+              <div class="rec-badge-live">
+                <span class="rec-pulse-dot"></span> LIVE 30 FPS
+              </div>
+            </div>
+          </div>
+
+          <div class="canvas-viewport">
+            <canvas id="cameraCanvas"></canvas>
+            <canvas id="threeDCanvas" style="display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0;"></canvas>
+            <div class="camera-hud-overlay">
+              <div class="hud-pill" id="camHudPill">
+                CAM-01 BATHROOM &bull; 1080p &bull; CEILING RADAR
+              </div>
+              <div class="hud-detection-tag" id="hudDetectionTag">
+                FALL DETECTED &bull; CONF: 94%
+              </div>
+            </div>
+          </div>
+
+          <div class="camera-cinema-footer">
+            <span style="font-weight: 700; text-transform: uppercase;">Edge Inference:</span>
+            <span style="font-family: var(--font-mono); color: var(--accent-blue);">YOLOv8-POSE &bull; 17 KEYPOINTS &bull; RADAR FUSION</span>
+          </div>
+        </section>
+
+        <!-- Digital Twin Architectural Floorplan -->
+        <section class="content-card">
+          <div class="card-header-bar">
+            <span>Apartment Digital Twin Map</span>
+            <span style="font-size: 0.76rem; color: var(--accent-blue); font-weight: 700; text-transform: uppercase;">Click Room to Switch</span>
+          </div>
+
+          <div class="rooms-interactive-grid">
+            <!-- Bathroom -->
+            <div class="room-visual-tile alert-active selected" id="tileBathroom" onclick="selectRoomTile('bathroom')">
+              <div class="room-tile-title" data-i18n="bathroom">Bathroom</div>
+              <div class="room-tile-sub" id="subBathroom">Wet Floor &bull; 15 Lux &bull; Radar Active</div>
+              <div class="senior-here-pill" id="tagBathroom">Eleanor is here</div>
+            </div>
+
+            <!-- Living Room -->
+            <div class="room-visual-tile" id="tileLiving" onclick="selectRoomTile('living')">
+              <div class="room-tile-title" data-i18n="livingRoom">Living Room</div>
+              <div class="room-tile-sub">Dry &bull; 380 Lux &bull; Echo Show 15</div>
+              <div class="senior-here-pill" id="tagLiving" style="display: none;">Eleanor is here</div>
+            </div>
+
+            <!-- Kitchen -->
+            <div class="room-visual-tile" id="tileKitchen" onclick="selectRoomTile('kitchen')">
+              <div class="room-tile-title" data-i18n="kitchen">Kitchen</div>
+              <div class="room-tile-sub">Dry &bull; 22°C &bull; Radar Pod</div>
+              <div class="senior-here-pill" id="tagKitchen" style="display: none;">Eleanor is here</div>
+            </div>
+
+            <!-- Bedroom -->
+            <div class="room-visual-tile" id="tileBedroom" onclick="selectRoomTile('bedroom')">
+              <div class="room-tile-title" data-i18n="bedroom">Bedroom</div>
+              <div class="room-tile-sub">Rest Zone &bull; 2 Lux &bull; Quiet</div>
+              <div class="senior-here-pill" id="tagBedroom" style="display: none;">Eleanor is here</div>
+            </div>
+          </div>
+
+          <div style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.45; background: var(--bg-card-subtle); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+            <strong>Ambient Radar Note:</strong> 60GHz ceiling radar sensors provide 24/7 privacy-preserving presence detection even when cameras are occluded by steam or darkness.
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         TAB 3: VOICE AI & CONVERSATIONAL HUB (Echo Show 15 Check-In)
+         ====================================================================== -->
+    <div class="tab-content-panel" id="panelVoice">
+      <div class="two-col-grid">
+        <!-- Alexa Conversational Terminal -->
+        <section class="content-card">
+          <div class="card-header-bar">
+            <span style="display: flex; align-items: center; gap: 8px;">
+              <span class="alexa-halo-ring"></span>
+              <span>Amazon Echo Show 15 Conversational Terminal</span>
+            </span>
+            <div class="soundwave-box">
+              <span class="soundwave-bar"></span>
+              <span class="soundwave-bar"></span>
+              <span class="soundwave-bar"></span>
+              <span class="soundwave-bar"></span>
+            </div>
+          </div>
+
+          <div class="dialog-container">
+            <div class="bubble alexa">
+              <div class="label" data-i18n="alexaAsks">Alexa Voice Prompt:</div>
+              <div id="dialogAlexaText">
+                "Eleanor, this is Aegis. I noticed a fall in the bathroom. Are you okay? Please tell me if you need help."
+              </div>
+            </div>
+
+            <div class="bubble senior" id="dialogSeniorBubble">
+              <div class="label" data-i18n="seniorReply">Eleanor's Acoustic Response:</div>
+              <div id="dialogSeniorText">
+                <em>&lt;No response for 20 seconds &bull; Presumed unconscious&gt;</em>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size: 0.76rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px;" data-i18n="answerForMom">
+              Test Voice State Transitions:
+            </div>
+            <div class="interactive-buttons">
+              <button class="btn-choice choice-ok" onclick="userAnswer('ok')">
+                <span data-i18n="btnImOk">"I'm okay" (Safe)</span>
+              </button>
+              <button class="btn-choice choice-help" onclick="userAnswer('help')">
+                <span data-i18n="btnHelpMe">"Help me!" (Distress)</span>
+              </button>
+              <button class="btn-choice choice-silent" onclick="userAnswer('timeout')">
+                <span data-i18n="btnSilent">&lt;Silence / 20s&gt;</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Voice Notes & Audio Transcripts -->
+        <section class="content-card">
+          <div class="card-header-bar">
+            <span>Voice Notes Audio Player</span>
+            <span style="font-size: 0.76rem; color: var(--accent-blue); font-weight: 700;">Click to Listen</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <!-- Note 1 -->
+            <div class="voicenote-player-card">
+              <div class="voicenote-meta">
+                <div class="voicenote-speaker">Echo Show 15 (Alexa)</div>
+                <div class="voicenote-time">0:06 &bull; Audio Active</div>
+              </div>
+              <div class="voicenote-quote">
+                "Eleanor, this is Aegis. I noticed a fall in the bathroom. Are you okay?"
+              </div>
+              <button class="btn-play-voicenote" id="btnPlayAlexaVoice" onclick="playAlexaVoiceNote()">
+                Listen to Alexa Voice Note
+              </button>
+            </div>
+
+            <!-- Note 2 -->
+            <div class="voicenote-player-card">
+              <div class="voicenote-meta">
+                <div class="voicenote-speaker">Eleanor Vance (Patient)</div>
+                <div class="voicenote-time">0:04 &bull; In-Room Mic</div>
+              </div>
+              <div class="voicenote-quote" id="quoteSeniorVoice">
+                "No response for 20 seconds. Presumed unconscious."
+              </div>
+              <button class="btn-play-voicenote" id="btnPlaySeniorVoice" onclick="playSeniorVoiceNote()">
+                Listen to Eleanor's Voice Reply
+              </button>
+            </div>
+
+            <!-- Note 3 -->
+            <div class="voicenote-player-card">
+              <div class="voicenote-meta">
+                <div class="voicenote-speaker">David Vance (Son &bull; Guardian)</div>
+                <div class="voicenote-time">0:08 &bull; Phone Drop-In</div>
+              </div>
+              <div class="voicenote-quote">
+                "Mom! This is David. Aegis just alerted me on Alexa. I'm rushing over right now!"
+              </div>
+              <button class="btn-play-voicenote" onclick="playSonVoiceMemo()">
+                Listen to Son David's Voice Memo
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         TAB 4: 911 CAD & CAREGIVER DISPATCH
+         ====================================================================== -->
+    <div class="tab-content-panel" id="panelDispatch">
+      <div class="two-col-grid">
+        <!-- 911 CAD Emergency Packet -->
+        <section class="content-card">
+          <div class="card-header-bar">
+            <span>Boston EMS 911 CAD Incident Packet</span>
+            <span style="font-size: 0.74rem; font-family: var(--font-mono); color: var(--accent-red);">CODE: RED-911</span>
+          </div>
+
+          <div style="background: rgba(244, 63, 94, 0.08); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 14px;">
+            <div style="font-size: 0.88rem; font-weight: 800; color: #fff; margin-bottom: 6px;">
+              CAD Incident #BOS-2026-88192 &bull; Unit: Medic-14 Dispatched
+            </div>
+            <div style="font-size: 0.78rem; color: #cbd5e1; line-height: 1.45;">
+              Patient: Eleanor Vance (Age 79) &bull; Location: Beacon Hill, Unit 4B<br>
+              Triage: Nocturnal bathroom fall + tachycardia (138 BPM) + 20s voice timeout (unresponsive).<br>
+              Smart Entrance Lock: <strong>UNLOCKED FOR FIRST RESPONDERS (PIN: 8492)</strong>.
+            </div>
+          </div>
+
+          <div style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.45;">
+            <strong>Medical Notes on File:</strong> Mild osteoporosis, penicillin allergy, DNR on file. Priority trauma protocol active.
+          </div>
+        </section>
+
+        <!-- Caregiver Channel Status -->
+        <section class="content-card">
+          <div class="card-header-bar">
+            <span>Family Guardian Notification Hub</span>
+            <span style="font-size: 0.74rem; font-family: var(--font-mono); color: var(--accent-green);">DISPATCH ACTIVE</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="background: var(--bg-card-subtle); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px;">
+              <div style="font-size: 0.84rem; font-weight: 700; color: #fff; margin-bottom: 2px;">
+                Channel 1: Echo Show 15 Drop-In Call
+              </div>
+              <div style="font-size: 0.76rem; color: var(--accent-green);">
+                &bull; Live two-way audio active to David Vance's smartphone
+              </div>
+            </div>
+
+            <div style="background: var(--bg-card-subtle); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px;">
+              <div style="font-size: 0.84rem; font-weight: 700; color: #fff; margin-bottom: 2px;">
+                Channel 2: High-Priority Push Notification
+              </div>
+              <div style="font-size: 0.76rem; color: var(--text-secondary);">
+                &bull; Delivered to iOS & Android Guardian App (02:14:34 UTC)
+              </div>
+            </div>
+
+            <div style="background: var(--bg-card-subtle); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px;">
+              <div style="font-size: 0.84rem; font-weight: 700; color: #fff; margin-bottom: 2px;">
+                Channel 3: Automated SMS Alert & GPS Link
+              </div>
+              <div style="font-size: 0.76rem; color: var(--text-secondary);">
+                &bull; Sent to +1-555-019-2834 with door PIN token 8492
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Operational Video Demo Modal -->
+  <div class="video-demo-modal" id="videoDemoModal">
+    <div class="video-demo-window">
+      <div class="video-demo-header">
+        <div class="video-demo-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2">
+            <polygon points="23 7 16 12 23 17 23 7"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+          <span>Aegis Operational Video Demo Reel</span>
+        </div>
+        <button class="btn-close-modal" onclick="closeVideoDemoModal()">&times;</button>
+      </div>
+
+      <div class="video-screen-container">
+        <canvas id="demoVideoCanvas"></canvas>
+      </div>
+
+      <div class="video-controls-bar">
+        <div class="video-scrub-row">
+          <button class="btn-luxury-primary" id="btnVideoPlayPause" onclick="videoReel.togglePlay()" style="padding: 6px 14px; font-size: 0.78rem;">
+            Pause
+          </button>
+          <button class="btn-luxury-secondary" id="btnVideoMute" onclick="videoReel.toggleMute()" style="padding: 6px 12px; font-size: 0.78rem;">
+            Audio: ON
+          </button>
+          <button class="btn-luxury-secondary" id="btnVideoTestAudio" onclick="window.voiceAudio.testAudio()" style="padding: 6px 12px; font-size: 0.78rem;">
+            Test Sound
+          </button>
+          <input type="range" id="videoProgressBar" class="video-progress-slider" min="0" max="100" value="0" oninput="videoReel.seek((this.value/100)*videoReel.duration)">
+          <div class="video-time-tag" id="videoTimeDisplay">00:00 / 00:50</div>
+        </div>
+
+        <div class="video-action-row">
+          <div style="font-size: 0.72rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase;">Chapters:</div>
+          <div class="chapter-btn-strip">
+            <button class="btn-chapter" onclick="seekVideoToScene(0)">1. Setup</button>
+            <button class="btn-chapter" onclick="seekVideoToScene(1)">2. Fall Detected</button>
+            <button class="btn-chapter" onclick="seekVideoToScene(2)">3. Alexa Check-In</button>
+            <button class="btn-chapter" onclick="seekVideoToScene(3)">4. Son Alerted</button>
+            <button class="btn-chapter" onclick="seekVideoToScene(4)">5. 911 & Door Unlock</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="video-subtitles-bar">
+        <div class="subtitles-text">
+          <strong id="videoCaptionTitle">1. Senior Living Alone</strong>
+          <p id="videoCaptionSub">Eleanor Vance (Age 79) lives independently in Beacon Hill Unit 4B with ambient radar monitoring.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Operation Guide Modal -->
+  <div class="modal-overlay" id="videoGuideModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>Aegis Ambient Care &bull; Operation Guide</span>
+        </div>
+        <button class="btn-close-modal" onclick="closeVideoGuideModal()">&times;</button>
+      </div>
+
+      <div class="guide-step-list">
+        <div class="guide-step-item">
+          <div class="guide-step-badge">Tab 1</div>
+          <div class="guide-step-text">
+            <strong>Overview & Health Vitals:</strong>
+            <p>1-glance senior safety status, Apple Watch activity rings, and live door lock deadbolt state.</p>
+          </div>
+        </div>
+        <div class="guide-step-item">
+          <div class="guide-step-badge">Tab 2</div>
+          <div class="guide-step-text">
+            <strong>Live Vision & Digital Twin Floorplan:</strong>
+            <p>Real-time edge camera with YOLO pose estimation skeleton and interactive 4-room apartment layout.</p>
+          </div>
+        </div>
+        <div class="guide-step-item">
+          <div class="guide-step-badge">Tab 3</div>
+          <div class="guide-step-text">
+            <strong>Voice AI Conversational Terminal:</strong>
+            <p>Echo Show 15 state machine dialog stream with voice notes player and interactive utterance simulator.</p>
+          </div>
+        </div>
+        <div class="guide-step-item">
+          <div class="guide-step-badge">Tab 4</div>
+          <div class="guide-step-text">
+            <strong>911 CAD & Caregiver Dispatch:</strong>
+            <p>Computer-Aided Dispatch clinical emergency packet with smart lock PIN token 8492.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding: 0 20px 20px 20px; text-align: center;">
+        <button class="btn-luxury-primary" style="width: 100%; justify-content: center;" onclick="openVideoDemoModal(); closeVideoGuideModal();">
+          Launch Video Demo Reel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-area" id="toastContainer"></div>
+
+  <script src="/static/three.min.js"></script>
+  <script src="/static/i18n.js?v=6.0"></script>
+  <script src="/static/voice_audio.js?v=6.0"></script>
+  <script src="/static/camera_sim.js?v=6.0"></script>
+  <script src="/static/video_reel.js?v=6.0"></script>
+  <script src="/static/dashboard.js?v=6.0"></script>
+</body>
+</html>
