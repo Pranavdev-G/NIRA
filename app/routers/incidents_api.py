@@ -284,7 +284,7 @@ def get_active_incidents(db: Session = Depends(get_db)):
     incidents = (
         db.query(IncidentModel)
         .filter(IncidentModel.status.in_(["ACTIVE", "ESCALATED_CAREGIVER", "ESCALATED_CAD"]))
-        .order_by(IncidentModel.created_at.desc())
+        .order_by(IncidentModel.updated_at.desc(), IncidentModel.created_at.desc())
         .limit(50)
         .all()
     )

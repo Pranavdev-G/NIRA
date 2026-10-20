@@ -160,7 +160,7 @@ class EmergencyWorkflowEngine:
         movement_after_event: str = "none",
         correlation_id: Optional[str] = None,
         idempotency_key: Optional[str] = None,
-        dedup_window_seconds: int = 300
+        dedup_window_seconds: int = 10
     ) -> Tuple[IncidentModel, bool]:
         """
         Idempotent incident creation.
@@ -182,32 +182,35 @@ class EmergencyWorkflowEngine:
                 logger.info(f"Idempotent hit: Reusing incident {existing_by_key.id} matching key {idempotency_key}")
                 return existing_by_key, False
 
-        # 2. Check active incident for same resident & location within deduplication window
-        window_start = now - timedelta(seconds=dedup_window_seconds)
-        active_incident = (
-            db.query(IncidentModel)
-            .filter(
-                IncidentModel.user_id == resident_id,
-                IncidentModel.location == location,
-                IncidentModel.status.in_(["ACTIVE", "ESCALATED_CAREGIVER", "ESCALATED_CAD"]),
-                IncidentModel.created_at >= window_start
+        # 2. Check active emergency incident for same resident & location within deduplication window
+        # Ongoing fall emergencies attach subsequent sensor pulses rather than creating duplicate dispatches.
+        if dedup_window_seconds > 0 and (idempotency_key or event_type in ["possible_fall", "fall"]):
+            window_start = now - timedelta(seconds=dedup_window_seconds)
+            active_incident = (
+                db.query(IncidentModel)
+                .filter(
+                    IncidentModel.user_id == resident_id,
+                    IncidentModel.location == location,
+                    IncidentModel.event_type == event_type,
+                    IncidentModel.status == "ACTIVE",
+                    IncidentModel.created_at >= window_start
+                )
+                .order_by(IncidentModel.created_at.desc())
+                .first()
             )
-            .order_by(IncidentModel.created_at.desc())
-            .first()
-        )
 
-        if active_incident:
-            logger.info(f"Deduplication hit: Attaching to active incident {active_incident.id} in {location}")
-            # Update with fresh telemetry evidence without creating duplicate incident
-            active_incident.confidence = max(active_incident.confidence, confidence)
-            active_incident.updated_at = now
-            if context_snapshot:
-                merged_ctx = active_incident.context_snapshot or {}
-                merged_ctx.update(context_snapshot)
-                active_incident.context_snapshot = merged_ctx
-            db.commit()
-            db.refresh(active_incident)
-            return active_incident, False
+            if active_incident:
+                logger.info(f"Deduplication hit: Attaching to active incident {active_incident.id} in {location}")
+                # Update with fresh telemetry evidence without creating duplicate incident
+                active_incident.confidence = max(active_incident.confidence, confidence)
+                active_incident.updated_at = now
+                if context_snapshot:
+                    merged_ctx = active_incident.context_snapshot or {}
+                    merged_ctx.update(context_snapshot)
+                    active_incident.context_snapshot = merged_ctx
+                db.commit()
+                db.refresh(active_incident)
+                return active_incident, False
 
         # 3. Create new incident starting at DETECTED
         incident_id = f"INC-{now.strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
@@ -450,7 +453,11 @@ class EmergencyWorkflowEngine:
         clean_text = transcript.strip().lower()
 
         # SCENARIO A: Elder says "I'm okay"
-        safe_keywords = ["i'm okay", "i am okay", "i'm fine", "i am fine", "false alarm", "all good", "no help", "just dropped", "i slipped but okay"]
+        safe_keywords = [
+            "i'm okay", "i am okay", "i'm fine", "i am fine", "false alarm",
+            "all good", "no help", "just dropped", "i slipped but okay",
+            "everything is fine", "fine here", "all is fine"
+        ]
         is_safe = any(kw in clean_text for kw in safe_keywords)
 
         # SCENARIO C: Elder says they cannot move
@@ -503,6 +510,7 @@ class EmergencyWorkflowEngine:
                 "status": "RESOLVED",
                 "risk_level": "LOW",
                 "workflow_state": EmergencyWorkflowState.RESOLVED.value,
+                "voice_intent": "safe",
                 "scenario": "A_SAFE_CONFIRMATION",
                 "action_taken": "RESOLVED_SAFE_CANCELLED",
                 "transcript": transcript

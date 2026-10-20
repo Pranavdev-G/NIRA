@@ -297,10 +297,10 @@ function playAlexaVoiceNote() {
   const text = document.getElementById("dialogAlexaText")?.textContent || "Eleanor, this is Aegis. I noticed a fall in the bathroom. Are you okay? Please tell me if you need help.";
   voiceAudio.playAudioClip("/static/audio/alexa_checkin.wav", text, "alexa", () => {
     const btn = document.getElementById("btnPlayAlexaVoice");
-    if (btn) btn.innerHTML = "🔊 <em>Playing Alexa...</em>";
+    if (btn) btn.innerHTML = "🔊 <em>Playing Synthesized NIRA...</em>";
   }, () => {
     const btn = document.getElementById("btnPlayAlexaVoice");
-    if (btn) btn.innerHTML = "▶️ Listen to Alexa Voice Note";
+    if (btn) btn.innerHTML = "▶️ Listen to Synthesized NIRA Prompt [Demo]";
   });
 }
 
@@ -319,10 +319,10 @@ function playSeniorVoiceNote() {
 
   voiceAudio.playAudioClip(url, text, "senior", () => {
     const btn = document.getElementById("btnPlaySeniorVoice");
-    if (btn) btn.innerHTML = "🔊 <em>Playing Eleanor...</em>";
+    if (btn) btn.innerHTML = "🔊 <em>Playing Synthesized Eleanor...</em>";
   }, () => {
     const btn = document.getElementById("btnPlaySeniorVoice");
-    if (btn) btn.innerHTML = "▶️ Listen to Eleanor's Voice Reply";
+    if (btn) btn.innerHTML = "▶️ Listen to Eleanor's Voice Reply [Demo]";
   });
 }
 
