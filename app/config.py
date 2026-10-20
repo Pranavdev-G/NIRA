@@ -3,7 +3,7 @@ Application configuration for Aegis Ambient Care MCP Server.
 Amazon Developer Hackathon 2026.
 """
 
-from typing import List
+from typing import List, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -33,6 +33,12 @@ class Settings(BaseSettings):
     EMS_DISPATCH_ENDPOINT: str = "https://mock-cad.emergency-services.internal/v1/dispatch"
     EMS_DISPATCH_TIMEOUT_SEC: float = 0.250  # Fast internal timeout to preserve SLA
     
+    # SMS & Notification Provider (simulated or textbee)
+    SMS_PROVIDER: str = "simulated"
+    TEXTBEE_API_KEY: Optional[str] = None
+    TEXTBEE_DEVICE_ID: Optional[str] = None
+    TEXTBEE_BASE_URL: str = "https://api.textbee.dev/api/v1"
+
     # CORS
     CORS_ORIGINS: List[str] = ["*"]
     CORS_ALLOW_CREDENTIALS: bool = True

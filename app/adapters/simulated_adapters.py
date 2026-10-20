@@ -190,6 +190,60 @@ class SimulatedSMSAdapter(BaseCaregiverMessagingAdapter):
         metadata: Optional[Dict[str, Any]] = None
     ) -> AdapterResult:
         tx_id = f"SMS-TX-{uuid.uuid4().hex[:8].upper()}"
+
+        # Real TextBee Open-Source Gateway Delivery (if configured in .env)
+        from app.config import settings
+        import httpx
+
+        if (
+            getattr(settings, "SMS_PROVIDER", "").lower() == "textbee"
+            and getattr(settings, "TEXTBEE_API_KEY", None)
+            and getattr(settings, "TEXTBEE_DEVICE_ID", None)
+        ):
+            base_url = getattr(settings, "TEXTBEE_BASE_URL", "https://api.textbee.dev/api/v1").rstrip("/")
+            device_id = settings.TEXTBEE_DEVICE_ID
+            url = f"{base_url}/gateway/devices/{device_id}/sendSMS"
+            sms_text = f"{headline}\n\n{body}"
+            headers = {
+                "x-api-key": settings.TEXTBEE_API_KEY,
+                "Content-Type": "application/json"
+            }
+            json_payload = {
+                "recipients": [recipient],
+                "message": sms_text
+            }
+            try:
+                async with httpx.AsyncClient(timeout=4.0) as client:
+                    resp = await client.post(url, headers=headers, json=json_payload)
+                    if resp.status_code in (200, 201):
+                        record = {
+                            "transaction_id": tx_id,
+                            "recipient": recipient,
+                            "headline": headline,
+                            "body": body,
+                            "priority": priority,
+                            "metadata": metadata or {},
+                            "provider": "TextBee-OpenSource",
+                            "timestamp": datetime.now(timezone.utc).isoformat()
+                        }
+                        self.sent_messages.append(record)
+                        return AdapterResult(
+                            success=True,
+                            integration_type=IntegrationType.REAL.value,
+                            provider_name="TextBee-SMS",
+                            transaction_id=tx_id,
+                            status="DELIVERED_TEXTBEE",
+                            details={
+                                "recipient": recipient,
+                                "channel": "sms",
+                                "char_count": len(sms_text),
+                                "device_id": device_id
+                            },
+                            disclaimer="LIVE NOTIFICATION - Delivered via TextBee Open-Source Gateway."
+                        )
+            except Exception:
+                pass  # Fall through to simulation with audit note
+
         record = {
             "transaction_id": tx_id,
             "recipient": recipient,
