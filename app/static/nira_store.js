@@ -559,14 +559,19 @@ class NiraStateStore {
         console.log("[NiraStore] Received MCP SSE session endpoint:", e.data);
       });
 
-      this.sseSource.addEventListener("message", (e) => {
+      const handleMsg = (e) => {
         try {
           const data = JSON.parse(e.data);
           this.handleIncomingStreamMessage(data);
         } catch (err) {
           console.warn("[NiraStore] Non-JSON SSE message received:", e.data);
         }
-      });
+      };
+
+      this.sseSource.addEventListener("message", handleMsg);
+      this.sseSource.addEventListener("state_update", handleMsg);
+      this.sseSource.addEventListener("state_snapshot", handleMsg);
+      this.sseSource.addEventListener("event_ingested", handleMsg);
 
       this.sseSource.onerror = (err) => {
         console.warn("[NiraStore] SSE connection error/closed.", err);
@@ -948,6 +953,41 @@ class NiraStateStore {
     if (!msg) return;
     if (msg.incident_id || msg.event_type) {
       this.updateIncidentFromBackend(msg);
+      return;
+    }
+    // Handle pipeline state snapshot or state update
+    const state = msg.state || msg.snapshot;
+    if (state) {
+      if (state.heart_rate) {
+        this.state.telemetry.hasLiveData = true;
+        this.state.vitals.heartRateBpm = state.heart_rate;
+        this.state.telemetry.heartRate.current = state.heart_rate;
+        const hrHist = this.state.telemetry.heartRate.history;
+        hrHist.push(state.heart_rate);
+        if (hrHist.length > 10) hrHist.shift();
+      }
+      if (state.current_room) {
+        this.updateRoomsFromIncident({
+          location: state.current_room,
+          current_risk_level: state.current_risk_level || "LOW",
+          status: state.active_incident_id ? "ACTIVE" : "RESOLVED"
+        });
+      }
+      if (state.active_incident_id) {
+        this.syncActiveIncidents();
+      }
+      this.notify();
+    }
+    if (msg.event) {
+      if (msg.event.payload && msg.event.payload.heart_rate) {
+        this.state.vitals.heartRateBpm = msg.event.payload.heart_rate;
+        this.state.telemetry.heartRate.current = msg.event.payload.heart_rate;
+      }
+      if (msg.event.room_id) {
+        const roomName = (msg.event.room_id === "living" ? "Living Room" : (msg.event.room_id === "bathroom" ? "Bathroom" : (msg.event.room_id === "kitchen" ? "Kitchen" : "Bedroom")));
+        this.state.telemetry.room.current = roomName;
+      }
+      this.notify();
     }
   }
 

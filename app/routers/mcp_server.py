@@ -80,32 +80,66 @@ async def handle_mcp_post(request_data: JSONRPCRequest, response: Response):
     )
 
 
+from datetime import datetime, timezone
+
+
 @router.get("/sse")
 async def handle_mcp_sse(request: Request):
     """
     Standard MCP Server-Sent Events (SSE) connection endpoint.
+    Also streams NIRA real-time safety pipeline events to web clients.
     """
     session_id = f"mcp_sess_{uuid.uuid4().hex[:10]}"
     queue: asyncio.Queue = asyncio.Queue()
     sse_sessions[session_id] = queue
+
+    from app.services.event_pipeline import global_pipeline
+    pipeline_queue = global_pipeline.subscribe()
 
     async def sse_event_stream():
         # First event: notify client of the message post endpoint with session ID
         endpoint_url = f"/messages?sessionId={session_id}"
         yield f"event: endpoint\ndata: {endpoint_url}\n\n"
 
+        # Emit initial state snapshot
+        initial_event = {
+            "type": "INITIAL_SNAPSHOT",
+            "snapshot": global_pipeline.current_state.model_dump(),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        yield f"event: state_snapshot\ndata: {json.dumps(initial_event)}\n\n"
+        yield f"event: message\ndata: {json.dumps(initial_event)}\n\n"
+
         try:
             while True:
                 if await request.is_disconnected():
                     break
-                try:
-                    # Wait for message in queue or send ping every 15s
-                    msg = await asyncio.wait_for(queue.get(), timeout=15.0)
-                    yield f"event: message\ndata: {json.dumps(msg)}\n\n"
-                except asyncio.TimeoutError:
+                mcp_task = asyncio.create_task(queue.get())
+                pipe_task = asyncio.create_task(pipeline_queue.get())
+                done, pending = await asyncio.wait(
+                    [mcp_task, pipe_task],
+                    timeout=15.0,
+                    return_when=asyncio.FIRST_COMPLETED
+                )
+
+                for p in pending:
+                    p.cancel()
+
+                if not done:
                     yield ": ping\n\n"
+                    continue
+
+                for t in done:
+                    try:
+                        msg = t.result()
+                        yield f"event: message\ndata: {json.dumps(msg)}\n\n"
+                        event_type = "state_update" if isinstance(msg, dict) and msg.get("state_changed") else "event_ingested"
+                        yield f"event: {event_type}\ndata: {json.dumps(msg)}\n\n"
+                    except Exception:
+                        pass
         finally:
             sse_sessions.pop(session_id, None)
+            global_pipeline.unsubscribe(pipeline_queue)
 
     return StreamingResponse(
         sse_event_stream(),
