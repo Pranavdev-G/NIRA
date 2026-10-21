@@ -421,39 +421,26 @@
               })
               .catch(function(err) { console.warn("Demo launch ping:", err); });
           } catch(e) {}
-        } else if (mode === "live") {
-          try {
-            fetch("/api/v1/live/launch", { method: "POST" })
-              .then(function(r) { return r.json(); })
-              .then(function(d) {
-                console.log("NIRA Live Model System activated:", d);
-              })
-              .catch(function(err) { console.warn("Live launch ping:", err); });
-          } catch(e) {}
-        }
+        try {
+          fetch("/api/v1/demo/launch", { method: "POST" })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+              console.log("NIRA Demo System activated:", d);
+            })
+            .catch(function(err) { console.warn("Demo launch ping:", err); });
+        } catch(e) {}
+
+        var secDemo = document.getElementById("sectionDemoMode");
+        var secLive = document.getElementById("sectionLiveMode");
+        if (secDemo) secDemo.style.setProperty("display", "block", "important");
+        if (secLive) secLive.style.setProperty("display", "none", "important");
 
         if (typeof window.switchSystemMode === "function") {
-          window.switchSystemMode(mode, false);
-        } else {
-          var secDemo = document.getElementById("sectionDemoMode");
-          var secLive = document.getElementById("sectionLiveMode");
-          var btnDemo = document.getElementById("btnModeDemo");
-          var btnLive = document.getElementById("btnModeLive");
-          if (mode === "live") {
-            if (secLive) secLive.style.setProperty("display", "block", "important");
-            if (secDemo) secDemo.style.setProperty("display", "none", "important");
-            if (btnLive) { btnLive.classList.add("active"); btnLive.setAttribute("aria-checked", "true"); }
-            if (btnDemo) { btnDemo.classList.remove("active"); btnDemo.setAttribute("aria-checked", "false"); }
-          } else {
-            if (secDemo) secDemo.style.setProperty("display", "block", "important");
-            if (secLive) secLive.style.setProperty("display", "none", "important");
-            if (btnDemo) { btnDemo.classList.add("active"); btnDemo.setAttribute("aria-checked", "true"); }
-            if (btnLive) { btnLive.classList.remove("active"); btnLive.setAttribute("aria-checked", "false"); }
-          }
+          window.switchSystemMode("demo", false);
         }
 
         if (window.history && window.history.replaceState) {
-          window.history.replaceState(null, null, "#" + mode);
+          window.history.replaceState(null, null, "#demo");
         }
       } catch (err) {
         console.error("enterSystemMode error:", err);
@@ -770,11 +757,9 @@
     </div>
 
     <!-- ======================================================================
-         OPERATING ENVIRONMENT SELECTOR: TWO-SECTION INPUT
-         1. DEMO MODE (Hackathon Showcase & Scenarios)
-         2. LIVE MODE (Real-World Live Telemetry & Device Ingestion)
+         OPERATING ENVIRONMENT SELECTOR (Hidden in Demo Model)
          ====================================================================== -->
-    <section class="system-mode-selector-bar" role="region" aria-label="System Operating Mode Selection">
+    <section class="system-mode-selector-bar" role="region" aria-label="System Operating Mode Selection" style="display: none !important;" aria-hidden="true">
       <div class="mode-selector-header">
         <div class="mode-selector-title-wrap">
           <span class="mode-pulse-dot"></span>
@@ -2392,9 +2377,9 @@
     </div> <!-- end #sectionDemoMode -->
 
     <!-- ======================================================================
-         SECTION 2: LIVE MODE (Real-World Live Telemetry & Device Ingestion)
+         SECTION 2: LIVE MODE (Permanently hidden in Demo Model)
          ====================================================================== -->
-    <div id="sectionLiveMode" class="system-mode-container" style="display: none;" role="region" aria-label="Live Mode: Real-Time Ingestion Console">
+    <div id="sectionLiveMode" class="system-mode-container" style="display: none !important;" role="region" aria-label="Live Mode: Real-Time Ingestion Console" aria-hidden="true">
       
       <!-- Live Monitoring Session Bar -->
       <section class="live-session-toolbar" role="region" aria-label="Live Operational Setup">

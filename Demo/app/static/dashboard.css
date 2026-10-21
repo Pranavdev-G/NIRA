@@ -5287,5 +5287,12 @@ a:hover {
   color: #030712;
 }
 
+/* Enforce pure Demo Model: hide Live Mode operating bar and live container */
+.system-mode-selector-bar,
+#btnModeLive,
+#sectionLiveMode {
+  display: none !important;
+}
+
 
 
