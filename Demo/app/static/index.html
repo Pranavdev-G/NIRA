@@ -8,7 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/dashboard.css?v=10.0">
+  <link rel="stylesheet" href="/static/dashboard.css?v=11.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <style>
     /* ==========================================================================
        NIRA Minimal Triangle Landing Gateway (Apex: NIRA, Base: DEMO & LIVE MODEL)
@@ -93,6 +95,7 @@
       padding-left: 0.30em; /* Optical balance for letter-spacing */
       background: linear-gradient(180deg, #FFFFFF 15%, #cbd5e1 55%, #64748b 100%);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
       filter: drop-shadow(0 0 40px rgba(56, 189, 248, 0.55));
       text-transform: uppercase;
@@ -338,7 +341,7 @@
       <div class="nira-base-row">
         <!-- DEMO -->
         <div id="btnLandingDemo" class="nira-portal-card demo-portal" onclick="enterSystemMode('demo')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();enterSystemMode('demo');}" tabindex="0" role="button" aria-label="Open Demo Mode">
-          <div class="portal-label">DEMO</div>
+          <div class="portal-label" data-i18n="demoModeShort">DEMO</div>
           <div class="portal-arrow" aria-hidden="true">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </div>
@@ -346,7 +349,7 @@
 
         <!-- LIVE MODEL -->
         <div id="btnLandingLive" class="nira-portal-card live-portal" onclick="enterSystemMode('live')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();enterSystemMode('live');}" tabindex="0" role="button" aria-label="Open Live Model Mode">
-          <div class="portal-label">LIVE MODEL</div>
+          <div class="portal-label" data-i18n="liveModeShort">LIVE MODEL</div>
           <div class="portal-arrow" aria-hidden="true">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </div>
@@ -471,9 +474,9 @@
       <div class="mode-selector-header">
         <div class="mode-selector-title-wrap">
           <span class="mode-pulse-dot"></span>
-          <span class="mode-selector-title">OPERATING ENVIRONMENT:</span>
+          <span class="mode-selector-title" data-i18n="operatingEnvTitle">OPERATING ENVIRONMENT:</span>
         </div>
-        <div class="mode-selector-hint">Switch between Hackathon Interactive Showcase and Real-Time Live Ingestion.</div>
+        <div class="mode-selector-hint" data-i18n="operatingEnvSub">Switch between Hackathon Interactive Showcase and Real-Time Live Ingestion.</div>
       </div>
 
       <div class="mode-toggle-group" role="radiogroup" aria-label="System Mode">
@@ -481,13 +484,13 @@
         <button class="mode-toggle-card active" id="btnModeDemo" onclick="switchSystemMode('demo')" role="radio" aria-checked="true" aria-label="Switch to Demo Mode: Hackathon Interactive Showcase">
           <div class="mode-card-badge-row">
             <span class="mode-status-indicator demo"></span>
-            <span class="mode-pill demo-pill">HACKATHON SHOWCASE</span>
+            <span class="mode-pill demo-pill" data-i18n="demoBadge">HACKATHON SHOWCASE</span>
           </div>
           <div class="mode-card-main">
             <div class="mode-card-icon">🎮</div>
             <div class="mode-card-text">
-              <div class="mode-card-title">1. DEMO MODE</div>
-              <div class="mode-card-desc">Simulated Eleanor Vance (Unit 4B), 3 emergency scenarios, 3D digital twin &amp; radar feeds.</div>
+              <div class="mode-card-title" data-i18n="demoModeTitle">1. DEMO MODE</div>
+              <div class="mode-card-desc" data-i18n="demoModeDesc">Simulated Eleanor Vance (Unit 4B), 3 emergency scenarios, 3D digital twin &amp; radar feeds.</div>
             </div>
           </div>
         </button>
@@ -496,13 +499,13 @@
         <button class="mode-toggle-card" id="btnModeLive" onclick="switchSystemMode('live')" role="radio" aria-checked="false" aria-label="Switch to Live Mode: Real-Time Ingestion & Physical Devices">
           <div class="mode-card-badge-row">
             <span class="mode-status-indicator live"></span>
-            <span class="mode-pill live-pill">REAL-TIME INGESTION</span>
+            <span class="mode-pill live-pill" data-i18n="liveBadge">REAL-TIME INGESTION</span>
           </div>
           <div class="mode-card-main">
             <div class="mode-card-icon">⚡</div>
             <div class="mode-card-text">
-              <div class="mode-card-title">2. LIVE MODE</div>
-              <div class="mode-card-desc">Live IoT sensor pipeline, browser webcam fall detector, real microphone listener &amp; TextBee SMS.</div>
+              <div class="mode-card-title" data-i18n="liveModeTitle">2. LIVE MODE</div>
+              <div class="mode-card-desc" data-i18n="liveModeDesc">Live IoT sensor pipeline, browser webcam fall detector, real microphone listener &amp; TextBee SMS.</div>
             </div>
           </div>
         </button>
@@ -521,20 +524,20 @@
           <circle cx="12" cy="12" r="10"/>
           <polygon points="10 8 16 12 10 16 10 8"/>
         </svg>
-        <span>Test Scenario Modes:</span>
+        <span data-i18n="testScenarioModes">Test Scenario Modes:</span>
       </div>
       <div class="scenario-buttons-strip" role="group" aria-label="Safety Simulation Scenarios">
         <button class="pill-scenario-btn btn-green" id="tabScenario1" onclick="switchScenario('false_alarm')" aria-pressed="false" aria-label="Scenario 1: Normal Safe, False Alarm">
           <span style="font-size: 0.88rem;" aria-hidden="true">🛡️</span>
-          <span data-i18n="tabScenario1Title">Normal / Safe (False Alarm)</span>
+          <span data-i18n="tabScenario1Btn">Normal / Safe (False Alarm)</span>
         </button>
         <button class="pill-scenario-btn btn-amber" id="tabScenario2" onclick="switchScenario('responsive')" aria-pressed="false" aria-label="Scenario 2: Assisted, Caregiver Alert">
           <span style="font-size: 0.88rem;" aria-hidden="true">⚠️</span>
-          <span data-i18n="tabScenario2Title">Assisted (Caregiver Alert)</span>
+          <span data-i18n="tabScenario2Btn">Assisted (Caregiver Alert)</span>
         </button>
         <button class="pill-scenario-btn btn-red active" id="tabScenario3" onclick="switchScenario('silent')" aria-pressed="true" aria-label="Scenario 3: Emergency, 911 CAD Dispatch">
           <span style="font-size: 0.88rem;" aria-hidden="true">🚨</span>
-          <span data-i18n="tabScenario3Title">Emergency (911 CAD Dispatch)</span>
+          <span data-i18n="tabScenario3Btn">Emergency (911 CAD Dispatch)</span>
         </button>
       </div>
     </div>
@@ -548,7 +551,7 @@
           <rect x="14" y="14" width="7" height="7"/>
           <rect x="3" y="14" width="7" height="7"/>
         </svg>
-        <span>1. Overview &amp; Health Vitals</span>
+        <span data-i18n="tabOverview">1. Overview &amp; Health Vitals</span>
       </button>
 
       <button class="tab-nav-btn" id="tabBtnVision" onclick="switchTab('vision')" role="tab" aria-selected="false" aria-controls="panelVision" tabindex="0">
@@ -556,7 +559,7 @@
           <path d="M23 7l-7 5 7 5V7z"/>
           <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
         </svg>
-        <span>2. Live Vision &amp; Floorplan</span>
+        <span data-i18n="tabLiveVision">2. Live Vision &amp; Floorplan</span>
       </button>
 
       <button class="tab-nav-btn" id="tabBtnVoice" onclick="switchTab('voice')" role="tab" aria-selected="false" aria-controls="panelVoice" tabindex="0">
@@ -566,7 +569,7 @@
           <line x1="12" y1="19" x2="12" y2="23"/>
           <line x1="8" y1="23" x2="16" y2="23"/>
         </svg>
-        <span>3. Voice AI &amp; Conversational Hub</span>
+        <span data-i18n="tabVoiceAI">3. Voice AI &amp; Conversational Hub</span>
       </button>
 
       <button class="tab-nav-btn" id="tabBtnDispatch" onclick="switchTab('dispatch')" role="tab" aria-selected="false" aria-controls="panelDispatch" tabindex="0">
@@ -575,7 +578,7 @@
           <polyline points="2 17 12 22 22 17"/>
           <polyline points="2 12 12 17 22 12"/>
         </svg>
-        <span>4. Emergency Command Center</span>
+        <span data-i18n="tabCadDispatch">4. Emergency Command Center</span>
       </button>
     </nav>
 
@@ -1544,52 +1547,56 @@
         <div class="live-status-group">
           <div class="live-status-chip active">
             <span class="live-pulse-dot"></span>
-            <span id="liveArmStatusText">LIVE MONITORING ARMED</span>
+            <span id="liveArmStatusText" data-i18n="liveMonitoringArmed">LIVE MONITORING ARMED</span>
           </div>
           <button class="btn-live-toggle" id="btnToggleArm" onclick="toggleLiveArming()">
-            <span id="btnToggleArmText">Pause Protection</span>
+            <span id="btnToggleArmText" data-i18n="pauseProtection">Pause Protection</span>
           </button>
         </div>
 
         <div class="live-config-strip">
           <div class="live-field-wrap">
-            <label for="liveResidentName">Resident Name:</label>
-            <input type="text" id="liveResidentName" class="live-text-input" value="Eleanor Vance" placeholder="Resident Name" onchange="updateLiveResidentProfile()">
+            <label for="liveResidentName" data-i18n="realResidentName">Real Resident Name:</label>
+            <input type="text" id="liveResidentName" class="live-text-input" value="Live Resident" data-i18n-placeholder="residentNamePlaceholder" placeholder="Resident Name" onchange="saveLiveResidentProfile()">
           </div>
 
           <div class="live-field-wrap">
-            <label for="liveRoomSelect">Active Zone:</label>
-            <select id="liveRoomSelect" class="live-select-input" onchange="updateLiveResidentProfile()">
-              <option value="bathroom" selected>Bathroom (High Risk Zone)</option>
-              <option value="living">Living Room</option>
-              <option value="bedroom">Bedroom</option>
-              <option value="kitchen">Kitchen</option>
+            <label for="liveResidentAge" data-i18n="residentAge">Resident Age:</label>
+            <input type="number" id="liveResidentAge" class="live-text-input" value="75" min="18" max="120" style="width: 80px;" onchange="saveLiveResidentProfile()">
+          </div>
+
+          <div class="live-field-wrap">
+            <label for="liveRoomSelect" data-i18n="monitoredZone">Monitored Zone:</label>
+            <select id="liveRoomSelect" class="live-select-input" onchange="saveLiveResidentProfile()">
+              <option value="living_room" selected data-i18n="zoneLivingRoom">Living Room</option>
+              <option value="bathroom" data-i18n="zoneBathroom">Bathroom (High Hazard Tile)</option>
+              <option value="bedroom" data-i18n="zoneBedroom">Bedroom</option>
+              <option value="kitchen" data-i18n="zoneKitchen">Kitchen</option>
             </select>
           </div>
 
           <div class="live-field-wrap">
-            <label for="liveCaregiverPhone">Guardian SMS (TextBee):</label>
-            <input type="text" id="liveCaregiverPhone" class="live-text-input" value="+15550192834" placeholder="+15550192834" onchange="updateLiveResidentProfile()">
+            <label for="liveCaregiverPhone" data-i18n="guardianPhone">Guardian SMS (TextBee):</label>
+            <input type="text" id="liveCaregiverPhone" class="live-text-input" value="+1 (555) 019-2831" placeholder="Guardian Phone" onchange="saveLiveResidentProfile()">
           </div>
 
-          <div class="live-field-wrap">
-            <label for="liveDoorPinDisplay">Smart Deadbolt PIN:</label>
-            <input type="text" id="liveDoorPinDisplay" class="live-text-input pin" value="8492" readonly>
-          </div>
+          <button class="btn-live-secondary" id="btnSaveLiveProfile" onclick="saveLiveResidentProfile()" style="height: 38px; align-self: flex-end; padding: 0 14px;">
+            <span data-i18n="saveLiveProfileBtn">💾 Save Live Profile</span>
+          </button>
         </div>
 
         <div class="live-telemetry-metrics">
           <div class="metric-chip">
-            <span class="label">SLA Latency</span>
+            <span class="label" data-i18n="slaLatencyLabel">SLA Latency</span>
             <span class="value" id="liveSlaLatency">18ms</span>
           </div>
           <div class="metric-chip">
-            <span class="label">Events Ingested</span>
-            <span class="value" id="liveEventCountDisplay">0</span>
+            <span class="label" data-i18n="opticalModelLabel">Optical Model</span>
+            <span class="value" id="liveModelNameBadge" style="color: var(--accent-cyan); font-size: 0.85rem;">YOLOv8 Trained</span>
           </div>
           <div class="metric-chip">
-            <span class="label">Real-Time Risk</span>
-            <span class="value safe" id="liveRiskBadge">NORMAL (0%)</span>
+            <span class="label" data-i18n="liveSafetyStateLabel">Live Safety State</span>
+            <span class="value safe" id="liveRiskBadge" data-i18n="normalMovementState">NORMAL MOVEMENT</span>
           </div>
         </div>
       </section>
@@ -1604,18 +1611,33 @@
                 <path d="M23 7l-7 5 7 5V7z"/>
                 <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
               </svg>
-              <span>1. Live Edge Camera &amp; Fall Detection</span>
+              <span data-i18n="liveCameraTitle">1. Live Camera — Trained Fall &amp; Unresponsiveness AI</span>
             </div>
-            <span class="status-pill offline" id="liveCamPill">STANDBY</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span class="status-pill connected" id="liveStateBadge" style="font-weight: 800;" data-i18n="normalMovementState">NORMAL MOVEMENT</span>
+              <span class="status-pill offline" id="liveCamPill" data-i18n="standbyStatus">STANDBY</span>
+            </div>
           </div>
 
-          <div class="live-viewport-box">
-            <video id="liveWebcamVideo" autoplay playsinline muted></video>
-            <canvas id="liveWebcamCanvas"></canvas>
+          <div class="live-viewport-box" style="position: relative; overflow: hidden; background: #090d16; border-radius: 12px;">
+            <video id="liveWebcamVideo" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover; display: block;"></video>
+            <canvas id="liveWebcamCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
+            
+            <!-- In-Viewport Dynamic HUD Overlays -->
+            <div id="liveCamHudOverlay" style="display: none; position: absolute; top: 12px; left: 12px; z-index: 10; background: rgba(9, 13, 22, 0.85); backdrop-filter: blur(8px); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 6px 12px;">
+              <div id="hudStatePill" style="font-size: 0.75rem; font-weight: 800; color: #34d399; letter-spacing: 0.05em;">● NORMAL MOVEMENT</div>
+              <div id="hudClassSub" style="font-size: 0.68rem; color: #94a3b8; font-family: var(--font-mono); margin-top: 2px;">Action: Walking (92%)</div>
+            </div>
+
+            <div id="liveCamTimerOverlay" style="display: none; position: absolute; top: 12px; right: 12px; z-index: 10; background: rgba(239, 68, 68, 0.9); border-radius: 8px; padding: 6px 12px; color: #fff; text-align: center; font-weight: 800;">
+              <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em;">IMMOBILITY TIMER</div>
+              <div id="hudTimerVal" style="font-size: 1.1rem; font-family: var(--font-mono); font-weight: 900;">0.0s</div>
+            </div>
+
             <div class="live-viewport-placeholder" id="liveCamPlaceholder">
               <div class="placeholder-icon">📹</div>
-              <div class="placeholder-title">Web Camera Inactive</div>
-              <div class="placeholder-sub">Click "Start Live Camera" to capture real-time optical video feed for kinematic fall detection.</div>
+              <div class="placeholder-title" data-i18n="cameraInactiveTitle">Live Camera Inactive</div>
+              <div class="placeholder-sub" data-i18n="cameraInactiveSub">Click "Start Live Camera" to feed real-time video into the custom-trained YOLOv8 fall detector.</div>
             </div>
           </div>
 
@@ -1624,31 +1646,32 @@
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="5 3 19 12 5 21 5 3"/>
               </svg>
-              <span>Start Live Camera</span>
+              <span data-i18n="startCameraBtn">Start Live Camera</span>
             </button>
             <button class="btn-live-secondary" id="btnStopLiveCam" onclick="stopLiveWebcam()" style="display: none;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="6" y="6" width="12" height="12"/>
               </svg>
-              <span>Stop Camera</span>
-            </button>
-            <button class="btn-live-danger" onclick="triggerOpticalFallDetection()">
-              <span>🚨 Ingest Live Fall Event</span>
+              <span data-i18n="stopCameraBtn">Stop Camera</span>
             </button>
           </div>
 
           <div class="live-telemetry-row">
             <div class="tel-item">
-              <span class="tel-label">Estimated Posture</span>
-              <strong class="tel-val" id="liveCamPosture">Upright (Standing)</strong>
+              <span class="tel-label" data-i18n="safetyStatusLabel">Safety Status</span>
+              <strong class="tel-val safe" id="liveStateText" data-i18n="normalMovementState">NORMAL MOVEMENT</strong>
             </div>
             <div class="tel-item">
-              <span class="tel-label">Vertical Velocity</span>
-              <strong class="tel-val" id="liveCamVelocity">0.0 m/s</strong>
+              <span class="tel-label" data-i18n="detectedActionLabel">Detected Action</span>
+              <strong class="tel-val" id="liveCamClass">Standby (Camera Idle)</strong>
             </div>
             <div class="tel-item">
-              <span class="tel-label">Fall Probability</span>
-              <strong class="tel-val safe" id="liveCamFallProb">0%</strong>
+              <span class="tel-label" data-i18n="unresponsiveTimerLabel">Unresponsiveness Timer</span>
+              <strong class="tel-val" id="liveUnresponsiveTimer">0.0s (Normal)</strong>
+            </div>
+            <div class="tel-item">
+              <span class="tel-label" data-i18n="motionDisplacementLabel">Motion Displacement</span>
+              <strong class="tel-val" id="liveCamMotion">0.0 px/s</strong>
             </div>
           </div>
         </section>
@@ -1663,17 +1686,17 @@
                 <line x1="12" y1="19" x2="12" y2="23"/>
                 <line x1="8" y1="23" x2="16" y2="23"/>
               </svg>
-              <span>2. Live Voice AI &amp; Conversational Hub</span>
+              <span data-i18n="liveVoiceTitle">2. Live Voice AI &amp; Conversational Hub</span>
             </div>
-            <span class="status-pill offline" id="liveMicPill">MIC IDLE</span>
+            <span class="status-pill offline" id="liveMicPill" data-i18n="micIdleStatus">MIC IDLE</span>
           </div>
 
           <div class="live-transcript-wrap">
             <div class="transcript-header-bar">
-              <span class="label">LIVE SPEECH RECOGNITION (WEB SPEECH API):</span>
+              <span class="label" data-i18n="liveVoiceHeader">LIVE SPEECH RECOGNITION (WEB SPEECH API):</span>
               <span class="phase-tag" id="liveVoicePhaseTag">IDLE</span>
             </div>
-            <div class="live-transcript-text" id="liveVoiceTranscriptText">
+            <div class="live-transcript-text" id="liveVoiceTranscriptText" data-i18n="liveVoiceInstructions">
               Click "Start Live Mic" and speak into your microphone. Say <em>"I'm okay"</em> or <em>"Help me, I fell!"</em> to trigger state transitions in real time.
             </div>
             <div class="live-soundwave-row" id="liveSoundwaveRow">
@@ -1694,161 +1717,39 @@
                 <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
                 <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
               </svg>
-              <span>Start Live Mic</span>
+              <span data-i18n="startMicBtn">Start Live Mic</span>
             </button>
             <button class="btn-live-secondary" id="btnStopLiveMic" onclick="stopLiveVoiceListening()" style="display: none;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="6" y="6" width="12" height="12"/>
               </svg>
-              <span>Stop Mic</span>
+              <span data-i18n="stopMicBtn">Stop Mic</span>
             </button>
             <button class="btn-live-secondary" onclick="speakLivePrompt()">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
                 <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
               </svg>
-              <span>Speak Alexa Prompt</span>
+              <span data-i18n="speakPromptBtn">Speak Alexa Prompt</span>
             </button>
           </div>
 
           <div class="live-telemetry-row">
             <div class="tel-item">
-              <span class="tel-label">Acoustic State</span>
-              <strong class="tel-val" id="liveAcousticStatus">Passive Listening</strong>
+              <span class="tel-label" data-i18n="acousticStateLabel">Acoustic State</span>
+              <strong class="tel-val" id="liveAcousticStatus" data-i18n="passiveListeningVal">Passive Listening</strong>
             </div>
             <div class="tel-item">
-              <span class="tel-label">Detected Intent</span>
+              <span class="tel-label" data-i18n="detectedIntentLabel">Detected Intent</span>
               <strong class="tel-val" id="liveDetectedIntent">None</strong>
             </div>
             <div class="tel-item">
-              <span class="tel-label">Confidence</span>
+              <span class="tel-label" data-i18n="confidenceLabel">Confidence</span>
               <strong class="tel-val" id="liveIntentConfidence">--%</strong>
             </div>
           </div>
         </section>
       </div>
-
-      <!-- Live Hardware REST Event Injector & Quick Dispatches -->
-      <section class="live-card-panel" role="region" aria-label="Live Event Ingestion Console">
-        <div class="live-card-header">
-          <div class="title-wrap">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-            </svg>
-            <span>3. Real-Time Hardware Event Injector (HTTP REST ➔ /api/events/ingest)</span>
-          </div>
-          <span class="status-pill connected">ENDPOINT ACTIVE</span>
-        </div>
-
-        <div class="live-preset-strip">
-          <button class="btn-preset red" onclick="sendLiveHardwarePreset('fall')">
-            <span>🚨 Ingest Acute Fall</span>
-            <small>High impact + 0.95 conf</small>
-          </button>
-          <button class="btn-preset amber" onclick="sendLiveHardwarePreset('wet_floor')">
-            <span>💧 Ingest Wet Floor</span>
-            <small>Ceramic tile hazard</small>
-          </button>
-          <button class="btn-preset red" onclick="sendLiveHardwarePreset('heart_rate_surge')">
-            <span>❤️ Ingest Tachycardia</span>
-            <small>Surge to 142 BPM</small>
-          </button>
-          <button class="btn-preset amber" onclick="sendLiveHardwarePreset('timeout')">
-            <span>⏱️ Ingest Silence Timeout</span>
-            <small>20s voice expiration</small>
-          </button>
-          <button class="btn-preset blue" onclick="sendLiveHardwarePreset('textbee_sms')">
-            <span>📱 Dispatch TextBee SMS</span>
-            <small>Real SMS to Guardian</small>
-          </button>
-          <button class="btn-preset green" onclick="sendLiveHardwarePreset('resolve')">
-            <span>🛡️ Ingest Safe Resolution</span>
-            <small>Restore normal baseline</small>
-          </button>
-        </div>
-
-        <!-- Custom JSON Ingestion Expander -->
-        <details class="live-custom-json-details">
-          <summary>🛠️ Advanced: Ingest Custom JSON NiraEvent Payload</summary>
-          <div class="json-editor-wrap">
-            <textarea id="liveCustomJsonInput" class="custom-json-area" spellcheck="false">{
-  "event_id": "live-evt-custom-01",
-  "resident_id": "eleanor_vance",
-  "room_id": "bathroom",
-  "source": "live_hardware_terminal",
-  "event_type": "possible_fall",
-  "confidence": 0.94,
-  "payload": {
-    "acceleration_g": 3.1,
-    "post_impact_movement": "none",
-    "floor_condition": "wet",
-    "heart_rate_bpm": 138
-  }
-}</textarea>
-            <div class="json-action-row">
-              <button class="btn-live-primary" onclick="dispatchCustomLiveJson()">
-                <span>🚀 POST Event to /api/events/ingest</span>
-              </button>
-              <span class="json-feedback" id="liveJsonFeedback"></span>
-            </div>
-          </div>
-        </details>
-      </section>
-
-      <!-- Connected Live Sensor Fleet & Actuators Grid -->
-      <section class="live-fleet-grid" role="region" aria-label="Connected IoT Sensor Fleet">
-        <!-- Wearable Device -->
-        <div class="fleet-card">
-          <div class="fleet-card-header">
-            <div class="fleet-title">
-              <span>⌚ Apple Watch Series 10</span>
-              <span class="fleet-tag live">LIVE BLE</span>
-            </div>
-            <span class="fleet-battery" id="liveFleetBattery">84% 🔋</span>
-          </div>
-          <div class="fleet-metric-value" id="liveFleetHr">138 BPM</div>
-          <div class="fleet-metric-sub" id="liveFleetHrSub">Optical Photoplethysmography (PPG) Active</div>
-        </div>
-
-        <!-- 60GHz mmWave Radar -->
-        <div class="fleet-card">
-          <div class="fleet-card-header">
-            <div class="fleet-title">
-              <span>📡 60GHz FMCW Radar Pod</span>
-              <span class="fleet-tag live">ACTIVE</span>
-            </div>
-            <span class="fleet-zone">Bathroom Zone 1</span>
-          </div>
-          <div class="fleet-metric-value" id="liveFleetRadar">Point Cloud Active</div>
-          <div class="fleet-metric-sub">Micro-Doppler Respiration Tracking Active</div>
-        </div>
-
-        <!-- Environmental Array -->
-        <div class="fleet-card">
-          <div class="fleet-card-header">
-            <div class="fleet-title">
-              <span>🌡️ Environmental Array</span>
-              <span class="fleet-tag live">ONLINE</span>
-            </div>
-            <span class="fleet-zone">Zigbee 3.0</span>
-          </div>
-          <div class="fleet-metric-value" id="liveFleetEnv">22.4°C &bull; 15 Lux</div>
-          <div class="fleet-metric-sub" id="liveFleetEnvSub">Wet Floor Hazard Sensor: Alert Active</div>
-        </div>
-
-        <!-- Smart Door Deadbolt -->
-        <div class="fleet-card">
-          <div class="fleet-card-header">
-            <div class="fleet-title">
-              <span>🔒 Smart Entrance Lock</span>
-              <span class="fleet-tag live">MATTER / Z-WAVE</span>
-            </div>
-            <span class="fleet-pin">PIN: 8492</span>
-          </div>
-          <div class="fleet-metric-value" id="liveFleetLockState" style="color: var(--accent-red);">UNLOCKED FOR 911</div>
-          <button class="btn-fleet-toggle-lock" onclick="toggleLiveDoorLock()">Toggle Lock State</button>
-        </div>
-      </section>
 
       <!-- Live Real-Time Event Audit Stream & Risk Intelligence -->
       <div class="live-stream-risk-grid">
@@ -1864,13 +1765,13 @@
                 <line x1="3" y1="12" x2="3.01" y2="12"/>
                 <line x1="3" y1="18" x2="3.01" y2="18"/>
               </svg>
-              <span>Live Event Stream (SSE Transport: /sse)</span>
+              <span data-i18n="liveEventStreamTitle">Live Event Stream (SSE Transport: /sse)</span>
             </div>
             <span class="stream-counter" id="liveStreamCounter">0 Received</span>
           </div>
 
           <div class="live-event-stream-box" id="liveEventStreamBox">
-            <div class="stream-empty" id="liveStreamEmpty">Awaiting live events from IoT devices and simulators...</div>
+            <div class="stream-empty" id="liveStreamEmpty" data-i18n="awaitingLiveEvents">Awaiting real-time events from live camera and microphone...</div>
           </div>
         </section>
 
@@ -1881,22 +1782,146 @@
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
               </svg>
-              <span>Live Risk &amp; 911 Emergency Packet (EPK)</span>
+              <span data-i18n="liveRiskCadTitle">Live Risk &amp; 911 Emergency Packet (EPK)</span>
             </div>
-            <span class="status-pill critical" id="liveRiskTriagePill">CRITICAL (94%)</span>
+            <span class="status-pill connected" id="liveRiskTriagePill" data-i18n="standbySafe">STANDBY / SAFE</span>
           </div>
 
           <div class="epk-preview-box">
             <div class="epk-header-row">
-              <span>INCIDENT #<span id="liveEpkId">INC-LIVE-88192</span></span>
-              <button class="btn-copy-epk" onclick="copyLiveEpkJson()">📋 Copy EPK JSON</button>
+              <span>INCIDENT #<span id="liveEpkId">STANDBY</span></span>
+              <button class="btn-copy-epk" onclick="copyLiveEpkJson()" data-i18n="copyEpkBtn">📋 Copy EPK JSON</button>
             </div>
-            <pre class="epk-code-view" id="liveEpkJsonView">Loading live clinical emergency packet...</pre>
+            <pre class="epk-code-view" id="liveEpkJsonView">Live optical fall detector and voice listener armed. EPK will generate upon verified clinical event.</pre>
           </div>
         </section>
       </div>
 
+      <!-- 3. Dynamic Geospatial GIS & Emergency Dispatch Radar (Marks Resident, Caretaker, & Emergency Services) -->
+      <section class="live-card-panel map-radar-panel" id="sectionLiveMapRadar" role="region" aria-label="Dynamic Geospatial Emergency Radar">
+        <div class="live-card-header">
+          <div class="title-wrap">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2">
+              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+              <line x1="8" y1="2" x2="8" y2="18"/>
+              <line x1="16" y1="6" x2="16" y2="22"/>
+            </svg>
+            <span data-i18n="liveMapRadarTitle">3. Live Geospatial GIS &amp; Emergency Dispatch Radar</span>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <span class="vtl-confidence-tag" id="liveMapLocationBadge" style="background: rgba(56, 189, 248, 0.12); color: var(--accent-cyan); border-color: rgba(56, 189, 248, 0.3);">
+              📍 <span id="liveMapCurrentCity">Boston, MA</span>
+            </span>
+            <span class="status-pill connected" id="liveMapGpsPill">
+              <span class="live-pulse-dot" style="background: #38bdf8;"></span>
+              <span id="liveMapGpsStatusText">GPS DYNAMIC</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Dynamic Relocation Toolbar (GPS Detect, Presets, Address Search) -->
+        <div class="map-toolbar-strip">
+          <div class="map-controls-left">
+            <button class="btn-map-control btn-gps-detect" id="btnDetectGps" onclick="detectBrowserGps()" title="Use browser geolocation to mark your real living room">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="2" x2="12" y2="6"/>
+                <line x1="12" y1="18" x2="12" y2="22"/>
+                <line x1="2" y1="12" x2="6" y2="12"/>
+                <line x1="18" y1="12" x2="22" y2="12"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <span data-i18n="detectGpsBtn">Detect My GPS Location</span>
+            </button>
+
+            <div class="map-city-chips-group">
+              <span class="chips-label" data-i18n="quickPresetsLabel">Quick City Hubs:</span>
+              <div class="city-chips-scroll" id="mapCityChips">
+                <button class="city-chip active" data-city="boston" onclick="switchMapCity('boston', this)">📍 Boston, MA</button>
+                <button class="city-chip" data-city="seattle" onclick="switchMapCity('seattle', this)">🌲 Seattle, WA</button>
+                <button class="city-chip" data-city="san_francisco" onclick="switchMapCity('san_francisco', this)">🌉 San Francisco, CA</button>
+                <button class="city-chip" data-city="new_york" onclick="switchMapCity('new_york', this)">🗽 New York, NY</button>
+                <button class="city-chip" data-city="london" onclick="switchMapCity('london', this)">🎡 London, UK</button>
+                <button class="city-chip" data-city="bengaluru" onclick="switchMapCity('bengaluru', this)">🇮🇳 Bengaluru, IN</button>
+                <button class="city-chip" data-city="tokyo" onclick="switchMapCity('tokyo', this)">🗼 Tokyo, JP</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="map-search-bar">
+            <input type="text" id="mapAddressSearchInput" class="map-search-input" placeholder="Search address, city, or zip code..." onkeydown="if(event.key==='Enter') searchMapLocation()">
+            <button class="btn-map-search" onclick="searchMapLocation()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <span data-i18n="mapLocateBtn">Locate</span>
+            </button>
+          </div>
+
+          <!-- MapTiler Style Toggle (OpenStreetMap vs Dark) -->
+          <div class="map-style-toggle-group" title="MapTiler Vector/Raster Tiles">
+            <button class="btn-map-style active" id="btnStyleOsm" onclick="setMapTilerStyle('openstreetmap', this)">🗺️ OpenStreetMap</button>
+            <button class="btn-map-style" id="btnStyleDark" onclick="setMapTilerStyle('dark', this)">🌙 Dark</button>
+          </div>
+        </div>
+
+
+        <!-- Interactive Map Layout (Leaflet Canvas + Telemetry HUD Overlays) -->
+        <div class="map-viewport-wrapper">
+          <div id="niraEmergencyMap" class="nira-leaflet-map" style="width: 100%; height: 460px; border-radius: 12px; background: #070b14; position: relative; z-index: 1;"></div>
+
+          <!-- In-Map Live Telemetry Bar Overlay -->
+          <div class="map-hud-overlay-top">
+            <div class="hud-marker-chip resident-chip" id="hudResidentPill">
+              <span class="hud-icon">🔵</span>
+              <div class="hud-info">
+                <strong id="hudResidentName">Live Resident</strong>
+                <span id="hudResidentStatus" class="hud-sub safe">Normal Movement &bull; Living Room</span>
+              </div>
+            </div>
+
+            <div class="hud-marker-chip caretaker-chip" id="hudCaretakerPill">
+              <span class="hud-icon">🟡</span>
+              <div class="hud-info">
+                <strong id="hudCaretakerName">Caretaker: David Vance</strong>
+                <span id="hudCaretakerDistance" class="hud-sub">1.2 km away &bull; 3.5m ETA</span>
+              </div>
+            </div>
+
+            <div class="hud-marker-chip ems-chip" id="hudEmsPill">
+              <span class="hud-icon">🚑</span>
+              <div class="hud-info">
+                <strong id="hudEmsName">Nearest EMS: Medic-14</strong>
+                <span id="hudEmsEta" class="hud-sub">0.6 km &bull; 1.5m Driving ETA</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Map Interactive Hint Badge -->
+          <div class="map-click-hint">
+            <span>🖱️ Click anywhere on map to reposition resident &amp; recalculate emergency services</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Emergency Services & Dispatch Matrix -->
+        <div class="emergency-services-matrix-section">
+          <div class="matrix-header-row">
+            <span class="matrix-title">
+              <span data-i18n="emergencyMatrixTitle">Nearby Emergency Responders &amp; Healthcare Facilities</span>
+              <span class="badge-count" id="mapServicesCount">4 Active</span>
+            </span>
+            <span class="matrix-sub" id="matrixLocationSubtitle">Calculated with real-time Haversine distance &amp; urban emergency driving speeds</span>
+          </div>
+
+          <div class="services-cards-grid" id="mapServicesCardsGrid">
+            <!-- Dynamically populated by dashboard.js renderMapServicesCards() -->
+          </div>
+        </div>
+      </section>
+
     </div> <!-- end #sectionLiveMode -->
+
   </div>
   </div> <!-- end #appWorkspaceContainer -->
 

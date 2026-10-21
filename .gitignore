@@ -26,3 +26,9 @@ htmlcov/
 Thumbs.db
 .vscode/
 .idea/
+
+# ML training runs & temporary downloads
+Live/runs/
+crop_*.jpg
+/yolov8n.pt
+/yolov8n-pose.pt

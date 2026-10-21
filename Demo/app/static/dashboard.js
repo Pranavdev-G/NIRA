@@ -522,6 +522,11 @@ function renderDashboard(state) {
 
   // 12. Live Mode Operations Console Synchronization
   renderLiveModeConsole(state);
+
+  // 13. Ensure localized translations are rendered consistently
+  if (typeof applyTranslations === "function") {
+    applyTranslations();
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1911,10 +1916,21 @@ function switchSystemMode(mode, notify = true) {
     secDemo.style.display = "none";
 
     localStorage.setItem("nira_system_mode", "live");
+    if (typeof loadLiveResidentProfile === "function") {
+      loadLiveResidentProfile();
+    }
+    if (typeof initNiraEmergencyMap === "function") {
+      initNiraEmergencyMap();
+    }
+    setTimeout(() => {
+      if (window.niraMap) window.niraMap.invalidateSize();
+    }, 200);
+
     if (notify) {
       playChime("success");
-      showToast("⚡ Switched to <strong>Live Mode</strong> — Real-time sensor pipeline & device pairing.");
+      showToast("⚡ Switched to <strong>Live Mode</strong> — Real camera & trained fall detector active.");
     }
+
   } else {
     btnDemo.classList.add("active");
     btnDemo.setAttribute("aria-checked", "true");
@@ -1925,10 +1941,16 @@ function switchSystemMode(mode, notify = true) {
     secLive.style.display = "none";
 
     localStorage.setItem("nira_system_mode", "demo");
+
     if (notify) {
       playChime("info");
       showToast("🎮 Switched to <strong>Demo Mode</strong> — Hackathon interactive scenario showcase.");
     }
+  }
+
+  // Apply localized translations for current mode and active elements
+  if (typeof applyTranslations === "function") {
+    applyTranslations();
   }
 
   // Ensure dashboard components re-render correctly
@@ -1938,84 +1960,87 @@ function switchSystemMode(mode, notify = true) {
 }
 
 // ---------------------------------------------------------------------------
-// Live Mode Console Rendering & Real-Time Sync
+// Live Mode Console Rendering & Real-Time Sync (100% Real Live, Zero Simulation)
 // ---------------------------------------------------------------------------
 
 function renderLiveModeConsole(state) {
-  if (!state) return;
-
   const slaEl = document.getElementById("liveSlaLatency");
-  const countEl = document.getElementById("liveEventCountDisplay");
   const riskBadge = document.getElementById("liveRiskBadge");
   const riskPill = document.getElementById("liveRiskTriagePill");
-  const fleetHr = document.getElementById("liveFleetHr");
-  const fleetBattery = document.getElementById("liveFleetBattery");
-  const fleetLock = document.getElementById("liveFleetLockState");
-  const fleetEnv = document.getElementById("liveFleetEnv");
   const epkView = document.getElementById("liveEpkJsonView");
   const epkId = document.getElementById("liveEpkId");
 
-  const inc = state.incident || {};
-  const risk = inc.currentRiskLevel || "LOW";
-  const hrVal = state.vitals ? state.vitals.heartRateBpm : 138;
-  const isUnlocked = (state.emergency && state.emergency.doorLockState || "UNLOCKED") === "UNLOCKED";
+  const liveResName = (document.getElementById("liveResidentName") || {}).value || "Live Resident";
+  const liveResAge = parseInt((document.getElementById("liveResidentAge") || {}).value) || 75;
+  const liveRoom = (document.getElementById("liveRoomSelect") || {}).value || "living_room";
+  const livePhone = (document.getElementById("liveCaregiverPhone") || {}).value || "+1 (555) 019-2831";
 
-  if (slaEl) slaEl.textContent = `${state.connection ? state.connection.latencyMs || 18 : 18}ms`;
-  if (countEl) countEl.textContent = `${state.timeline ? state.timeline.length : 7}`;
+  if (slaEl) slaEl.textContent = `${state?.connection?.latencyMs || 12}ms`;
 
-  if (riskBadge) {
-    riskBadge.textContent = `${risk} (${Math.round((inc.confidence || 0.94) * 100)}%)`;
-    riskBadge.className = `value ${risk === "CRITICAL" ? "critical" : (risk === "HIGH" ? "warning" : "safe")}`;
-  }
-
-  if (riskPill) {
-    riskPill.textContent = `${risk} (${Math.round((inc.confidence || 0.94) * 100)}%)`;
-    riskPill.className = `status-pill ${risk === "CRITICAL" ? "critical" : (risk === "HIGH" ? "warning" : "connected")}`;
-  }
-
-  if (fleetHr) {
-    fleetHr.textContent = `${hrVal} BPM`;
-    fleetHr.style.color = hrVal > 120 ? "var(--accent-red)" : (hrVal > 90 ? "var(--accent-amber)" : "var(--accent-green)");
-  }
-
-  if (fleetBattery) fleetBattery.textContent = `${state.telemetry?.device?.batteryPercent || 84}% 🔋`;
-
-  if (fleetLock) {
-    fleetLock.textContent = isUnlocked ? "UNLOCKED FOR 911" : "SECURED (LOCKED)";
-    fleetLock.style.color = isUnlocked ? "var(--accent-red)" : "var(--accent-green)";
-  }
-
-  if (fleetEnv) {
-    const temp = state.telemetry?.environment?.temperatureC || 22.4;
-    const lux = state.telemetry?.environment?.lightLux || 15;
-    fleetEnv.textContent = `${temp}°C • ${lux} Lux`;
-  }
-
-  if (epkId) epkId.textContent = inc.id || "INC-LIVE-88192";
-
-  if (epkView) {
-    const epkObj = {
-      incident_id: inc.id || "INC-LIVE-88192",
-      timestamp: inc.createdAt || new Date().toISOString(),
-      triage_priority: risk === "CRITICAL" ? "PRIORITY_1_CRITICAL_TRAUMA" : (risk === "HIGH" ? "PRIORITY_2_URGENT" : "ROUTINE_MONITORING"),
-      resident: {
-        name: (document.getElementById("liveResidentName") || {}).value || "Eleanor Vance",
-        age: 79,
-        location: `${capitalize(inc.location || "bathroom")}, Beacon Hill Unit 4B`
-      },
-      vitals: {
-        heart_rate_bpm: hrVal,
-        movement_score: state.vitals ? state.vitals.movementScore : 0.05,
-        posture: inc.fallDetected ? "fallen_immobile" : "ambulatory"
-      },
-      first_responder_access: {
-        smart_lock_status: isUnlocked ? "UNLOCKED" : "LOCKED",
-        door_pin: "8492",
-        pathway_lights: "100%_ACTIVE"
-      },
-      voice_status: state.voiceState ? state.voiceState.phase : "EMERGENCY_ESCALATED"
-    };
-    epkView.textContent = JSON.stringify(epkObj, null, 2);
+  const activeLiveInc = window._liveIncident;
+  if (activeLiveInc) {
+    if (riskBadge) {
+      riskBadge.textContent = `${activeLiveInc.risk} (${Math.round(activeLiveInc.confidence * 100)}%)`;
+      riskBadge.className = `value ${activeLiveInc.risk === "CRITICAL" ? "critical" : "warning"}`;
+    }
+    if (riskPill) {
+      riskPill.textContent = `${activeLiveInc.risk} (${Math.round(activeLiveInc.confidence * 100)}%)`;
+      riskPill.className = `status-pill ${activeLiveInc.risk === "CRITICAL" ? "critical" : "warning"}`;
+    }
+    if (epkId) epkId.textContent = activeLiveInc.id;
+    if (epkView) {
+      const epkObj = {
+        incident_id: activeLiveInc.id,
+        timestamp: activeLiveInc.timestamp,
+        triage_priority: activeLiveInc.risk === "CRITICAL" ? "PRIORITY_1_CRITICAL_TRAUMA" : "PRIORITY_2_URGENT",
+        resident: {
+          name: liveResName,
+          age: liveResAge,
+          location: `${capitalize(liveRoom.replace(/_/g, ' '))}, Monitored Real Residence`,
+          guardian_phone: livePhone
+        },
+        live_detection_source: activeLiveInc.type,
+        vitals: {
+          movement_score: activeLiveInc.risk === "CRITICAL" ? 0.0 : 0.85,
+          posture: activeLiveInc.risk === "CRITICAL" ? "fallen_immobile" : "ambulatory"
+        },
+        optical_inference_model: "YOLOv8 Trained Fall Classifier"
+      };
+      epkView.textContent = JSON.stringify(epkObj, null, 2);
+    }
+  } else {
+    // Normal baseline - zero simulation
+    if (riskBadge) {
+      riskBadge.textContent = (typeof t === "function" ? t("normalMovementState") : "NORMAL MOVEMENT");
+      riskBadge.className = "value safe";
+    }
+    if (riskPill) {
+      riskPill.textContent = (typeof t === "function" ? t("standbySafe") : "STANDBY / SAFE");
+      riskPill.className = "status-pill connected";
+    }
+    if (epkId) epkId.textContent = "STANDBY";
+    if (epkView) {
+      const epkObj = {
+        status: "MONITORING_STANDBY",
+        timestamp: new Date().toISOString(),
+        triage_priority: "ROUTINE_MONITORING",
+        resident: {
+          name: liveResName,
+          age: liveResAge,
+          zone: capitalize(liveRoom.replace(/_/g, ' ')),
+          guardian_phone: livePhone
+        },
+        live_camera: {
+          state: window.liveStreamActive ? "STREAM_ACTIVE" : "STANDBY",
+          model: "YOLOv8 Fall Classifier"
+        },
+        live_voice: {
+          state: window.liveVoiceActive ? "LISTENING" : "MIC_IDLE",
+          engine: "Web Speech API"
+        }
+      };
+      epkView.textContent = JSON.stringify(epkObj, null, 2);
+    }
   }
 
   renderLiveEventStream(state);
@@ -2026,18 +2051,18 @@ function renderLiveEventStream(state) {
   const countBadge = document.getElementById("liveStreamCounter");
   if (!container) return;
 
-  const events = state.timeline || [];
+  const events = state?.timeline || [];
   if (countBadge) countBadge.textContent = `${events.length} Received`;
 
   if (events.length === 0) {
-    container.innerHTML = `<div class="stream-empty">Awaiting live events from IoT devices and simulators...</div>`;
+    container.innerHTML = `<div class="stream-empty" data-i18n="awaitingLiveEvents">${typeof t === "function" ? t("awaitingLiveEvents") : "Awaiting real-time events from live camera and microphone..."}</div>`;
     return;
   }
 
   const recent = events.slice(-8).reverse();
   let html = "";
   recent.forEach(e => {
-    const timeStr = formatVtlTime(e.timestamp);
+    const timeStr = typeof formatVtlTime === "function" ? formatVtlTime(e.timestamp) : new Date(e.timestamp).toLocaleTimeString();
     const isCrit = e.action_type?.includes("CAD") || e.action_type?.includes("FALL") || e.action_type?.includes("ESCALAT");
     const borderCol = isCrit ? "var(--accent-red)" : "var(--accent-blue)";
     html += `
@@ -2056,7 +2081,14 @@ function renderLiveEventStream(state) {
 // ---------------------------------------------------------------------------
 
 let liveWebcamStream = null;
-let liveWebcamAnimId = null;
+let liveFrameInterval = null;
+let liveResidentData = {
+  full_name: "Live Resident",
+  age: 75,
+  location: "Living Room",
+  emergency_contact: "Family Guardian",
+  emergency_phone: "+1 (555) 019-2831"
+};
 
 async function startLiveWebcam() {
   const video = document.getElementById("liveWebcamVideo");
@@ -2064,6 +2096,7 @@ async function startLiveWebcam() {
   const pill = document.getElementById("liveCamPill");
   const btnStart = document.getElementById("btnStartLiveCam");
   const btnStop = document.getElementById("btnStopLiveCam");
+  const hudOverlay = document.getElementById("liveCamHudOverlay");
 
   try {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -2073,25 +2106,31 @@ async function startLiveWebcam() {
       });
       if (video) {
         video.srcObject = liveWebcamStream;
-        video.play();
+        await video.play();
       }
       if (placeholder) placeholder.style.display = "none";
+      if (hudOverlay) hudOverlay.style.display = "block";
       if (pill) {
         pill.className = "status-pill streaming";
-        pill.textContent = "LIVE STREAM (30 FPS)";
+        pill.textContent = "AI LIVE STREAM (YOLOv8)";
       }
       if (btnStart) btnStart.style.display = "none";
       if (btnStop) btnStop.style.display = "inline-flex";
-      showToast("📹 <strong>Live Webcam Stream Active</strong> — Edge optical motion tracking engaged.");
+
+      showToast("📹 <strong>Live Camera Engaged</strong> — Real-time fall & unresponsiveness AI active.");
       playChime("success");
 
-      animateLiveWebcamCanvas();
+      // Notify backend camera started
+      fetch("/api/v1/live/camera/start", { method: "POST" }).catch(() => {});
+
+      // Launch real-time inference loop (every 250ms ~ 4 FPS)
+      startLiveCameraInferenceLoop();
     } else {
       showToast("⚠️ Camera access not supported in this browser.");
     }
   } catch (err) {
     console.warn("[startLiveWebcam] Camera permission error:", err);
-    showToast("⚠️ Camera access denied or unavailable.");
+    showToast("⚠️ Camera access denied or device busy.");
   }
 }
 
@@ -2100,17 +2139,22 @@ function stopLiveWebcam() {
     liveWebcamStream.getTracks().forEach(t => t.stop());
     liveWebcamStream = null;
   }
-  if (liveWebcamAnimId) {
-    cancelAnimationFrame(liveWebcamAnimId);
-    liveWebcamAnimId = null;
+  if (liveFrameInterval) {
+    clearInterval(liveFrameInterval);
+    liveFrameInterval = null;
   }
   const placeholder = document.getElementById("liveCamPlaceholder");
   const pill = document.getElementById("liveCamPill");
   const btnStart = document.getElementById("btnStartLiveCam");
   const btnStop = document.getElementById("btnStopLiveCam");
   const canvas = document.getElementById("liveWebcamCanvas");
+  const hudOverlay = document.getElementById("liveCamHudOverlay");
+  const timerOverlay = document.getElementById("liveCamTimerOverlay");
 
   if (placeholder) placeholder.style.display = "flex";
+  if (hudOverlay) hudOverlay.style.display = "none";
+  if (timerOverlay) timerOverlay.style.display = "none";
+
   if (pill) {
     pill.className = "status-pill offline";
     pill.textContent = "STANDBY";
@@ -2121,98 +2165,291 @@ function stopLiveWebcam() {
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
+
+  // Cleanly reset all DOM telemetry fields
+  const stateBadge = document.getElementById("liveStateBadge");
+  const stateText = document.getElementById("liveStateText");
+  const classText = document.getElementById("liveCamClass");
+  const timerText = document.getElementById("liveUnresponsiveTimer");
+  const motionText = document.getElementById("liveCamMotion");
+  const hudPill = document.getElementById("hudStatePill");
+  const hudSub = document.getElementById("hudClassSub");
+
+  if (stateBadge) {
+    stateBadge.textContent = "NORMAL MOVEMENT";
+    stateBadge.className = "status-pill connected";
+  }
+  if (stateText) {
+    stateText.textContent = "NORMAL MOVEMENT";
+    stateText.style.color = "var(--accent-green)";
+  }
+  if (classText) classText.textContent = "Standby (Camera Idle)";
+  if (timerText) {
+    timerText.textContent = "0.0s (Normal)";
+    timerText.style.color = "var(--accent-green)";
+  }
+  if (motionText) motionText.textContent = "0.0 px/s";
+  if (hudPill) {
+    hudPill.textContent = "● NORMAL MOVEMENT";
+    hudPill.style.color = "#34d399";
+  }
+  if (hudSub) hudSub.textContent = "Action: Standby";
+
+  fetch("/api/v1/live/camera/stop", { method: "POST" }).catch(() => {});
   showToast("📹 Live camera feed stopped.");
 }
 
-function animateLiveWebcamCanvas() {
-  const canvas = document.getElementById("liveWebcamCanvas");
-  const video = document.getElementById("liveWebcamVideo");
-  if (!canvas || !video || !liveWebcamStream) return;
+function startLiveCameraInferenceLoop() {
+  if (liveFrameInterval) clearInterval(liveFrameInterval);
 
-  canvas.width = canvas.parentElement.clientWidth;
-  canvas.height = canvas.parentElement.clientHeight;
+  const offscreenCanvas = document.createElement("canvas");
+  offscreenCanvas.width = 416;
+  offscreenCanvas.height = 416;
+  const offscreenCtx = offscreenCanvas.getContext("2d");
+
+  let isSending = false;
+
+  liveFrameInterval = setInterval(async () => {
+    const video = document.getElementById("liveWebcamVideo");
+    const displayCanvas = document.getElementById("liveWebcamCanvas");
+    if (!video || !liveWebcamStream || video.readyState < 2 || isSending) return;
+
+    try {
+      isSending = true;
+      offscreenCtx.drawImage(video, 0, 0, 416, 416);
+      const b64Image = offscreenCanvas.toDataURL("image/jpeg", 0.75);
+
+      const resp = await fetch("/api/v1/live/camera/frame", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image_base64: b64Image,
+          location: (document.getElementById("liveRoomSelect") || {}).value || "living_room"
+        })
+      });
+
+      if (resp.ok) {
+        const data = await resp.json();
+        // Guard against late response arriving after camera was stopped
+        if (liveWebcamStream) {
+          renderLiveInferenceResult(data, displayCanvas, video);
+        }
+      }
+    } catch (e) {
+      console.warn("Live frame inference error:", e);
+    } finally {
+      isSending = false;
+    }
+  }, 250);
+}
+
+function renderLiveInferenceResult(res, canvas, video) {
+  if (!canvas || !video || !liveWebcamStream) {
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    return;
+  }
+
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height;
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const cx = canvas.width / 2;
-  const cy = canvas.height * 0.45;
+  const state = res.state || "NORMAL_MOVEMENT";
+  const cls = res.detected_class || "Normal Movement";
+  const conf = Math.round((res.confidence || 0.90) * 100);
+  const unrespSec = res.unresponsive_seconds || 0.0;
+  const motion = res.motion_displacement || 0.0;
 
-  ctx.strokeStyle = "rgba(56, 189, 248, 0.85)";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(cx - 70, cy - 60, 140, 160);
-  ctx.fillStyle = "rgba(56, 189, 248, 0.15)";
-  ctx.fillRect(cx - 70, cy - 60, 140, 160);
+  // Colors for 3 states
+  let color = "#10b981"; // Green (Normal)
+  let stateTitle = "NORMAL MOVEMENT";
+  let pillClass = "connected";
 
-  ctx.font = "bold 11px monospace";
-  ctx.fillStyle = "#38bdf8";
-  ctx.fillText("RESIDENT (97% CONF)", cx - 65, cy - 68);
-
-  const kps = [
-    [cx, cy - 40], [cx - 20, cy - 10], [cx + 20, cy - 10],
-    [cx - 40, cy + 30], [cx + 40, cy + 30],
-    [cx - 25, cy + 85], [cx + 25, cy + 85]
-  ];
-  kps.forEach(([kx, ky]) => {
-    ctx.beginPath();
-    ctx.arc(kx, ky, 4, 0, Math.PI * 2);
-    ctx.fillStyle = "#34d399";
-    ctx.fill();
-    ctx.strokeStyle = "#ffffff";
-    ctx.stroke();
-  });
-
-  liveWebcamAnimId = requestAnimationFrame(animateLiveWebcamCanvas);
-}
-
-async function triggerOpticalFallDetection() {
-  playChime("alert");
-  const postureEl = document.getElementById("liveCamPosture");
-  const velEl = document.getElementById("liveCamVelocity");
-  const probEl = document.getElementById("liveCamFallProb");
-
-  if (postureEl) postureEl.innerHTML = `<span style="color: var(--accent-red);">Horizontal (Fall Impact)</span>`;
-  if (velEl) velEl.innerHTML = `<span style="color: var(--accent-red);">2.9 m/s (High Impact)</span>`;
-  if (probEl) {
-    probEl.className = "tel-val danger";
-    probEl.textContent = "96% (CRITICAL)";
+  if (state === "FALL_DETECTED") {
+    color = "#f59e0b"; // Amber (Fall)
+    stateTitle = "FALL DETECTED";
+    pillClass = "warning";
+  } else if (state === "UNRESPONSIVENESS" || res.is_unresponsive) {
+    color = "#ef4444"; // Red (Unresponsiveness)
+    stateTitle = "🚨 UNRESPONSIVENESS";
+    pillClass = "critical";
   }
 
-  showToast("🚨 <strong>Acute Fall Detected on Camera!</strong> Dispatching event to NIRA backend...");
+  // Update DOM telemetry
+  const stateBadge = document.getElementById("liveStateBadge");
+  const stateText = document.getElementById("liveStateText");
+  const classText = document.getElementById("liveCamClass");
+  const timerText = document.getElementById("liveUnresponsiveTimer");
+  const motionText = document.getElementById("liveCamMotion");
+  const hudPill = document.getElementById("hudStatePill");
+  const hudSub = document.getElementById("hudClassSub");
+  const timerOverlay = document.getElementById("liveCamTimerOverlay");
+  const timerVal = document.getElementById("hudTimerVal");
 
-  const resName = (document.getElementById("liveResidentName") || {}).value || "Eleanor Vance";
-  const room = (document.getElementById("liveRoomSelect") || {}).value || "bathroom";
+  if (stateBadge) {
+    stateBadge.textContent = stateTitle;
+    stateBadge.className = `status-pill ${pillClass}`;
+  }
+  if (stateText) {
+    stateText.textContent = stateTitle;
+    stateText.style.color = color;
+  }
+  if (classText) classText.textContent = `${cls} (${conf}%)`;
+  if (motionText) motionText.textContent = `${motion} px/f`;
+
+  if (timerText) {
+    if (unrespSec > 0) {
+      timerText.textContent = `${unrespSec}s ${unrespSec >= 4 ? '(CRITICAL)' : '(Counting...)'}`;
+      timerText.style.color = unrespSec >= 4 ? "var(--accent-red)" : "var(--accent-amber)";
+    } else {
+      timerText.textContent = "0.0s (Normal)";
+      timerText.style.color = "var(--accent-green)";
+    }
+  }
+
+  if (hudPill) {
+    hudPill.textContent = `● ${stateTitle}`;
+    hudPill.style.color = color;
+  }
+  if (hudSub) {
+    hudSub.textContent = `Class: ${cls} (${conf}%)`;
+  }
+
+  // Update Live Map Resident Marker status & alarm beacon
+  const isAlarmState = state === "FALL_DETECTED" || state === "UNRESPONSIVENESS" || res.is_unresponsive;
+  if (typeof updateMapResidentAlarmState === "function") {
+    updateMapResidentAlarmState(isAlarmState, stateTitle);
+  }
+
+  // Show/hide floating immobility timer overlay
+  if (timerOverlay && timerVal) {
+    if (unrespSec > 0) {
+      timerOverlay.style.display = "block";
+      timerVal.textContent = `${unrespSec}s`;
+    } else {
+      timerOverlay.style.display = "none";
+    }
+  }
+
+  // Draw YOLO bounding boxes on canvas if any detected
+  if (res.boxes && res.boxes.length > 0) {
+    res.boxes.forEach(b => {
+      // Scale from 416x416 inference size to canvas dimensions
+      const scaleX = canvas.width / 416.0;
+      const scaleY = canvas.height / 416.0;
+      const [x1, y1, x2, y2] = b.box;
+
+      const sx = x1 * scaleX;
+      const sy = y1 * scaleY;
+      const sw = (x2 - x1) * scaleX;
+      const sh = (y2 - y1) * scaleY;
+
+      // Draw box
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(sx, sy, sw, sh);
+
+      // Box translucent fill
+      ctx.fillStyle = state === "UNRESPONSIVENESS" ? "rgba(239, 68, 68, 0.2)" : (state === "FALL_DETECTED" ? "rgba(245, 158, 11, 0.15)" : "rgba(16, 185, 129, 0.12)");
+      ctx.fillRect(sx, sy, sw, sh);
+
+      // Label badge
+      const labelText = `${b.label} ${Math.round(b.confidence * 100)}%`;
+      ctx.font = "bold 12px var(--font-mono, monospace)";
+      const textWidth = ctx.measureText(labelText).width;
+
+      ctx.fillStyle = color;
+      ctx.fillRect(sx, Math.max(sy - 22, 0), textWidth + 12, 22);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(labelText, sx + 6, Math.max(sy - 6, 15));
+    });
+  }
+
+  // Handle unresponsiveness escalation from real camera model
+  if (state === "UNRESPONSIVENESS") {
+    window._liveIncident = {
+      id: "INC-LIVE-" + Date.now().toString().slice(-5),
+      type: "optical_unresponsiveness_alert",
+      risk: "CRITICAL",
+      confidence: res.confidence || 0.95,
+      timestamp: new Date().toISOString()
+    };
+    if (typeof renderLiveModeConsole === "function") {
+      renderLiveModeConsole(window.niraStore?.state);
+    }
+    if (!window._lastUnrespChime || Date.now() - window._lastUnrespChime > 8000) {
+      window._lastUnrespChime = Date.now();
+      try { playChime("alert"); } catch (_) {}
+      showToast("🚨 <strong>CRITICAL UNRESPONSIVENESS:</strong> Resident immobile on floor. Triggering emergency protocol!");
+    }
+  } else if (state === "NORMAL_MOVEMENT" && window._liveIncident && window._liveIncident.risk !== "CRITICAL") {
+    window._liveIncident = null;
+    if (typeof renderLiveModeConsole === "function") {
+      renderLiveModeConsole(window.niraStore?.state);
+    }
+  }
+}
+
+async function saveLiveResidentProfile() {
+  const name = (document.getElementById("liveResidentName") || {}).value || "Live Resident";
+  const age = parseInt((document.getElementById("liveResidentAge") || {}).value || "75", 10);
+  const location = (document.getElementById("liveRoomSelect") || {}).value || "living_room";
+  const phone = (document.getElementById("liveCaregiverPhone") || {}).value || "+1 (555) 019-2831";
+
+  liveResidentData = {
+    full_name: name,
+    age: age,
+    location: location,
+    emergency_contact: "Guardian",
+    emergency_phone: phone,
+    medical_notes: "Monitored via NIRA Live Optical AI"
+  };
 
   try {
-    const payload = {
-      event_id: "evt-opt-fall-" + Date.now(),
-      timestamp: new Date().toISOString(),
-      resident_id: resName.toLowerCase().replace(/\s+/g, "_"),
-      room_id: room,
-      source: "live_edge_camera_01",
-      event_type: "possible_fall",
-      confidence: 0.96,
-      correlation_id: "corr-live-" + Date.now(),
-      payload: {
-        impact_velocity_mps: 2.9,
-        posture_after_event: "fallen",
-        movement_after_event: "none",
-        optical_yolo_confidence: 0.96
-      }
-    };
-
-    const resp = await fetch("/api/events/ingest", {
+    const res = await fetch("/api/v1/live/profile", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(liveResidentData)
     });
-
-    if (resp.ok) {
-      const data = await resp.json();
-      showToast(`✅ Ingested Fall Event (ID: ${data.event_id}). Risk: <strong>${data.risk?.risk_level || 'CRITICAL'}</strong>`);
-      if (window.niraStore) window.niraStore.syncActiveIncidents();
+    if (res.ok) {
+      showToast(`💾 Live Profile Saved: <strong>${name} (${age})</strong>`);
+      updateHeaderResidentCapsule(name, age);
     }
   } catch (err) {
-    console.warn("[triggerOpticalFallDetection] Ingestion error:", err);
+    console.warn("Error saving profile:", err);
+  }
+}
+
+function updateHeaderResidentCapsule(name, age) {
+  const seniorEl = document.querySelector("[data-i18n='seniorName']");
+  const seniorLoc = document.querySelector("[data-i18n='seniorLoc']");
+  if (seniorEl) seniorEl.textContent = `${name} (Age ${age})`;
+  if (seniorLoc) seniorLoc.textContent = "Live Monitored Session • Optical AI Active";
+}
+
+async function loadLiveResidentProfile() {
+  try {
+    const res = await fetch("/api/v1/live/profile");
+    if (res.ok) {
+      const data = await res.json();
+      liveResidentData = data;
+      const nameInp = document.getElementById("liveResidentName");
+      const ageInp = document.getElementById("liveResidentAge");
+      const phoneInp = document.getElementById("liveCaregiverPhone");
+
+      if (nameInp && data.full_name) nameInp.value = data.full_name;
+      if (ageInp && data.age) ageInp.value = data.age;
+      if (phoneInp && data.emergency_phone) phoneInp.value = data.emergency_phone;
+
+      updateHeaderResidentCapsule(data.full_name || "Live Resident", data.age || 75);
+    }
+  } catch (err) {
+    console.warn("Could not load live profile:", err);
   }
 }
 
@@ -2337,11 +2574,11 @@ async function handleLiveSpokenUtterance(text) {
   const intentEl = document.getElementById("liveDetectedIntent");
   const confEl = document.getElementById("liveIntentConfidence");
   const phaseTag = document.getElementById("liveVoicePhaseTag");
-  const room = (document.getElementById("liveRoomSelect") || {}).value || "bathroom";
-  const resName = (document.getElementById("liveResidentName") || {}).value || "Eleanor Vance";
+  const room = (document.getElementById("liveRoomSelect") || {}).value || "living_room";
+  const resName = (document.getElementById("liveResidentName") || {}).value || "Live Resident";
 
-  const isDistress = /help|fell|pain|fall|hurt|broken|can't get up|emergency/i.test(text);
-  const isSafe = /ok|fine|good|glasses|dropped|alright|nothing|stand up/i.test(text);
+  const isDistress = /help|fell|pain|fall|hurt|broken|can't get up|emergency|ayuda|caí|me caí|douleur|chute|hilfe|socorro|помогите|बचाओ|救命/i.test(text);
+  const isSafe = /ok|fine|good|glasses|dropped|alright|nothing|stand up|bien|estoy bien|vale|ça va|gut|alles gut|estou bem|все хорошо|ठीक|没事/i.test(text);
 
   if (isDistress) {
     if (intentEl) intentEl.innerHTML = `<span style="color: var(--accent-red); font-weight: 800;">CALL_FOR_HELP</span>`;
@@ -2349,6 +2586,17 @@ async function handleLiveSpokenUtterance(text) {
     if (phaseTag) phaseTag.textContent = "DISTRESS CONFIRMED";
     playChime("alert");
     showToast("🚨 <strong>Verbal Distress Detected!</strong> Triggering Caregiver & CAD Escalation...");
+
+    window._liveIncident = {
+      id: "INC-LIVE-" + Date.now().toString().slice(-5),
+      type: "voice_distress_call",
+      risk: "CRITICAL",
+      confidence: 0.98,
+      timestamp: new Date().toISOString()
+    };
+    if (typeof renderLiveModeConsole === "function") {
+      renderLiveModeConsole(window.niraStore?.state);
+    }
 
     await fetch("/api/events/ingest", {
       method: "POST",
@@ -2358,7 +2606,7 @@ async function handleLiveSpokenUtterance(text) {
         timestamp: new Date().toISOString(),
         resident_id: resName.toLowerCase().replace(/\s+/g, "_"),
         room_id: room,
-        source: "alexa_echo_show_15",
+        source: "live_microphone_stream",
         event_type: "voice_distress",
         confidence: 0.98,
         correlation_id: "corr-live-" + Date.now(),
@@ -2377,6 +2625,11 @@ async function handleLiveSpokenUtterance(text) {
     playChime("success");
     showToast("🟢 <strong>Resident Confirmed Safe!</strong> Incident resolved.");
 
+    window._liveIncident = null;
+    if (typeof renderLiveModeConsole === "function") {
+      renderLiveModeConsole(window.niraStore?.state);
+    }
+
     await fetch("/api/events/ingest", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -2385,7 +2638,7 @@ async function handleLiveSpokenUtterance(text) {
         timestamp: new Date().toISOString(),
         resident_id: resName.toLowerCase().replace(/\s+/g, "_"),
         room_id: room,
-        source: "alexa_echo_show_15",
+        source: "live_microphone_stream",
         event_type: "voice_affirmation_safe",
         confidence: 0.95,
         correlation_id: "corr-live-" + Date.now(),
@@ -2404,9 +2657,9 @@ async function handleLiveSpokenUtterance(text) {
 }
 
 function speakLivePrompt() {
-  const resName = (document.getElementById("liveResidentName") || {}).value || "Eleanor";
+  const resName = (document.getElementById("liveResidentName") || {}).value || "Resident";
   const room = (document.getElementById("liveRoomSelect") || {}).value || "the room";
-  const prompt = `${resName}, this is Aegis. I noticed a movement anomaly in the ${room}. Are you okay? Please tell me if you need help.`;
+  const prompt = `${resName}, this is Aegis. I noticed a movement anomaly. Are you okay? Please tell me if you need help.`;
   showToast(`🔊 Speaking Alexa prompt to ${resName}...`);
   if (window.voiceAudio) {
     window.voiceAudio.playAlexaChime();
@@ -2417,181 +2670,8 @@ function speakLivePrompt() {
 }
 
 // ---------------------------------------------------------------------------
-// Live Hardware REST Event Presets & Ingestion
+// Live Emergency Packet Copy & Control
 // ---------------------------------------------------------------------------
-
-async function sendLiveHardwarePreset(presetKey) {
-  const resName = (document.getElementById("liveResidentName") || {}).value || "Eleanor Vance";
-  const room = (document.getElementById("liveRoomSelect") || {}).value || "bathroom";
-  const residentId = resName.toLowerCase().replace(/\s+/g, "_");
-  const corrId = "corr-live-" + Date.now();
-
-  let eventPayload = null;
-  let chimeType = "info";
-
-  if (presetKey === "fall") {
-    chimeType = "alert";
-    eventPayload = {
-      event_id: "live-fall-" + Date.now(),
-      timestamp: new Date().toISOString(),
-      resident_id: residentId,
-      room_id: room,
-      source: "wearable_imu_radar",
-      event_type: "possible_fall",
-      confidence: 0.95,
-      correlation_id: corrId,
-      payload: {
-        impact_acceleration_g: 3.2,
-        posture_after_event: "fallen",
-        movement_after_event: "none",
-        vital_bpm: 138
-      }
-    };
-  } else if (presetKey === "wet_floor") {
-    chimeType = "warning";
-    eventPayload = {
-      event_id: "live-wet-" + Date.now(),
-      timestamp: new Date().toISOString(),
-      resident_id: residentId,
-      room_id: room,
-      source: "environment_sensor_pod",
-      event_type: "environmental_hazard",
-      confidence: 0.92,
-      correlation_id: corrId,
-      payload: {
-        hazard_type: "wet_floor",
-        floor_condition: "wet",
-        light_lux: 15,
-        temperature_c: 22.1
-      }
-    };
-  } else if (presetKey === "heart_rate_surge") {
-    chimeType = "warning";
-    eventPayload = {
-      event_id: "live-hr-" + Date.now(),
-      timestamp: new Date().toISOString(),
-      resident_id: residentId,
-      room_id: room,
-      source: "apple_watch_series_10",
-      event_type: "wearable_telemetry",
-      confidence: 0.98,
-      correlation_id: corrId,
-      payload: {
-        heart_rate_bpm: 145,
-        baseline_deviation: 73,
-        vital_trend: "rising",
-        device_status: "connected"
-      }
-    };
-  } else if (presetKey === "timeout") {
-    chimeType = "alert";
-    eventPayload = {
-      event_id: "live-timeout-" + Date.now(),
-      timestamp: new Date().toISOString(),
-      resident_id: residentId,
-      room_id: room,
-      source: "acoustic_timeout_engine",
-      event_type: "wellness_timeout",
-      confidence: 0.99,
-      correlation_id: corrId,
-      payload: {
-        timeout_seconds: 20,
-        unresponsive: true,
-        recommended_action: "IMMEDIATE_CAD_EMERGENCY_DISPATCH"
-      }
-    };
-  } else if (presetKey === "textbee_sms") {
-    chimeType = "info";
-    const phone = (document.getElementById("liveCaregiverPhone") || {}).value || "+15550192834";
-    showToast(`📱 Dispatching live <strong>TextBee SMS</strong> alert to ${phone}...`);
-    eventPayload = {
-      event_id: "live-sms-req-" + Date.now(),
-      timestamp: new Date().toISOString(),
-      resident_id: residentId,
-      room_id: room,
-      source: "guardian_sms_gateway",
-      event_type: "caregiver_notification",
-      confidence: 1.0,
-      correlation_id: corrId,
-      payload: {
-        recipient_phone: phone,
-        channel: "textbee_sms",
-        message: `NIRA EMERGENCY ALERT: Urgent assistance needed for ${resName} in ${room}. Smart door lock UNLOCKED (PIN: 8492).`
-      }
-    };
-  } else if (presetKey === "resolve") {
-    chimeType = "success";
-    eventPayload = {
-      event_id: "live-resolve-" + Date.now(),
-      timestamp: new Date().toISOString(),
-      resident_id: residentId,
-      room_id: room,
-      source: "manual_terminal_override",
-      event_type: "incident_resolved",
-      confidence: 1.0,
-      correlation_id: corrId,
-      payload: {
-        resolution_reason: "Elder confirmed safe, normal movement restored.",
-        actor: "FAMILY_GUARDIAN"
-      }
-    };
-  }
-
-  playChime(chimeType);
-  if (!eventPayload) return;
-
-  try {
-    showToast(`⚡ Ingesting live event: <strong>${eventPayload.event_type}</strong>...`);
-    const resp = await fetch("/api/events/ingest", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(eventPayload)
-    });
-
-    if (resp.ok) {
-      const data = await resp.json();
-      showToast(`✅ Event Ingested! ID: ${data.event_id} &bull; Status: ${data.status}`);
-      if (window.niraStore) window.niraStore.syncActiveIncidents();
-    } else {
-      showToast(`⚠️ Ingestion returned HTTP ${resp.status}`);
-    }
-  } catch (err) {
-    console.warn("[sendLiveHardwarePreset] Ingestion error:", err);
-    showToast("⚠️ Failed to ingest event.");
-  }
-}
-
-async function dispatchCustomLiveJson() {
-  const area = document.getElementById("liveCustomJsonInput");
-  const feedback = document.getElementById("liveJsonFeedback");
-  if (!area) return;
-
-  try {
-    const parsed = JSON.parse(area.value);
-    parsed.event_id = parsed.event_id || ("live-custom-" + Date.now());
-    parsed.timestamp = new Date().toISOString();
-
-    if (feedback) feedback.innerHTML = `<span style="color: #38bdf8;">Transmitting to /api/events/ingest...</span>`;
-
-    const resp = await fetch("/api/events/ingest", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(parsed)
-    });
-
-    if (resp.ok) {
-      const data = await resp.json();
-      if (feedback) feedback.innerHTML = `<span style="color: #34d399;">✓ Ingested Event ID: ${data.event_id}</span>`;
-      playChime("success");
-      showToast(`✅ Custom event ingested! Risk Level: <strong>${data.risk?.risk_level || 'ASSESSED'}</strong>`);
-      if (window.niraStore) window.niraStore.syncActiveIncidents();
-    } else {
-      if (feedback) feedback.innerHTML = `<span style="color: #f43f5e;">HTTP ${resp.status}: Failed</span>`;
-    }
-  } catch (err) {
-    if (feedback) feedback.innerHTML = `<span style="color: #f43f5e;">Invalid JSON format. Check syntax.</span>`;
-  }
-}
 
 function copyLiveEpkJson() {
   const el = document.getElementById("liveEpkJsonView");
@@ -2603,35 +2683,23 @@ function copyLiveEpkJson() {
   });
 }
 
-function toggleLiveDoorLock() {
-  if (window.niraStore) {
-    const cur = window.niraStore.state.emergency.doorLockState || "UNLOCKED";
-    const next = cur === "UNLOCKED" ? "LOCKED" : "UNLOCKED";
-    window.niraStore.state.emergency.doorLockState = next;
-    window.niraStore.state.timestamps.doorLock = Date.now();
-    window.niraStore.notify();
-    playChime(next === "UNLOCKED" ? "alert" : "success");
-    showToast(`🚪 Smart Entrance Deadbolt is now <strong>${next}</strong> (PIN: 8492)`);
-  }
-}
-
 function toggleLiveArming() {
   const statusText = document.getElementById("liveArmStatusText");
   const btn = document.getElementById("btnToggleArmText");
   const chip = document.querySelector(".live-status-chip");
 
   if (!statusText || !btn) return;
-  const isArmed = statusText.textContent.includes("ARMED");
+  const isArmed = statusText.textContent.includes("ARMED") || statusText.textContent.includes("ACTIVÉE") || statusText.textContent.includes("ARMADO") || statusText.textContent.includes("SCHARF");
 
   if (isArmed) {
-    statusText.textContent = "MONITORING PAUSED";
-    btn.textContent = "Resume Protection";
+    statusText.textContent = typeof t === "function" ? t("protectionPaused") : "MONITORING PAUSED";
+    btn.textContent = typeof t === "function" ? t("resumeProtection") : "Resume Protection";
     if (chip) chip.className = "live-status-chip paused";
     playChime("warning");
     showToast("⏸️ Live ambient monitoring paused.");
   } else {
-    statusText.textContent = "LIVE MONITORING ARMED";
-    btn.textContent = "Pause Protection";
+    statusText.textContent = typeof t === "function" ? t("liveMonitoringArmed") : "LIVE MONITORING ARMED";
+    btn.textContent = typeof t === "function" ? t("pauseProtection") : "Pause Protection";
     if (chip) chip.className = "live-status-chip active";
     playChime("success");
     showToast("🟢 Live ambient monitoring resumed.");
@@ -2639,8 +2707,8 @@ function toggleLiveArming() {
 }
 
 function updateLiveResidentProfile() {
-  const name = (document.getElementById("liveResidentName") || {}).value || "Eleanor Vance";
-  const room = (document.getElementById("liveRoomSelect") || {}).value || "bathroom";
+  const name = (document.getElementById("liveResidentName") || {}).value || "Live Resident";
+  const room = (document.getElementById("liveRoomSelect") || {}).value || "living_room";
   if (window.niraStore) {
     window.niraStore.state.resident = window.niraStore.state.resident || {};
     window.niraStore.state.resident.name = name;
@@ -2649,6 +2717,535 @@ function updateLiveResidentProfile() {
   }
   showToast(`Profile updated: <strong>${name}</strong> in <strong>${capitalize(room)}</strong>`);
 }
+
+// ===========================================================================
+// DYNAMIC GEOSPATIAL GIS & EMERGENCY DISPATCH RADAR MAP (LEAFLET.JS)
+// Marks: 1. Resident Location, 2. Caretaker Location, 3. Nearby Emergency Services
+// Non-Static: Dynamically shifts via GPS, City Presets, Address Search, or Map Clicks
+// ===========================================================================
+
+// MapTiler Configuration (Configured with user-provided key)
+const MAPTILER_API_KEY = "XtY4Bvc3fXWmf1tU3H3S";
+let mapTilerTileLayer = null;
+let currentMapTilerStyle = "openstreetmap";
+
+function getMapTilerTileUrl(style = "openstreetmap") {
+  if (style === "dark" || style === "dataviz-dark") {
+    return `https://api.maptiler.com/maps/dataviz-dark/256/{z}/{x}/{y}.png?key=${MAPTILER_API_KEY}`;
+  }
+  // Default style: OpenStreetMap requested by user
+  return `https://api.maptiler.com/maps/openstreetmap/256/{z}/{x}/{y}.jpg?key=${MAPTILER_API_KEY}`;
+}
+
+function setMapTilerStyle(styleName, btnEl = null) {
+  currentMapTilerStyle = styleName;
+  if (mapTilerTileLayer) {
+    mapTilerTileLayer.setUrl(getMapTilerTileUrl(styleName));
+  }
+  const btnOsm = document.getElementById("btnStyleOsm");
+  const btnDark = document.getElementById("btnStyleDark");
+  if (btnOsm) btnOsm.classList.toggle("active", styleName === "openstreetmap");
+  if (btnDark) btnDark.classList.toggle("active", styleName === "dark");
+  if (typeof playChime === "function") playChime("info");
+  showToast(`🗺️ Map style: <strong>MapTiler ${styleName === "dark" ? "Dark Mode" : "OpenStreetMap"}</strong>`);
+}
+window.setMapTilerStyle = setMapTilerStyle;
+
+let niraMap = null;
+let niraMapMarkerGroup = null;
+let niraMapRouteGroup = null;
+let currentMapData = null;
+let liveMapAlarmActive = false;
+
+async function initNiraEmergencyMap() {
+  const mapContainer = document.getElementById("niraEmergencyMap");
+  if (!mapContainer) return;
+
+  // If map already initialized, ensure size is updated
+  if (niraMap) {
+    niraMap.invalidateSize();
+    return;
+  }
+
+  // Check if Leaflet library is available
+  if (typeof L === "undefined") {
+    console.warn("Leaflet library not loaded, rendering radar canvas fallback.");
+    renderMapFallback(mapContainer);
+    return;
+  }
+
+  try {
+    // Initialize Leaflet map
+    niraMap = L.map("niraEmergencyMap", {
+      zoomControl: false,
+      attributionControl: true,
+      minZoom: 10,
+      maxZoom: 19
+    }).setView([42.3601, -71.0589], 14);
+
+    // Add MapTiler OpenStreetMap tile layer (Requested by user)
+    mapTilerTileLayer = L.tileLayer(getMapTilerTileUrl(currentMapTilerStyle), {
+      tileSize: 256,
+      zoomOffset: 0,
+      maxZoom: 19,
+      attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
+    }).addTo(niraMap);
+
+    // Zoom control in top right
+    L.control.zoom({ position: "topright" }).addTo(niraMap);
+
+    // Layer groups for markers and routes
+    niraMapRouteGroup = L.layerGroup().addTo(niraMap);
+    niraMapMarkerGroup = L.layerGroup().addTo(niraMap);
+
+    // Interactive Click: clicking anywhere repositions the Resident and recomputes all services
+    niraMap.on("click", (e) => {
+      const lat = e.latlng.lat;
+      const lon = e.latlng.lng;
+      showToast(`📍 Relocating resident to map click: [${lat.toFixed(4)}, ${lon.toFixed(4)}]`);
+      fetchAndRenderMapServices(lat, lon, null, `Manual Pin (${lat.toFixed(4)}, ${lon.toFixed(4)})`);
+    });
+
+    window.niraMap = niraMap;
+
+    // Load initial map services (Boston default)
+    await fetchAndRenderMapServices(42.3601, -71.0589, "boston", "Boston, MA");
+
+    // Re-check sizing when container appears
+    setTimeout(() => {
+      if (niraMap) niraMap.invalidateSize();
+    }, 250);
+
+  } catch (err) {
+    console.error("Error initializing Leaflet map:", err);
+    renderMapFallback(mapContainer);
+  }
+}
+
+async function fetchAndRenderMapServices(lat = null, lon = null, city = null, locationName = null) {
+  try {
+    let url = "/api/v1/live/map/services";
+    const params = [];
+    if (city) params.push(`city=${encodeURIComponent(city)}`);
+    if (lat !== null && lat !== undefined) params.push(`lat=${lat}`);
+    if (lon !== null && lon !== undefined) params.push(`lon=${lon}`);
+    if (params.length > 0) url += `?${params.join("&")}`;
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data = await res.json();
+    currentMapData = data;
+    window.currentMapData = data;
+
+    // Update city title badge
+    const cityEl = document.getElementById("liveMapCurrentCity");
+    if (cityEl) cityEl.textContent = data.location_name || "Active Sector";
+
+    // Update city chips active state
+    const chipBtns = document.querySelectorAll("#mapCityChips .city-chip");
+    chipBtns.forEach(btn => {
+      const btnCity = btn.getAttribute("data-city");
+      if (city && btnCity === city.toLowerCase()) {
+        btn.classList.add("active");
+      } else if (!city && btnCity === "boston" && Math.abs(data.resident.lat - 42.3601) < 0.05) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+    });
+
+    // Update HUD overlay chips
+    updateMapHud(data);
+
+    // Render Markers & Routes on Leaflet
+    renderMapEntities(data);
+
+    // Render Emergency Services Cards below map
+    renderMapServicesCards(data.services, data.nearest_service);
+
+  } catch (err) {
+    console.error("fetchAndRenderMapServices error:", err);
+  }
+}
+
+function updateMapHud(data) {
+  const resName = document.getElementById("hudResidentName");
+  const resStatus = document.getElementById("hudResidentStatus");
+  const resPill = document.getElementById("hudResidentPill");
+  const ctName = document.getElementById("hudCaretakerName");
+  const ctDist = document.getElementById("hudCaretakerDistance");
+  const emsName = document.getElementById("hudEmsName");
+  const emsEta = document.getElementById("hudEmsEta");
+
+  if (resName) resName.textContent = `Resident: ${data.resident.name}`;
+  if (resStatus) {
+    const isAlarm = liveMapAlarmActive || data.resident.current_state === "FALL_DETECTED" || data.resident.current_state === "UNRESPONSIVENESS";
+    resStatus.textContent = isAlarm ? `🚨 CLINICAL FALL EVENT • ${data.resident.hazard_zone}` : `Normal Movement • ${data.resident.hazard_zone}`;
+    resStatus.className = `hud-sub ${isAlarm ? "alert" : "safe"}`;
+    if (resPill) {
+      if (isAlarm) resPill.classList.add("alarm");
+      else resPill.classList.remove("alarm");
+    }
+  }
+
+  if (data.caretaker) {
+    if (ctName) ctName.textContent = `Caretaker: ${data.caretaker.name}`;
+    if (ctDist) ctDist.textContent = `${data.caretaker.distance_km} km away • ${data.caretaker.eta_mins}m ETA (${data.caretaker.vehicle})`;
+  }
+
+  if (data.nearest_service) {
+    if (emsName) emsName.textContent = `Nearest: ${data.nearest_service.name}`;
+    if (emsEta) emsEta.textContent = `${data.nearest_service.distance_km} km • ${data.nearest_service.eta_mins}m Emergency Driving ETA`;
+  }
+}
+
+function renderMapEntities(data) {
+  if (!niraMap || !niraMapMarkerGroup || !niraMapRouteGroup) return;
+
+  niraMapMarkerGroup.clearLayers();
+  niraMapRouteGroup.clearLayers();
+
+  const isAlarm = liveMapAlarmActive || data.resident.current_state === "FALL_DETECTED" || data.resident.current_state === "UNRESPONSIVENESS";
+
+  // 1. Resident Marker (Custom Pulsing Beacon)
+  const resIcon = L.divIcon({
+    className: `nira-map-pin nira-pin-resident ${isAlarm ? 'alarm' : ''}`,
+    html: `<div class="radar-pulse-ring"></div><div class="nira-pin-body">${isAlarm ? '🚨' : '👤'}</div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+    popupAnchor: [0, -20]
+  });
+
+  const resMarker = L.marker([data.resident.lat, data.resident.lon], { icon: resIcon, zIndexOffset: 1000 })
+    .bindPopup(`
+      <div class="nira-popup-card">
+        <div class="nira-popup-title">${isAlarm ? '🚨 CLINICAL FALL EVENT' : '👤 Monitored Senior Resident'}</div>
+        <div class="nira-popup-sub"><strong>${data.resident.name}</strong> • ${data.resident.address}</div>
+        <div class="nira-popup-stats">
+          <span class="nira-stat-chip">${isAlarm ? 'IMPACT IMMOBILE' : 'AMBULATING'}</span>
+          <span class="nira-stat-chip">Zone: ${data.resident.hazard_zone}</span>
+        </div>
+      </div>
+    `);
+  niraMapMarkerGroup.addLayer(resMarker);
+
+  // 2. Caretaker Marker (Warm Golden Shield)
+  if (data.caretaker) {
+    const ct = data.caretaker;
+    const ctIcon = L.divIcon({
+      className: 'nira-map-pin nira-pin-caretaker',
+      html: `<div class="nira-pin-body">🛡️</div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
+      popupAnchor: [0, -20]
+    });
+
+    const ctMarker = L.marker([ct.lat, ct.lon], { icon: ctIcon, zIndexOffset: 800 })
+      .bindPopup(`
+        <div class="nira-popup-card">
+          <div class="nira-popup-title">🛡️ ${ct.name}</div>
+          <div class="nira-popup-sub">${ct.role} • Vehicle: ${ct.vehicle}</div>
+          <div class="nira-popup-stats">
+            <span class="nira-stat-chip">📍 ${ct.distance_km} km (${ct.distance_miles} mi)</span>
+            <span class="nira-stat-chip">⏱️ ${ct.eta_mins}m ETA</span>
+          </div>
+          <div style="font-size: 0.68rem; color: #cbd5e1; margin-bottom: 6px;">Status: <strong>${ct.status}</strong> &bull; ${ct.phone}</div>
+          <button class="btn-popup-action" onclick="alert('Calling Guardian phone: ' + '${ct.phone}')">📞 Contact Caretaker</button>
+        </div>
+      `);
+    niraMapMarkerGroup.addLayer(ctMarker);
+
+    // Route polyline: Caretaker to Resident (Warm gold dashed line)
+    const ctRoute = L.polyline(
+      [[ct.lat, ct.lon], [data.resident.lat, data.resident.lon]],
+      { color: "#f59e0b", weight: 3, dashArray: "6, 8", opacity: 0.85 }
+    );
+    niraMapRouteGroup.addLayer(ctRoute);
+  }
+
+  // 3. Emergency Services Markers (Hospitals, EMS, Fire, Police)
+  if (data.services && data.services.length > 0) {
+    data.services.forEach(s => {
+      let pinClass = "nira-pin-hospital";
+      if (s.type === "ems") pinClass = "nira-pin-ems";
+      else if (s.type === "fire") pinClass = "nira-pin-fire";
+      else if (s.type === "police") pinClass = "nira-pin-police";
+
+      const sIcon = L.divIcon({
+        className: `nira-map-pin ${pinClass}`,
+        html: `<div class="nira-pin-body">${s.icon}</div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -18]
+      });
+
+      const sMarker = L.marker([s.lat, s.lon], { icon: sIcon, zIndexOffset: 600 })
+        .bindPopup(`
+          <div class="nira-popup-card">
+            <div class="nira-popup-title">${s.icon} ${s.name}</div>
+            <div class="nira-popup-sub">${s.subtype} &bull; ${s.address}</div>
+            <div class="nira-popup-stats">
+              <span class="nira-stat-chip">📍 ${s.distance_km} km (${s.distance_miles} mi)</span>
+              <span class="nira-stat-chip">⏱️ ${s.eta_mins}m ETA</span>
+            </div>
+            <div style="font-size: 0.68rem; color: #94a3b8; font-family: var(--font-mono); margin-bottom: 6px;">CAD: ${s.cad_channel || 'DIRECT'} &bull; ${s.phone}</div>
+            <button class="btn-popup-action" onclick="focusMapRoute('${s.id}')">🚀 Highlight Emergency Route</button>
+          </div>
+        `);
+      sMarker._serviceId = s.id;
+      niraMapMarkerGroup.addLayer(sMarker);
+    });
+  }
+
+  // Route polyline: Nearest EMS/Hospital to Resident (Glowing animated dashed flow line)
+  if (data.nearest_service) {
+    const ns = data.nearest_service;
+    const emsRoute = L.polyline(
+      [[ns.lat, ns.lon], [data.resident.lat, data.resident.lon]],
+      {
+        color: isAlarm ? "#ef4444" : "#38bdf8",
+        weight: isAlarm ? 4 : 3,
+        dashArray: "8, 6",
+        opacity: 0.95,
+        className: "nira-route-flow"
+      }
+    );
+    niraMapRouteGroup.addLayer(emsRoute);
+  }
+
+  // Fit bounds so Resident, Caretaker, and Services are all visible
+  const points = [[data.resident.lat, data.resident.lon]];
+  if (data.caretaker) points.push([data.caretaker.lat, data.caretaker.lon]);
+  if (data.nearest_service) points.push([data.nearest_service.lat, data.nearest_service.lon]);
+
+  if (points.length > 1) {
+    niraMap.fitBounds(L.latLngBounds(points), { padding: [60, 60], maxZoom: 15 });
+  } else {
+    niraMap.setView([data.resident.lat, data.resident.lon], 14);
+  }
+}
+
+function renderMapServicesCards(services, nearestService) {
+  const container = document.getElementById("mapServicesCardsGrid");
+  if (!container) return;
+
+  const countEl = document.getElementById("mapServicesCount");
+  if (countEl) countEl.textContent = `${(services || []).length} Active`;
+
+  if (!services || services.length === 0) {
+    container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px;">No emergency facilities reported in sector.</div>`;
+    return;
+  }
+
+  container.innerHTML = services.map(s => {
+    const isNearest = nearestService && nearestService.id === s.id;
+    return `
+      <div class="service-dispatch-card" style="--card-accent: ${s.badge_color || '#38bdf8'}; ${isNearest ? 'box-shadow: 0 0 14px rgba(56, 189, 248, 0.25); border-color: rgba(56, 189, 248, 0.4);' : ''}">
+        <div class="card-top-row">
+          <div class="card-name-group">
+            <div class="card-icon-badge" style="background: ${s.badge_color}22; border-color: ${s.badge_color}55;">
+              ${s.icon}
+            </div>
+            <div>
+              <div class="card-title-text">${s.name} ${isNearest ? '<span style="font-size:0.65rem; background:#38bdf822; color:#38bdf8; border:1px solid #38bdf855; border-radius:4px; padding:1px 5px; margin-left:4px;">NEAREST</span>' : ''}</div>
+              <div class="card-subtype-text">${s.subtype}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-telemetry-strip">
+          <div class="card-tel-col">
+            <span class="card-tel-label">Distance</span>
+            <strong class="card-tel-val highlight">${s.distance_km} km <span style="font-size:0.68rem; color:#94a3b8;">(${s.distance_miles} mi)</span></strong>
+          </div>
+          <div class="card-tel-col">
+            <span class="card-tel-label">Siren Driving ETA</span>
+            <strong class="card-tel-val" style="color: ${s.eta_mins <= 2.5 ? '#34d399' : '#fbbf24'};">${s.eta_mins} mins</strong>
+          </div>
+        </div>
+
+        <div style="font-size: 0.68rem; color: #94a3b8; font-family: var(--font-mono); display: flex; justify-content: space-between; align-items: center;">
+          <span>CAD: <strong>${s.cad_channel || 'DIRECT'}</strong></span>
+          <span>${s.phone}</span>
+        </div>
+
+        <div class="card-actions-row">
+          <button class="btn-card-dispatch" onclick="focusMapRoute('${s.id}')">
+            <span>🚀 Highlight Route</span>
+          </button>
+          <button class="btn-card-call" onclick="alert('Calling emergency dispatch: ' + '${s.phone}')" title="Direct Line">
+            📞 Call
+          </button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function focusMapRoute(serviceId) {
+  if (!currentMapData || !niraMap) return;
+  const s = (currentMapData.services || []).find(item => item.id === serviceId);
+  if (!s) return;
+
+  // Pan and zoom to show service and resident
+  const bounds = L.latLngBounds([
+    [s.lat, s.lon],
+    [currentMapData.resident.lat, currentMapData.resident.lon]
+  ]);
+  niraMap.flyToBounds(bounds, { padding: [80, 80], duration: 1.2 });
+
+  // Open marker popup
+  if (niraMapMarkerGroup) {
+    niraMapMarkerGroup.eachLayer(layer => {
+      if (layer._serviceId === serviceId) {
+        setTimeout(() => layer.openPopup(), 1200);
+      }
+    });
+  }
+
+  showToast(`🎯 Focusing route: <strong>${s.name}</strong> ➔ Resident (${s.distance_km} km • ${s.eta_mins}m ETA)`);
+}
+
+function detectBrowserGps() {
+  if (!navigator.geolocation) {
+    showToast("⚠️ Browser geolocation API is not supported on this device.");
+    return;
+  }
+
+  const btn = document.getElementById("btnDetectGps");
+  const origHtml = btn ? btn.innerHTML : "";
+  if (btn) {
+    btn.innerHTML = `<span class="live-pulse-dot" style="background:#38bdf8;"></span> Detecting GPS...`;
+    btn.classList.add("active");
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      if (btn) {
+        btn.innerHTML = `📍 GPS Active (${lat.toFixed(2)}, ${lon.toFixed(2)})`;
+      }
+      const pill = document.getElementById("liveMapGpsPill");
+      if (pill) {
+        pill.className = "status-pill streaming";
+        const txt = document.getElementById("liveMapGpsStatusText");
+        if (txt) txt.textContent = "GPS LOCKED 📍";
+      }
+
+      playChime("success");
+      showToast(`📍 <strong>GPS Position Locked</strong>: [${lat.toFixed(4)}, ${lon.toFixed(4)}]`);
+      fetchAndRenderMapServices(lat, lon, null, `Your GPS Location (${lat.toFixed(4)}, ${lon.toFixed(4)})`);
+    },
+    (err) => {
+      console.warn("GPS Geolocation error:", err);
+      if (btn) {
+        btn.innerHTML = origHtml;
+        btn.classList.remove("active");
+      }
+      showToast("⚠️ GPS access was blocked or unavailable. Falling back to city preset.");
+    },
+    { timeout: 10000, enableHighAccuracy: true }
+  );
+}
+
+function switchMapCity(cityKey, btnEl) {
+  if (btnEl) {
+    const parent = btnEl.parentElement;
+    if (parent) {
+      parent.querySelectorAll(".city-chip").forEach(c => c.classList.remove("active"));
+    }
+    btnEl.classList.add("active");
+  }
+  playChime("info");
+  fetchAndRenderMapServices(null, null, cityKey);
+}
+
+async function searchMapLocation() {
+  const inp = document.getElementById("mapAddressSearchInput");
+  if (!inp || !inp.value.trim()) return;
+
+  const query = inp.value.trim();
+  showToast(`🔍 Searching location: <strong>${query}</strong>...`);
+
+  try {
+    const res = await fetch("/api/v1/live/map/locate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: query })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      currentMapData = data;
+      window.currentMapData = data;
+      updateMapHud(data);
+      renderMapEntities(data);
+      renderMapServicesCards(data.services, data.nearest_service);
+      const cityEl = document.getElementById("liveMapCurrentCity");
+      if (cityEl) cityEl.textContent = data.location_name;
+      playChime("success");
+      showToast(`📍 Relocated to <strong>${data.location_name}</strong>`);
+    } else {
+      // Fallback search via OpenStreetMap Nominatim
+      const nomRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+      if (nomRes.ok) {
+        const nomData = await nomRes.json();
+        if (nomData && nomData.length > 0) {
+          const lat = parseFloat(nomData[0].lat);
+          const lon = parseFloat(nomData[0].lon);
+          fetchAndRenderMapServices(lat, lon, null, nomData[0].display_name);
+          return;
+        }
+      }
+      showToast(`⚠️ Could not find location "${query}". Try another city name.`);
+    }
+  } catch (err) {
+    console.error("searchMapLocation error:", err);
+    showToast(`⚠️ Error locating "${query}".`);
+  }
+}
+
+function updateMapResidentAlarmState(isAlarm, reason = "FALL DETECTED") {
+  if (liveMapAlarmActive === isAlarm) return;
+  liveMapAlarmActive = isAlarm;
+  window._liveMapAlarmActive = isAlarm;
+
+  if (currentMapData) {
+    currentMapData.resident.current_state = isAlarm ? "FALL_DETECTED" : "NORMAL_MOVEMENT";
+    updateMapHud(currentMapData);
+    renderMapEntities(currentMapData);
+  }
+
+  if (isAlarm) {
+    playChime("alert");
+    showToast(`🚨 <strong>EMERGENCY MAP RADAR ESCALATION</strong>: Nearest 911 EMS Unit highlighted & dispatched!`);
+  }
+}
+
+function renderMapFallback(container) {
+  container.innerHTML = `
+    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:#94a3b8; font-family:var(--font-sans); text-align:center; padding:20px;">
+      <div style="font-size:2.5rem; margin-bottom:12px;">🗺️</div>
+      <strong style="color:#ffffff; font-size:1.1rem; margin-bottom:6px;">NIRA Tactical Geospatial Radar</strong>
+      <p style="font-size:0.82rem; max-width:420px; margin-bottom:14px;">Resident, Caretaker, and Nearby Emergency Units active via live telemetry.</p>
+      <div style="display:flex; gap:10px;">
+        <span style="background:rgba(56,189,248,0.15); border:1px solid #38bdf8; color:#38bdf8; padding:4px 10px; border-radius:6px; font-size:0.75rem;">🔵 Resident: Monitored</span>
+        <span style="background:rgba(245,158,11,0.15); border:1px solid #f59e0b; color:#fbbf24; padding:4px 10px; border-radius:6px; font-size:0.75rem;">🟡 Caretaker: En Route</span>
+        <span style="background:rgba(239,68,68,0.15); border:1px solid #ef4444; color:#f87171; padding:4px 10px; border-radius:6px; font-size:0.75rem;">🚑 EMS: On Standby</span>
+      </div>
+    </div>
+  `;
+}
+
+window.initNiraEmergencyMap = initNiraEmergencyMap;
+window.fetchAndRenderMapServices = fetchAndRenderMapServices;
+window.detectBrowserGps = detectBrowserGps;
+window.switchMapCity = switchMapCity;
+window.searchMapLocation = searchMapLocation;
+window.focusMapRoute = focusMapRoute;
+window.updateMapResidentAlarmState = updateMapResidentAlarmState;
+
 
 // ---------------------------------------------------------------------------
 // Initialization on Page Load
@@ -2668,6 +3265,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // Show Primary Landing Gateway Screen matching user's diagram by default
     returnToLandingGateway();
   }
+
+  // Pre-initialize Leaflet emergency radar map
+  if (typeof initNiraEmergencyMap === "function") {
+    setTimeout(initNiraEmergencyMap, 250);
+  }
+
 
   if (window.niraStore) {
     window.niraStore.init();
