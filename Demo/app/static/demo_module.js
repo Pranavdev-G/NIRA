@@ -1807,6 +1807,13 @@
       this.updateControlsUI();
     },
 
+    viewMode: 'split',
+
+    setViewMode(mode) {
+      this.viewMode = mode;
+      this.render();
+    },
+
     togglePlay() {
       if (this.isPlaying) {
         this.pause();
@@ -1929,46 +1936,115 @@
 
       container.innerHTML = `
         <div class="video-player-card">
-          <!-- Top Stream Status Bar -->
-          <div class="video-top-bar">
-            <div class="video-rec-indicator">
-              <span class="video-rec-dot"></span>
-              <span>EXPLAINABLE AI VIDEO PLAYBACK</span>
-            </div>
-            <div class="video-scene-indicator">
+          <!-- Top Stream Status Bar with Gemini Branding & View Toggles -->
+          <div class="video-top-bar" style="flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <span class="gemini-brand-pill">✨ Powered by Gemini Multimodal AI</span>
               <span class="pill-badge pill-blue">${sc.tag}</span>
-              <span style="font-weight: 700; color: #e2e8f0;">Phase ${this.currentScene + 1} of ${total}</span>
             </div>
-            <div class="video-speed-pill">
-              <span>Speed: <strong>${this.playbackSpeed}x</strong></span>
+
+            <!-- 3D / Human Presenter View Switcher -->
+            <div class="gemini-view-toggles" role="group" aria-label="Explainer Presentation Mode">
+              <button class="view-mode-btn ${this.viewMode === 'split' ? 'active-view-mode' : ''}" onclick="window.demoVideoController.setViewMode('split')" title="Side-by-side 3D Simulation and Human AI Presenter">
+                ✨ Split Studio
+              </button>
+              <button class="view-mode-btn ${this.viewMode === 'human' ? 'active-view-mode' : ''}" onclick="window.demoVideoController.setViewMode('human')" title="Focused Human AI Presenter View">
+                👤 Human Presenter
+              </button>
+              <button class="view-mode-btn ${this.viewMode === '3d' ? 'active-view-mode' : ''}" onclick="window.demoVideoController.setViewMode('3d')" title="Focused 3D Digital Twin View">
+                🌐 3D Digital Twin
+              </button>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-weight: 700; color: #e2e8f0; font-size: 0.78rem;">Phase ${this.currentScene + 1} of ${total}</span>
+              <div class="video-speed-pill">
+                <span>Speed: <strong>${this.playbackSpeed}x</strong></span>
+              </div>
             </div>
           </div>
 
-          <!-- Screen Viewport with Animated Scene -->
-          <div class="video-screen-viewport">
-            ${sc.visual}
+          <!-- Gemini 3D & Human Explainer Main Stage Viewport -->
+          <div class="gemini-stage-container ${this.viewMode === 'human' ? 'view-human-only' : (this.viewMode === '3d' ? 'view-3d-only' : '')}">
+            
+            <!-- Left Pane: 3D Floorplan or Interactive Simulation Scene -->
+            <div class="gemini-simulation-pane">
+              ${this.viewMode === '3d' ? `
+                <div class="gemini-3d-preview-wrap" style="background-image: url('/static/gemini_3d_twin.jpg');">
+                  <div class="gemini-3d-hud-overlay">
+                    <div>
+                      <strong style="color: #38bdf8;">🌐 3D DIGITAL TWIN &bull; UNIT 4B</strong>
+                      <div style="font-size: 0.7rem; color: #94a3b8;">4 Active Sensors &bull; 60GHz mmWave Radar Array</div>
+                    </div>
+                    <span class="pill-badge pill-green" style="font-size: 0.65rem;">TELEMETRY SYNCED</span>
+                  </div>
+                </div>
+              ` : `
+                ${sc.visual}
+              `}
+            </div>
+
+            <!-- Right Pane: Dr. Maya (Gemini Healthcare AI Presenter) -->
+            <div class="gemini-presenter-pane">
+              <div>
+                <div class="gemini-presenter-header">
+                  <div class="gemini-avatar-frame">
+                    <img src="/static/gemini_presenter.jpg" alt="Dr. Maya - Gemini Healthcare AI Doctor / Presenter" loading="eager" />
+                    <span class="gemini-live-pulse-dot" title="Gemini Multimodal Presenter Online"></span>
+                  </div>
+                  <div class="gemini-presenter-identity">
+                    <h4>
+                      <span>Dr. Maya Thorne</span>
+                      <span style="font-size: 0.7rem; color: #38bdf8; font-weight: 700;">MD</span>
+                    </h4>
+                    <div class="presenter-title">Gemini Healthcare AI Explainer</div>
+                    <div style="font-size: 0.68rem; color: #6ee7b7; font-weight: 700; margin-top: 3px;">
+                      ● Clinical Presenter &bull; Active
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Speech Narration Bubble -->
+                <div class="gemini-speech-bubble">
+                  <div class="gemini-speech-meta">
+                    <span>✨ GEMINI CLINICAL EXPLANATION</span>
+                    <div class="gemini-soundbars" aria-hidden="true">
+                      <div class="gemini-bar"></div>
+                      <div class="gemini-bar"></div>
+                      <div class="gemini-bar"></div>
+                      <div class="gemini-bar"></div>
+                    </div>
+                  </div>
+                  <div>${escapeHtml(sc.caption)}</div>
+                </div>
+              </div>
+
+              <!-- Action Bar in Presenter Card -->
+              <div style="margin-top: 14px; display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                <button class="btn-demo-primary" onclick="window.switchTab('${sc.tabTarget}')" style="white-space: nowrap; font-size: 0.76rem; padding: 6px 12px;">
+                  🚀 Try Feature Live &rarr;
+                </button>
+                <button class="btn-demo-secondary" onclick="window.demoVideoController.toggleVoiceover()" style="white-space: nowrap; font-size: 0.76rem; padding: 6px 12px; ${this.voiceNarrationEnabled ? 'background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #34d399;' : ''}">
+                  ${this.voiceNarrationEnabled ? '🔊 Voice: ON' : '🔇 Voice: OFF'}
+                </button>
+              </div>
+            </div>
+
           </div>
 
-          <!-- Video Title & Narration Transcript -->
+          <!-- Video Title & XAI Breakdown -->
           <div class="video-meta-section">
             <div class="video-title-row">
               <div>
                 <h3 class="video-scene-title">${escapeHtml(sc.title)}</h3>
                 <div class="video-scene-sub">${escapeHtml(sc.sub)}</div>
               </div>
-              <button class="btn-demo-primary" onclick="window.switchTab('${sc.tabTarget}')" style="white-space: nowrap;">
-                🚀 Try This Feature Live &rarr;
-              </button>
-            </div>
-            <div class="video-caption-box">
-              <span class="caption-icon">🎙️</span>
-              <span class="caption-text">${escapeHtml(sc.caption)}</span>
             </div>
 
             <!-- Explainable AI Decision Breakdown Panel -->
             <div class="video-xai-panel">
               <div class="video-xai-header">
-                <span class="xai-chip">🧠 EXPLAINABLE AI (XAI) DECISION BREAKDOWN</span>
+                <span class="xai-chip">🧠 EXPLAINABLE AI (XAI) DECISION BREAKDOWN &bull; GEMINI 1.5 PRO REASONING</span>
                 <span class="xai-confidence">Confidence Score: <strong>${escapeHtml(xai.confidence)}</strong></span>
               </div>
               <div class="video-xai-grid">

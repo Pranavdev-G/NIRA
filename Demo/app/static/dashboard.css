@@ -5356,6 +5356,237 @@ a:hover {
   line-height: 1.45;
 }
 
+/* Gemini 3D & Human Explainer Presenter Styling */
+.gemini-brand-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(56, 189, 248, 0.25) 100%);
+  border: 1px solid rgba(129, 140, 248, 0.5);
+  color: #c7d2fe;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+}
+
+.gemini-stage-container {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 16px;
+  min-height: 380px;
+  background: #020617;
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 900px) {
+  .gemini-stage-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gemini-stage-container.view-human-only {
+  grid-template-columns: 1fr;
+}
+
+.gemini-stage-container.view-human-only .gemini-simulation-pane {
+  display: none !important;
+}
+
+.gemini-stage-container.view-3d-only {
+  grid-template-columns: 1fr;
+}
+
+.gemini-stage-container.view-3d-only .gemini-presenter-pane {
+  display: none !important;
+}
+
+.gemini-simulation-pane {
+  background: radial-gradient(circle at center, #0a1128 0%, #020617 100%);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  padding: 14px;
+}
+
+.gemini-3d-preview-wrap {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 14px;
+}
+
+.gemini-3d-hud-overlay {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 8px;
+  padding: 8px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  color: #e2e8f0;
+}
+
+.gemini-presenter-pane {
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.95) 100%);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+.gemini-presenter-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.gemini-avatar-frame {
+  position: relative;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, #6366f1, #38bdf8, #a855f7);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+  flex-shrink: 0;
+}
+
+.gemini-avatar-frame img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.gemini-live-pulse-dot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2px solid #0f172a;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulseDot 1.5s infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+.gemini-presenter-identity h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gemini-presenter-identity .presenter-title {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.gemini-speech-bubble {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 12px;
+  padding: 14px;
+  color: #f1f5f9;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.gemini-speech-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.72rem;
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.gemini-soundbars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 14px;
+}
+
+.gemini-bar {
+  width: 3px;
+  background: #38bdf8;
+  border-radius: 2px;
+  animation: soundBarAnim 1s ease-in-out infinite;
+}
+.gemini-bar:nth-child(1) { height: 40%; animation-delay: 0.1s; }
+.gemini-bar:nth-child(2) { height: 80%; animation-delay: 0.3s; }
+.gemini-bar:nth-child(3) { height: 100%; animation-delay: 0.2s; }
+.gemini-bar:nth-child(4) { height: 60%; animation-delay: 0.4s; }
+
+@keyframes soundBarAnim {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+}
+
+.gemini-view-toggles {
+  display: inline-flex;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.view-mode-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-mode-btn.active-view-mode {
+  background: var(--accent-blue);
+  color: #030712;
+}
+
 /* Enforce pure Demo Model: hide Live Mode operating bar and live container */
 .system-mode-selector-bar,
 #btnModeLive,
