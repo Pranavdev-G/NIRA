@@ -1057,6 +1057,29 @@
       const isCritical = inc.severity === "CRITICAL";
 
       card.innerHTML = `
+        <!-- Ambulance CAD Dispatch Mode Banner -->
+        <div class="ambulance-cad-hud" style="background: linear-gradient(135deg, rgba(225, 29, 72, 0.22) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1.5px solid rgba(244, 63, 94, 0.55); border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; box-shadow: 0 10px 30px rgba(244, 63, 94, 0.25);">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(244, 63, 94, 0.25); border: 1.5px solid rgba(244, 63, 94, 0.6); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; animation: pulse 1.5s infinite;">🚑</div>
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 1.05rem; font-weight: 800; color: #ffffff; letter-spacing: -0.01em;">Ambulance CAD Dispatch &bull; Boston EMS Medic 14</span>
+                <span class="pill-badge pill-red">EN ROUTE (ETA 4 MIN)</span>
+              </div>
+              <div style="font-size: 0.82rem; color: #cbd5e1; margin-top: 4px;">
+                CAD Unit: <strong>Medic-14</strong> &bull; Priority 1 Traumatic Fall &bull; Destination: <strong>Mass General Hospital Level 1 Trauma Center</strong>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; background: rgba(0, 0, 0, 0.45); padding: 10px 18px; border-radius: 12px; border: 1.5px dashed rgba(244, 63, 94, 0.55);">
+            <div>
+              <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #fda4af; font-weight: 800;">Smart Door Token</div>
+              <div style="font-size: 1.45rem; font-weight: 900; color: #34d399; font-family: monospace; letter-spacing: 0.16em;">8492</div>
+            </div>
+            <span class="pill-badge pill-green" style="font-size: 0.68rem;">UNLOCKED FOR FIRST RESPONDERS</span>
+          </div>
+        </div>
+
         <div class="demo-emergency-banner ${isCritical ? 'critical-pulse' : 'warning-pulse'}">
           <div class="banner-header-row">
             <div class="em-title-wrap">
@@ -1575,6 +1598,328 @@
       .replace(/'/g, '&#039;');
   }
 
+  // --- 8. DEMO VIDEO & HOW-TO GUIDE CONTROLLER ---
+  const DemoVideoController = {
+    currentScene: 0,
+    isPlaying: false,
+    timer: null,
+    playbackSpeed: 1,
+    scenes: [
+      {
+        id: "voice",
+        title: "Voice Assistant & Alexa+ Integration",
+        sub: "Ambient Voice Interaction • Sub-500ms Response • 10 Languages",
+        duration: 8,
+        tabTarget: "voiceassistant",
+        tag: "VOICE INTERACTION",
+        caption: "Resident says: 'Alexa, I feel a little dizzy, can you check on me?' NIRA listens passively with zero wake latency, reassures Eleanor, checks biometric telemetry, and alerts her son David.",
+        visual: `
+          <div class="sim-video-viewport">
+            <div class="sim-echo-card">
+              <div class="echo-status-pill">
+                <span class="echo-pulse-dot"></span>
+                <span>Alexa+ Smart Echo Show 15 &bull; Living Room</span>
+              </div>
+              <div class="sim-audio-waves">
+                <div class="sim-wave-bar h-1"></div>
+                <div class="sim-wave-bar h-3"></div>
+                <div class="sim-wave-bar h-5"></div>
+                <div class="sim-wave-bar h-4"></div>
+                <div class="sim-wave-bar h-2"></div>
+                <div class="sim-wave-bar h-5"></div>
+                <div class="sim-wave-bar h-3"></div>
+              </div>
+              <div class="sim-dialogue-bubbles">
+                <div class="sim-user-bubble">
+                  <div class="bubble-sender">👵 Eleanor (Resident)</div>
+                  <div class="bubble-text">"Alexa, I feel a little dizzy, can you check on me?"</div>
+                </div>
+                <div class="sim-alexa-bubble">
+                  <div class="bubble-sender">🤖 NIRA Alexa+ Agent &bull; 240ms</div>
+                  <div class="bubble-text">"I'm here Eleanor. Your pulse is 74 BPM and normal. I've noted this in your daily wellness log and sent a reassuring update to David."</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: "checkin",
+        title: "Daily Morning Wellness Check-In",
+        sub: "1-Tap Safety Verification • Reason Options • Family Sync",
+        duration: 7,
+        tabTarget: "dailycheckin",
+        tag: "DAILY CHECK-IN",
+        caption: "Every morning at 09:30 AM, Eleanor selects her wellness status ('I'm fine', 'Feeling unwell', 'Need assistance'). Confirmation is instantly logged and synced to David's Family Admin console.",
+        visual: `
+          <div class="sim-video-viewport">
+            <div class="sim-checkin-cards-row">
+              <div class="sim-choice-card is-active-choice">
+                <div style="font-size: 2.2rem; margin-bottom: 8px;">😊</div>
+                <div style="font-weight: 800; color: #34d399; font-size: 1.15rem;">"I'm Fine"</div>
+                <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 4px;">Routine normal &bull; Good sleep</div>
+              </div>
+              <div class="sim-choice-card" style="opacity: 0.55;">
+                <div style="font-size: 2.2rem; margin-bottom: 8px;">🤒</div>
+                <div style="font-weight: 800; color: #fbbf24; font-size: 1.15rem;">"Feeling Unwell"</div>
+                <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 4px;">Dizzy / Low energy</div>
+              </div>
+            </div>
+            <div class="sim-verified-badge" style="margin-top: 18px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); padding: 8px 18px; border-radius: 9999px; color: #34d399; font-weight: 800; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px;">
+              <span>✅</span> Check-in Recorded at 09:30 AM &bull; Synced to Son David Vance
+            </div>
+          </div>
+        `
+      },
+      {
+        id: "falldetect",
+        title: "Ambient Radar & Fall Detection Simulation",
+        sub: "60GHz mmWave Radar • Optical Pose • 30-Second Immobility Timer",
+        duration: 8,
+        tabTarget: "falldetection",
+        tag: "FALL SENSING",
+        caption: "When a rapid floor velocity impact occurs (>2.2 m/s), NIRA evaluates optical pose skeleton and radar reflections. A 30s verbal verification timer begins to prevent false alarms.",
+        visual: `
+          <div class="sim-video-viewport">
+            <div class="sim-radar-hud">
+              <div class="sim-hud-grid">
+                <div class="hud-box alert-box">
+                  <small>Posture Classification</small>
+                  <strong>Horizontal (78° Floor Angle)</strong>
+                </div>
+                <div class="hud-box alert-box">
+                  <small>Impact Velocity</small>
+                  <strong>2.84 m/s (Threshold Exceeded)</strong>
+                </div>
+                <div class="hud-box warn-box">
+                  <small>Verification Timer</small>
+                  <strong style="color: #fbbf24;">30s Countdown Active</strong>
+                </div>
+              </div>
+              <div class="sim-hazard-banner" style="margin-top: 16px; background: rgba(244, 63, 94, 0.2); border: 1.5px solid rgba(244, 63, 94, 0.6); padding: 10px 18px; border-radius: 12px; color: #fda4af; font-weight: 800; font-size: 0.88rem;">
+                🚨 High-Confidence Fall Detected in Living Room &bull; Acoustic Query Initiated
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: "escalation",
+        title: "Son David Vance & Family Escalation",
+        sub: "Multi-Channel SMS & Push Notification • Smart Deadbolt PIN: 8492",
+        duration: 7,
+        tabTarget: "emergencyalert",
+        tag: "FAMILY ALERT",
+        caption: "David Vance receives an urgent notification on his smartphone with live telemetry and door controls. NIRA's smart lock deadbolt automatically generates access PIN 8492.",
+        visual: `
+          <div class="sim-video-viewport">
+            <div class="sim-phone-mockup">
+              <div class="phone-notch"></div>
+              <div class="phone-alert-card">
+                <div class="phone-alert-title">🚨 NIRA Priority Alert: Eleanor Vance</div>
+                <div class="phone-alert-body">Unresponsive fall detected in Living Room. Pulse 94 BPM. Front Door Deadbolt unlocked for emergency personnel.</div>
+                <div class="phone-alert-meta">Sent via Push &bull; SMS &bull; Echo Show Drop-In</div>
+              </div>
+              <div class="door-token-highlight" style="margin-top: 14px; background: rgba(16, 185, 129, 0.2); border: 1.5px solid #10b981; padding: 10px 18px; border-radius: 10px; color: #34d399; font-weight: 800; font-size: 0.9rem;">
+                🔑 Smart Door Token Generated: <span style="font-family: monospace; font-size: 1.15rem; color: #fff;">8492</span>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: "ambulance",
+        title: "Medic 14 Boston EMS CAD Ambulance Dispatch",
+        sub: "First Responder Mode • Smart Door Token: 8492 • MGH Trauma 1",
+        duration: 9,
+        tabTarget: "emergencyalert",
+        tag: "AMBULANCE CAD",
+        caption: "Ambulance CAD receives live telemetry, GPS coordinates to Beacon Hill Apt 3B, pre-notifies Mass General Hospital Level 1 Trauma Center, and arrives with token 8492 for instant door entry.",
+        visual: `
+          <div class="sim-video-viewport">
+            <div class="sim-cad-hud">
+              <div class="cad-header-row">
+                <span style="font-weight: 900; color: #ffffff; font-size: 0.95rem;">🚑 BOSTON EMS CAD &bull; UNIT: MEDIC-14</span>
+                <span class="pill-badge pill-red">EN ROUTE &bull; CODE 3</span>
+              </div>
+              <div class="cad-info-columns" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; text-align: left;">
+                <div>Resident: <strong>Eleanor Vance (Age 79)</strong><br>Address: <strong>Beacon Hill Apt 3B</strong></div>
+                <div>Hospital: <strong>Mass General Hospital</strong><br>ETA: <strong>4 mins (1.2 miles)</strong></div>
+              </div>
+              <div class="cad-door-token-box" style="margin-top: 14px; background: rgba(0, 0, 0, 0.45); border: 1.5px dashed rgba(244, 63, 94, 0.6); padding: 10px 16px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between;">
+                <span style="color: #fda4af; font-size: 0.8rem; font-weight: 800; text-transform: uppercase;">Smart Door PIN:</span>
+                <span style="font-size: 1.3rem; font-weight: 900; color: #34d399; font-family: monospace; letter-spacing: 0.15em;">8492</span>
+                <span class="pill-badge pill-green" style="font-size: 0.65rem;">DEADBOLT UNLOCKED</span>
+              </div>
+            </div>
+          </div>
+        `
+      }
+    ],
+
+    init() {
+      this.render();
+    },
+
+    play() {
+      if (this.isPlaying) return;
+      this.isPlaying = true;
+      this.updateControlsUI();
+      this.startTimer();
+    },
+
+    pause() {
+      this.isPlaying = false;
+      this.clearTimer();
+      this.updateControlsUI();
+    },
+
+    togglePlay() {
+      if (this.isPlaying) {
+        this.pause();
+      } else {
+        this.play();
+      }
+    },
+
+    next() {
+      this.clearTimer();
+      this.currentScene = (this.currentScene + 1) % this.scenes.length;
+      this.render();
+      if (this.isPlaying) this.startTimer();
+    },
+
+    prev() {
+      this.clearTimer();
+      this.currentScene = (this.currentScene - 1 + this.scenes.length) % this.scenes.length;
+      this.render();
+      if (this.isPlaying) this.startTimer();
+    },
+
+    goToScene(index) {
+      this.clearTimer();
+      this.currentScene = Math.max(0, Math.min(index, this.scenes.length - 1));
+      this.render();
+      if (this.isPlaying) this.startTimer();
+    },
+
+    setSpeed(speed) {
+      this.playbackSpeed = speed;
+      this.clearTimer();
+      if (this.isPlaying) this.startTimer();
+      this.updateControlsUI();
+    },
+
+    startTimer() {
+      this.clearTimer();
+      const current = this.scenes[this.currentScene];
+      const durationMs = (current.duration * 1000) / this.playbackSpeed;
+      this.timer = setTimeout(() => {
+        this.next();
+      }, durationMs);
+    },
+
+    clearTimer() {
+      if (this.timer) {
+        clearTimeout(this.timer);
+        this.timer = null;
+      }
+    },
+
+    updateControlsUI() {
+      const playBtn = document.getElementById('demoVideoPlayBtn');
+      if (playBtn) {
+        playBtn.innerHTML = this.isPlaying ? '⏸ Pause' : '▶ Play';
+        playBtn.setAttribute('aria-label', this.isPlaying ? 'Pause Demo Video' : 'Play Demo Video');
+      }
+    },
+
+    render() {
+      const container = document.getElementById('demoVideoPlayerContainer');
+      if (!container) return;
+
+      const sc = this.scenes[this.currentScene];
+      const total = this.scenes.length;
+
+      container.innerHTML = `
+        <div class="video-player-card">
+          <!-- Top Stream Status Bar -->
+          <div class="video-top-bar">
+            <div class="video-rec-indicator">
+              <span class="video-rec-dot"></span>
+              <span>LIVE DEMO PLAYBACK</span>
+            </div>
+            <div class="video-scene-indicator">
+              <span class="pill-badge pill-blue">${sc.tag}</span>
+              <span style="font-weight: 700; color: #e2e8f0;">Scene ${this.currentScene + 1} of ${total}</span>
+            </div>
+            <div class="video-speed-pill">
+              <span>Speed: <strong>${this.playbackSpeed}x</strong></span>
+            </div>
+          </div>
+
+          <!-- Screen Viewport with Animated Scene -->
+          <div class="video-screen-viewport">
+            ${sc.visual}
+          </div>
+
+          <!-- Video Title & Narration Transcript -->
+          <div class="video-meta-section">
+            <div class="video-title-row">
+              <div>
+                <h3 class="video-scene-title">${escapeHtml(sc.title)}</h3>
+                <div class="video-scene-sub">${escapeHtml(sc.sub)}</div>
+              </div>
+              <button class="btn-demo-primary" onclick="window.switchTab('${sc.tabTarget}')" style="white-space: nowrap;">
+                🚀 Try This Feature Live &rarr;
+              </button>
+            </div>
+            <div class="video-caption-box">
+              <span class="caption-icon">🎙️</span>
+              <span class="caption-text">${escapeHtml(sc.caption)}</span>
+            </div>
+          </div>
+
+          <!-- Player Controls Bar -->
+          <div class="video-controls-bar">
+            <!-- Scrubber Track & Chapter Dots -->
+            <div class="video-chapters-track">
+              ${this.scenes.map((s, idx) => `
+                <button class="chapter-dot-btn ${idx === this.currentScene ? 'active-chapter' : ''}" onclick="window.demoVideoController.goToScene(${idx})" title="Go to ${escapeHtml(s.title)}">
+                  <span class="dot-num">${idx + 1}</span>
+                  <span class="dot-label">${escapeHtml(s.id.toUpperCase())}</span>
+                </button>
+              `).join('')}
+            </div>
+
+            <!-- Playback Action Buttons -->
+            <div class="video-actions-row">
+              <div class="btn-group-left">
+                <button class="btn-demo-secondary" onclick="window.demoVideoController.prev()" title="Previous Scene">⏮ Prev</button>
+                <button class="btn-demo-primary" id="demoVideoPlayBtn" onclick="window.demoVideoController.togglePlay()">
+                  ${this.isPlaying ? '⏸ Pause' : '▶ Play'}
+                </button>
+                <button class="btn-demo-secondary" onclick="window.demoVideoController.next()" title="Next Scene">Next ⏭</button>
+                <button class="btn-demo-secondary" onclick="window.demoVideoController.goToScene(0); window.demoVideoController.play();" title="Restart Video">⟲ Restart</button>
+              </div>
+
+              <div class="btn-group-right">
+                <span style="font-size: 0.78rem; color: #94a3b8; margin-right: 6px;">Speed:</span>
+                <button class="speed-toggle-btn ${this.playbackSpeed === 1 ? 'active-speed' : ''}" onclick="window.demoVideoController.setSpeed(1)">1x</button>
+                <button class="speed-toggle-btn ${this.playbackSpeed === 1.5 ? 'active-speed' : ''}" onclick="window.demoVideoController.setSpeed(1.5)">1.5x</button>
+                <button class="speed-toggle-btn ${this.playbackSpeed === 2 ? 'active-speed' : ''}" onclick="window.demoVideoController.setSpeed(2)">2x</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      this.updateControlsUI();
+    }
+  };
+
+  // Expose on window for inline handlers
+  window.demoVideoController = DemoVideoController;
+
   // Auto-initialize when DOM is ready
   function initAllControllers() {
     VoiceAssistantController.init();
@@ -1584,6 +1929,7 @@
     LocationMapController.init();
     NotificationCenterController.init();
     IncidentHistoryController.init();
+    DemoVideoController.init();
     demoStore.updateHeaderBadges();
   }
 

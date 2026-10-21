@@ -531,23 +531,15 @@
         <h1 class="nira-apex-title">NIRA</h1>
       </div>
 
-      <!-- Base: DEMO on Left, LIVE MODEL on Right -->
-      <div class="nira-base-row">
-        <!-- DEMO -->
-        <div id="btnLandingDemo" class="nira-portal-card demo-portal" onclick="enterSystemMode('demo')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();enterSystemMode('demo');}" tabindex="0" role="button" aria-label="Open Demo Mode">
-          <div class="portal-label">DEMO</div>
-          <div class="portal-arrow" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </div>
-        </div>
-
-        <!-- LIVE MODEL -->
-        <div id="btnLandingLive" class="nira-portal-card live-portal" onclick="enterSystemMode('live')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();enterSystemMode('live');}" tabindex="0" role="button" aria-label="Open Live Model Mode">
-          <div class="portal-label">LIVE MODEL</div>
-          <div class="portal-arrow" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </div>
-        </div>
+      <!-- Demo System Direct Enter Button -->
+      <div style="margin-bottom: 24px; display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap;">
+        <button id="btnLandingDemo" onclick="enterSystemMode('demo')" class="btn-demo-primary" style="padding: 12px 28px; font-size: 0.95rem; border-radius: 9999px; letter-spacing: 0.08em; text-transform: uppercase; box-shadow: 0 4px 20px rgba(56, 189, 248, 0.4); display: inline-flex; align-items: center; gap: 8px;">
+          <span>▶ Launch Person 2 Interactive Demo</span>
+          <span>&rarr;</span>
+        </button>
+        <button onclick="openVideoDemoModal()" class="btn-demo-secondary" style="padding: 12px 24px; font-size: 0.95rem; border-radius: 9999px; background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.2); display: inline-flex; align-items: center; gap: 8px;">
+          <span>🎬 Watch 3D Video Reel</span>
+        </button>
       </div>
 
       <!-- Select Authenticated Profile Section -->
@@ -589,14 +581,17 @@
                   <polyline points="9 22 9 12 15 12 15 22"/>
                 </svg>
               </div>
-              <span class="landing-profile-badge">Interactive</span>
+              <span class="landing-profile-badge">Home View &bull; 🎬 Video</span>
             </div>
             <div>
               <div class="landing-profile-name">Eleanor &amp; Family (Home View)</div>
               <div class="landing-profile-desc">Interactive Safety Dashboard • Multilingual • Voice Test</div>
+              <div style="margin-top: 6px; font-size: 0.74rem; color: #38bdf8; font-weight: 700;">
+                🎬 Includes "How To Use" Interactive Demo Video
+              </div>
             </div>
             <div class="landing-profile-footer">
-              <span>Open Demo Dashboard</span>
+              <span>Open Home Dashboard</span>
               <span>&rarr;</span>
             </div>
           </div>
@@ -611,14 +606,17 @@
                   <polyline points="2 12 12 17 22 12"/>
                 </svg>
               </div>
-              <span class="landing-profile-badge">Emergency</span>
+              <span class="landing-profile-badge" style="background: rgba(244, 63, 94, 0.25); border-color: rgba(244, 63, 94, 0.6);">Ambulance Mode</span>
             </div>
             <div>
               <div class="landing-profile-name">Medic 14 (Boston EMS First Responder)</div>
               <div class="landing-profile-desc">Emergency CAD Dispatch • Smart Door Token: 8492</div>
+              <div style="margin-top: 6px; font-size: 0.74rem; color: #fda4af; font-weight: 700;">
+                🚑 First Responder CAD &bull; Emergency Alert Mechanism
+              </div>
             </div>
             <div class="landing-profile-footer">
-              <span>Open Emergency CAD</span>
+              <span>Open Ambulance CAD</span>
               <span>&rarr;</span>
             </div>
           </div>
@@ -674,6 +672,14 @@
           </svg>
           <span>Notifications</span>
           <span class="demo-unread-badge-counter demo-unread-badge-counter" id="headerNotifBadge" style="display: none;">0</span>
+        </button>
+
+        <!-- Interactive Demo Video Button -->
+        <button class="btn-header-action" id="btnHeaderDemoVideo" onclick="switchTab('demovideo')" title="Watch Application Demo Video & Walkthrough" aria-label="Demo Video Guide" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; font-weight: 800;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          <span>🎬 Demo Video</span>
         </button>
 
         <!-- Quick Reset: Demo Data -->
@@ -870,13 +876,22 @@
         <span>Fall Detection</span>
       </button>
 
-      <button class="tab-nav-btn" id="tabBtnEmergencyAlert" onclick="switchTab('emergencyalert')" role="tab" aria-selected="false" aria-controls="panelEmergencyAlert" tabindex="-1">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <button class="tab-nav-btn" id="tabBtnEmergencyAlert" onclick="switchTab('emergencyalert')" role="tab" aria-selected="false" aria-controls="panelEmergencyAlert" tabindex="-1" style="border: 1px solid rgba(244, 63, 94, 0.45); background: rgba(244, 63, 94, 0.08);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" aria-hidden="true">
           <polygon points="12 2 2 7 12 12 22 7 12 2"/>
           <polyline points="2 17 12 22 22 17"/>
           <polyline points="2 12 12 17 22 12"/>
         </svg>
-        <span>Emergency Alert</span>
+        <span style="color: #fda4af;">Ambulance CAD</span>
+        <span class="pill-badge pill-red" style="font-size: 0.62rem; padding: 2px 6px; margin-left: 4px;">Medic 14</span>
+      </button>
+
+      <!-- How-To Demo Video Tab -->
+      <button class="tab-nav-btn" id="tabBtnDemoVideo" onclick="switchTab('demovideo')" role="tab" aria-selected="false" aria-controls="panelDemoVideo" tabindex="-1" style="border: 1px solid rgba(56, 189, 248, 0.45); background: rgba(56, 189, 248, 0.08);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" aria-hidden="true">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        <span style="color: #38bdf8;">🎬 Demo Video &amp; Guide</span>
       </button>
 
       <button class="tab-nav-btn" id="tabBtnLocationMap" onclick="switchTab('locationmap')" role="tab" aria-selected="false" aria-controls="panelLocationMap" tabindex="-1">
@@ -908,8 +923,8 @@
         <span>Incident History</span>
       </button>
 
-      <!-- Retained Unified Telemetry Views -->
-      <button class="tab-nav-btn" id="tabBtnOverview" onclick="switchTab('overview')" role="tab" aria-selected="false" aria-controls="panelOverview" tabindex="-1">
+      <!-- Person 1 Live IoT Tabs (Hidden in Demo Mode to ensure pure Demo experience) -->
+      <button class="tab-nav-btn" id="tabBtnOverview" onclick="switchTab('overview')" role="tab" aria-selected="false" aria-controls="panelOverview" tabindex="-1" style="display: none !important;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <rect x="3" y="3" width="7" height="7"/>
           <rect x="14" y="3" width="7" height="7"/>
@@ -919,7 +934,7 @@
         <span>Overview &amp; Vitals</span>
       </button>
 
-      <button class="tab-nav-btn" id="tabBtnVision" onclick="switchTab('vision')" role="tab" aria-selected="false" aria-controls="panelVision" tabindex="-1">
+      <button class="tab-nav-btn" id="tabBtnVision" onclick="switchTab('vision')" role="tab" aria-selected="false" aria-controls="panelVision" tabindex="-1" style="display: none !important;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M23 7l-7 5 7 5V7z"/>
           <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
@@ -927,7 +942,7 @@
         <span>Vision &amp; Radar</span>
       </button>
 
-      <button class="tab-nav-btn" id="tabBtnDispatch" onclick="switchTab('dispatch')" role="tab" aria-selected="false" aria-controls="panelDispatch" tabindex="-1">
+      <button class="tab-nav-btn" id="tabBtnDispatch" onclick="switchTab('dispatch')" role="tab" aria-selected="false" aria-controls="panelDispatch" tabindex="-1" style="display: none !important;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <polygon points="12 2 2 7 12 12 22 7 12 2"/>
           <polyline points="2 17 12 22 22 17"/>
@@ -954,6 +969,25 @@
             </div>
           </div>
           <span class="pill-badge pill-blue">Web Speech &bull; Fallback Enabled</span>
+        </div>
+
+        <!-- Video Walkthrough Callout Banner inside Eleanor's Voice / Home Dashboard -->
+        <div class="demo-video-callout-banner" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(15, 23, 42, 0.85) 100%); border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 14px; padding: 14px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.45); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">🎬</div>
+            <div>
+              <div style="font-weight: 800; color: #ffffff; font-size: 0.95rem;">New to NIRA? Watch the Interactive Demo Video &amp; Guide</div>
+              <div style="font-size: 0.8rem; color: #94a3b8;">5-step animated walkthrough explaining Voice Assistant, Daily Check-in, Fall Detection &amp; Ambulance CAD Dispatch.</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-demo-primary" onclick="window.switchTab('demovideo')" style="white-space: nowrap; font-size: 0.82rem;">
+              ▶ Open Interactive Guide &rarr;
+            </button>
+            <button class="btn-demo-secondary" onclick="openVideoDemoModal()" style="white-space: nowrap; font-size: 0.82rem;">
+              🎥 3D Reel
+            </button>
+          </div>
         </div>
 
         <div class="demo-voice-container">
@@ -1374,6 +1408,33 @@
               <!-- Populated dynamically by IncidentHistoryController -->
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         PAGE H: DEMO VIDEO & HOW-TO APPLICATION GUIDE
+         ====================================================================== -->
+    <div class="tab-content-panel" id="panelDemoVideo" role="tabpanel" aria-labelledby="tabBtnDemoVideo">
+      <div class="demo-module-card">
+        <div class="demo-card-header">
+          <div class="demo-card-title-wrap">
+            <span class="demo-card-icon" aria-hidden="true">🎬</span>
+            <div>
+              <h3>NIRA Interactive System Demo &amp; How-To Video Guide</h3>
+              <div class="demo-card-desc">Step-by-step interactive visual demonstration showcasing Voice Assistant, Daily Check-in, Fall Detection Simulation, David Vance Family Alerts, and Boston EMS Medic 14 Ambulance CAD Dispatch.</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <button class="btn-luxury-primary" onclick="openVideoDemoModal()" style="font-size: 0.82rem; padding: 8px 16px;">
+              <span>🎥 Watch 3D Video Reel</span>
+            </button>
+            <span class="pill-badge pill-blue">INTERACTIVE GUIDE</span>
+          </div>
+        </div>
+
+        <div id="demoVideoPlayerContainer">
+          <!-- Populated dynamically by DemoVideoController -->
         </div>
       </div>
     </div>

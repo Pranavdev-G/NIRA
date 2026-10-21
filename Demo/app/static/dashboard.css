@@ -5004,5 +5004,288 @@ a:hover {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ==========================================================================
+   DEMO VIDEO PLAYER & HOW-TO WALKTHROUGH STYLES
+   ========================================================================== */
+.video-player-card {
+  background: rgba(10, 16, 31, 0.95);
+  border: 1.5px solid rgba(56, 189, 248, 0.25);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+}
+
+.video-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: rgba(15, 23, 42, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.8rem;
+}
+
+.video-rec-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #f43f5e;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+}
+
+.video-rec-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f43f5e;
+  box-shadow: 0 0 10px #f43f5e;
+  animation: pulse 1.2s infinite;
+}
+
+.video-screen-viewport {
+  min-height: 280px;
+  background: radial-gradient(ellipse at center, #0f1c3f 0%, #030712 85%);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sim-video-viewport {
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeIn 0.35s ease;
+}
+
+.sim-echo-card, .sim-radar-hud, .sim-phone-mockup, .sim-cad-hud {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+.sim-audio-waves {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 18px 0;
+  height: 38px;
+}
+
+.sim-wave-bar {
+  width: 6px;
+  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+  border-radius: 9999px;
+  animation: soundwave 1s ease-in-out infinite alternate;
+}
+.sim-wave-bar.h-1 { height: 16px; animation-delay: 0.1s; }
+.sim-wave-bar.h-2 { height: 24px; animation-delay: 0.25s; }
+.sim-wave-bar.h-3 { height: 32px; animation-delay: 0.15s; }
+.sim-wave-bar.h-4 { height: 20px; animation-delay: 0.35s; }
+.sim-wave-bar.h-5 { height: 38px; animation-delay: 0.05s; }
+
+@keyframes soundwave {
+  0% { transform: scaleY(0.4); opacity: 0.6; }
+  100% { transform: scaleY(1); opacity: 1; }
+}
+
+.sim-dialogue-bubbles {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+
+.sim-user-bubble {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 10px 14px;
+  border-radius: 12px 12px 12px 2px;
+}
+
+.sim-alexa-bubble {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 10px 14px;
+  border-radius: 12px 12px 2px 12px;
+  align-self: flex-end;
+}
+
+.bubble-sender {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.bubble-text {
+  font-size: 0.88rem;
+  color: #ffffff;
+  line-height: 1.4;
+}
+
+.sim-checkin-cards-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+}
+
+.sim-choice-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 18px 14px;
+  text-align: center;
+}
+
+.sim-choice-card.is-active-choice {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: #34d399;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.25);
+}
+
+.sim-hud-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+
+.hud-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px;
+  border-radius: 10px;
+}
+.hud-box.alert-box {
+  border-color: rgba(244, 63, 94, 0.45);
+  color: #fda4af;
+}
+
+.video-meta-section {
+  padding: 20px 24px;
+  background: rgba(15, 23, 42, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.video-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.video-scene-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 4px 0;
+}
+
+.video-scene-sub {
+  font-size: 0.82rem;
+  color: #94a3b8;
+}
+
+.video-caption-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: #e2e8f0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.video-controls-bar {
+  padding: 18px 24px;
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.video-chapters-track {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.chapter-dot-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: all 0.2s ease;
+  color: #94a3b8;
+}
+
+.chapter-dot-btn:hover, .chapter-dot-btn.active-chapter {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: #38bdf8;
+  color: #ffffff;
+}
+
+.chapter-dot-btn .dot-num {
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.chapter-dot-btn .dot-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.video-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.speed-toggle-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.speed-toggle-btn.active-speed {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: #030712;
+}
+
 
 

@@ -1357,11 +1357,19 @@ function switchTab(tabId) {
     'assistant': 'voiceassistant',
     'dailycheckin': 'dailycheckin',
     'checkin': 'dailycheckin',
+    'demovideo': 'demovideo',
+    'video': 'demovideo',
+    'demo': 'demovideo',
+    'guide': 'demovideo',
+    'tutorial': 'demovideo',
     'falldetection': 'falldetection',
     'fall': 'falldetection',
     'falldetect': 'falldetection',
     'emergencyalert': 'emergencyalert',
     'alert': 'emergencyalert',
+    'ambulance': 'emergencyalert',
+    'cad': 'emergencyalert',
+    'medic14': 'emergencyalert',
     'locationmap': 'locationmap',
     'map': 'locationmap',
     'hospitals': 'locationmap',
@@ -1382,6 +1390,7 @@ function switchTab(tabId) {
   const allTabs = [
     { id: 'voiceassistant', btn: 'tabBtnVoiceAssistant', panel: 'panelVoiceAssistant' },
     { id: 'dailycheckin', btn: 'tabBtnDailyCheckin', panel: 'panelDailyCheckin' },
+    { id: 'demovideo', btn: 'tabBtnDemoVideo', panel: 'panelDemoVideo' },
     { id: 'falldetection', btn: 'tabBtnFallDetection', panel: 'panelFallDetection' },
     { id: 'emergencyalert', btn: 'tabBtnEmergencyAlert', panel: 'panelEmergencyAlert' },
     { id: 'locationmap', btn: 'tabBtnLocationMap', panel: 'panelLocationMap' },
@@ -1416,6 +1425,11 @@ function switchTab(tabId) {
       }
     }
   });
+
+  // If switched to demovideo, trigger video player initialization or playback
+  if (canonical === 'demovideo' && window.demoVideoController) {
+    window.demoVideoController.play();
+  }
 
   // If switched to vision tab, trigger camera canvas resize to fit viewport
   if (canonical === 'vision' && window.cameraSim) {

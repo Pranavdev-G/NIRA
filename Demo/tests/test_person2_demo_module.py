@@ -134,3 +134,30 @@ def test_incident_history_elements():
     assert 'id="demoIncidentHistoryTableBody"' in html
     assert 'id="demoHistTypeFilter"' in html
     assert 'id="demoHistStatusFilter"' in html
+
+
+def test_demo_video_guide_elements():
+    """Verify Demo Video Guide elements exist on frontend."""
+    resp = client.get("/")
+    html = resp.text
+    assert 'id="tabBtnDemoVideo"' in html
+    assert 'id="panelDemoVideo"' in html
+    assert 'id="demoVideoPlayerContainer"' in html
+    assert 'id="btnHeaderDemoVideo"' in html
+
+    # Verify demo_module.js contains DemoVideoController
+    js = client.get("/static/demo_module.js").text
+    assert "DemoVideoController" in js
+    assert "demoVideoController" in js
+
+
+def test_ambulance_mode_and_profile_selection():
+    """Verify profile selector and ambulance CAD mode elements."""
+    resp = client.get("/")
+    html = resp.text
+    assert "David Vance (Son • Family Admin)" in html
+    assert "Eleanor & Family (Home View)" in html
+    assert "Medic 14 (Boston EMS First Responder)" in html
+    assert "Ambulance CAD" in html
+    assert "Smart Door Token: 8492" in html
+
