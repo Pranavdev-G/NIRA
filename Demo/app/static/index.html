@@ -421,26 +421,19 @@
               })
               .catch(function(err) { console.warn("Demo launch ping:", err); });
           } catch(e) {}
-        try {
-          fetch("/api/v1/demo/launch", { method: "POST" })
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-              console.log("NIRA Demo System activated:", d);
-            })
-            .catch(function(err) { console.warn("Demo launch ping:", err); });
-        } catch(e) {}
 
-        var secDemo = document.getElementById("sectionDemoMode");
-        var secLive = document.getElementById("sectionLiveMode");
-        if (secDemo) secDemo.style.setProperty("display", "block", "important");
-        if (secLive) secLive.style.setProperty("display", "none", "important");
+          var secDemo = document.getElementById("sectionDemoMode");
+          var secLive = document.getElementById("sectionLiveMode");
+          if (secDemo) secDemo.style.setProperty("display", "block", "important");
+          if (secLive) secLive.style.setProperty("display", "none", "important");
 
-        if (typeof window.switchSystemMode === "function") {
-          window.switchSystemMode("demo", false);
-        }
+          if (typeof window.switchSystemMode === "function") {
+            window.switchSystemMode("demo", false);
+          }
 
-        if (window.history && window.history.replaceState) {
-          window.history.replaceState(null, null, "#demo");
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState(null, null, "#demo");
+          }
         }
       } catch (err) {
         console.error("enterSystemMode error:", err);
