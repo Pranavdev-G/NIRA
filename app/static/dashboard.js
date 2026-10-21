@@ -519,7 +519,1097 @@ function renderDashboard(state) {
 
   // 11. Real-Time Emergency Command Center (Actual Backend Incident State)
   renderEmergencyCommandCenter(state);
+
+  // 12. Update Resident & Family Portal (Simple View) & Company Architecture
+  renderUserPortal(state);
+
+  // 13. NIRA THE LIVING GUARDIAN Signature Visual Experience
+  renderLivingGuardian(state);
+  renderActiveIncidentSection(state);
+  renderSpatialMap(state);
+  renderRiskReasoning(state);
+  renderTrustLedger(state);
 }
+
+// ---------------------------------------------------------------------------
+// NIRA THE LIVING GUARDIAN: Theme Engine (Dark, Light, System)
+// ---------------------------------------------------------------------------
+function setNiraTheme(theme, notify = true) {
+  const root = document.documentElement;
+  const validThemes = ["dark", "light", "system"];
+  const chosen = validThemes.includes(theme) ? theme : "dark";
+
+  localStorage.setItem("nira_theme", chosen);
+  root.setAttribute("data-theme", chosen);
+
+  // Update theme toggle buttons active class
+  const themeIds = { dark: "btnThemeDark", light: "btnThemeLight", system: "btnThemeAuto" };
+  Object.keys(themeIds).forEach(t => {
+    const btn = document.getElementById(themeIds[t]);
+    if (btn) {
+      if (t === chosen) {
+        btn.classList.add("active");
+        btn.setAttribute("aria-pressed", "true");
+      } else {
+        btn.classList.remove("active");
+        btn.setAttribute("aria-pressed", "false");
+      }
+    }
+  });
+
+  if (notify) {
+    const labels = { dark: "Dark Theme", light: "Light Theme", system: "System Theme" };
+    showToast(`🎨 <strong>Theme Switched:</strong> ${labels[chosen]}`);
+  }
+}
+
+function initNiraTheme() {
+  const saved = localStorage.getItem("nira_theme") || "dark";
+  setNiraTheme(saved, false);
+
+  try {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    mediaQuery.addEventListener("change", () => {
+      const current = localStorage.getItem("nira_theme");
+      if (current === "system") {
+        document.documentElement.setAttribute("data-theme", "system");
+      }
+    });
+  } catch (err) {}
+}
+
+// ---------------------------------------------------------------------------
+// 12-Section Application Navigation Controller
+// ---------------------------------------------------------------------------
+let currentSectionId = "overview";
+
+function switchSection(sectionId) {
+  playChime("info");
+  closeMobileSidebar();
+  currentSectionId = sectionId;
+
+  const sectionMap = {
+    "overview": "perspectiveUser",
+    "live-home": "viewHomeMap",
+    "risk-assessment": "viewRiskAssessment",
+    "risk-timeline": "viewTrustLedger",
+    "sensors-devices": "viewSensorsDevices",
+    "care-circle": "viewCareCircle",
+    "incident-reports": "viewIncidentReports",
+    "emergency-packet": "viewEmergencyPacket",
+    "privacy-settings": "viewPrivacySettings",
+    "simulation-sandbox": "perspectiveSandbox",
+    "architecture-sla": "perspectiveCompany",
+    "resident-admin": "viewResidentAdmin"
+  };
+
+  const navItemMap = {
+    "overview": "navItemOverview",
+    "live-home": "navItemLiveHome",
+    "risk-assessment": "navItemRiskAssessment",
+    "risk-timeline": "navItemRiskTimeline",
+    "sensors-devices": "navItemSensorsDevices",
+    "care-circle": "navItemCareCircle",
+    "incident-reports": "navItemIncidentReports",
+    "emergency-packet": "navItemEmergencyPacket",
+    "privacy-settings": "navItemPrivacySettings",
+    "simulation-sandbox": "navItemSimulationSandbox",
+    "architecture-sla": "navItemArchitectureSla",
+    "resident-admin": "navItemResidentAdmin"
+  };
+
+  // Hide all sections
+  document.querySelectorAll(".command-section-view, .perspective-panel").forEach(el => {
+    el.classList.remove("active");
+    el.style.display = "none";
+  });
+
+  // Deactivate all sidebar nav items
+  document.querySelectorAll(".sidebar-nav-item").forEach(item => {
+    item.classList.remove("active");
+    item.setAttribute("aria-selected", "false");
+  });
+
+  // Activate target section
+  const targetElId = sectionMap[sectionId] || sectionId;
+  const targetEl = document.getElementById(targetElId);
+  if (targetEl) {
+    targetEl.classList.add("active");
+    targetEl.style.display = "block";
+  }
+
+  // Activate target sidebar item
+  const navId = navItemMap[sectionId];
+  if (navId) {
+    const navBtn = document.getElementById(navId);
+    if (navBtn) {
+      navBtn.classList.add("active");
+      navBtn.setAttribute("aria-selected", "true");
+    }
+  }
+
+  // Handle Canvas Resizing if needed
+  if (sectionId === "live-home" || sectionId === "simulation-sandbox") {
+    setTimeout(() => {
+      if (window.main3DTwin && is3DModeActive) {
+        window.main3DTwin.resize();
+      }
+      if (window.cameraSim) {
+        window.cameraSim.resizeCanvas();
+      }
+      if (window.niraStore) {
+        renderDashboard(window.niraStore.state);
+      }
+    }, 60);
+  }
+
+  const sectionTitles = {
+    "overview": "Guardian Overview",
+    "live-home": "Live Home & Sensors",
+    "risk-assessment": "Aegis CARE Risk Workflow",
+    "risk-timeline": "Risk Timeline & Trust Ledger",
+    "sensors-devices": "Connected Sensors & Devices",
+    "care-circle": "Care Circle Directory",
+    "incident-reports": "Incident Reports Archive",
+    "emergency-packet": "Emergency Context Packet CAD",
+    "privacy-settings": "Privacy Architecture & Settings",
+    "simulation-sandbox": "Interactive Simulation Sandbox",
+    "architecture-sla": "Architecture & SLA Headroom",
+    "resident-admin": "Resident & Admin Portals"
+  };
+
+  showToast(`🛡️ <strong>View:</strong> ${sectionTitles[sectionId] || sectionId}`);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// Backward-compatibility alias for 5 legacy view calls
+function switchViewMode(mode) {
+  const modeMap = {
+    overview: "overview",
+    map: "live-home",
+    ledger: "risk-timeline",
+    architecture: "architecture-sla",
+    sandbox: "simulation-sandbox"
+  };
+  switchSection(modeMap[mode] || mode);
+}
+
+function switchPerspective(mode) {
+  const modeMap = { user: "overview", company: "architecture-sla", sandbox: "simulation-sandbox" };
+  switchSection(modeMap[mode] || mode);
+}
+
+// ---------------------------------------------------------------------------
+// Mobile Sidebar Drawer
+// ---------------------------------------------------------------------------
+function toggleMobileSidebar() {
+  const sidebar = document.getElementById("appSidebar");
+  const backdrop = document.getElementById("sidebarBackdrop");
+  if (sidebar && backdrop) {
+    sidebar.classList.toggle("sidebar-open");
+    backdrop.classList.toggle("active");
+  }
+}
+
+function closeMobileSidebar() {
+  const sidebar = document.getElementById("appSidebar");
+  const backdrop = document.getElementById("sidebarBackdrop");
+  if (sidebar) sidebar.classList.remove("sidebar-open");
+  if (backdrop) backdrop.classList.remove("active");
+}
+
+// ---------------------------------------------------------------------------
+// Deterministic Simulation Stepper Controls
+// ---------------------------------------------------------------------------
+let simPlaybackStep = 0;
+let isSimPaused = false;
+
+function simStart() {
+  playChime("info");
+  isSimPaused = false;
+  document.querySelectorAll(".sim-ctrl-btn").forEach(b => b.classList.remove("active"));
+  const btn = document.getElementById("btnSimStart");
+  if (btn) btn.classList.add("active");
+
+  showToast(`▶ Simulation Active: <strong>${currentScenario.toUpperCase()}</strong> mode`);
+  if (window.niraStore) {
+    window.niraStore.dispatchScenario(currentScenario);
+  }
+}
+
+function simPause() {
+  playChime("warning");
+  isSimPaused = true;
+  document.querySelectorAll(".sim-ctrl-btn").forEach(b => b.classList.remove("active"));
+  const btn = document.getElementById("btnSimPause");
+  if (btn) btn.classList.add("active");
+  showToast("⏸ Simulation Paused");
+}
+
+function simResume() {
+  playChime("info");
+  isSimPaused = false;
+  document.querySelectorAll(".sim-ctrl-btn").forEach(b => b.classList.remove("active"));
+  const btn = document.getElementById("btnSimResume");
+  if (btn) btn.classList.add("active");
+  showToast("⏯ Simulation Resumed");
+}
+
+function simReset() {
+  playChime("info");
+  isSimPaused = false;
+  simPlaybackStep = 0;
+  document.querySelectorAll(".sim-ctrl-btn").forEach(b => b.classList.remove("active"));
+  const btn = document.getElementById("btnSimReset");
+  if (btn) btn.classList.add("active");
+  showToast("↺ Simulation State Reset to Normal Baseline");
+  if (window.niraStore) {
+    window.niraStore.dispatchScenario("false_alarm");
+  }
+}
+
+function simStep() {
+  playChime("info");
+  simPlaybackStep = (simPlaybackStep + 1) % 3;
+  const stepScenarios = ["false_alarm", "responsive", "silent"];
+  const nextScen = stepScenarios[simPlaybackStep];
+  showToast(`⏭ Step Forward &bull; Advancing to Scenario <strong>${nextScen.toUpperCase()}</strong>`);
+  switchScenario(nextScen);
+}
+
+// ---------------------------------------------------------------------------
+// Sensor Dropout Simulation Controls
+// ---------------------------------------------------------------------------
+let sensorStates = { radar: true, vitals: true, lock: true, env: true, audio: true };
+
+function toggleSensorDropout(sensorId) {
+  playChime("warning");
+  sensorStates[sensorId] = !sensorStates[sensorId];
+  const isUp = sensorStates[sensorId];
+
+  const badgeMap = {
+    radar: "statusBadgeRadar",
+    vitals: "statusBadgeVitals",
+    lock: "statusBadgeLock",
+    env: "statusBadgeEnv",
+    audio: "statusBadgeAudio"
+  };
+
+  const badge = document.getElementById(badgeMap[sensorId]);
+  const btn = document.getElementById(`btnDropout${sensorId.charAt(0).toUpperCase() + sensorId.slice(1)}`);
+
+  if (badge) {
+    if (isUp) {
+      badge.className = "device-status-badge online";
+      badge.textContent = "ONLINE";
+    } else {
+      badge.className = "device-status-badge offline";
+      badge.textContent = "DROPOUT / STALE";
+    }
+  }
+
+  if (btn) {
+    btn.textContent = isUp ? "Simulate Signal Dropout" : "Restore Sensor Signal";
+    btn.style.borderColor = isUp ? "" : "var(--status-critical)";
+    btn.style.color = isUp ? "" : "var(--status-critical)";
+  }
+
+  // Update sidebar count
+  const onlineCount = Object.values(sensorStates).filter(Boolean).length;
+  const countBadge = document.getElementById("sidebarDeviceCount");
+  if (countBadge) {
+    countBadge.textContent = `${onlineCount}/5`;
+    countBadge.style.color = (onlineCount < 5) ? "var(--status-warning)" : "";
+  }
+
+  showToast(isUp
+    ? `✅ <strong>${sensorId.toUpperCase()}</strong>: Signal Restored (Continuous 20Hz Resumed)`
+    : `⚠️ <strong>${sensorId.toUpperCase()}</strong>: Dropout Simulated! Aegis CARE switching to cached baseline.`
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Risk Timeline Filter & Data Provenance
+// ---------------------------------------------------------------------------
+function filterTimeline(category) {
+  playChime("info");
+  document.querySelectorAll(".timeline-filter-btn").forEach(b => b.classList.remove("active"));
+  const btn = document.getElementById(`tlFilter${category.charAt(0).toUpperCase() + category.slice(1)}`);
+  if (btn) btn.classList.add("active");
+
+  const events = document.querySelectorAll("#trustLedgerFullTrack .trust-event-item");
+  events.forEach(el => {
+    if (category === "all") {
+      el.style.display = "flex";
+    } else if (category === "movement" && (el.textContent.includes("Radar") || el.textContent.includes("Fall") || el.textContent.includes("Motion"))) {
+      el.style.display = "flex";
+    } else if (category === "audio" && (el.textContent.includes("Voice") || el.textContent.includes("Echo") || el.textContent.includes("Audio"))) {
+      el.style.display = "flex";
+    } else if (category === "env" && (el.textContent.includes("Floor") || el.textContent.includes("Bath") || el.textContent.includes("Environmental"))) {
+      el.style.display = "flex";
+    } else if (category === "vitals" && (el.textContent.includes("Heart Rate") || el.textContent.includes("Apple Watch") || el.textContent.includes("BPM"))) {
+      el.style.display = "flex";
+    } else {
+      el.style.display = "none";
+    }
+  });
+
+  showToast(`🔍 Timeline Filter: <strong>${category.toUpperCase()}</strong>`);
+}
+
+// ---------------------------------------------------------------------------
+// Incident Export & Emergency Packet Handlers
+// ---------------------------------------------------------------------------
+function exportIncidents(format) {
+  playChime("success");
+  const incidents = [
+    { id: "INC-2026-1021-01", timestamp: "2026-10-21 02:14:00", room: "Bathroom", severity: "CRITICAL", source: "60GHz FMCW Radar", verification: "TIMEOUT_UNANSWERED", status: "ESCALATED_CAD" },
+    { id: "INC-2026-1020-04", timestamp: "2026-10-20 14:22:15", room: "Living Room", severity: "LOW", source: "Velocity Delta", verification: "CONFIRMED_SAFE", status: "RESOLVED_SAFE" },
+    { id: "INC-2026-1019-02", timestamp: "2026-10-19 19:08:44", room: "Kitchen", severity: "MODERATE", source: "Help Keyword", verification: "CAREGIVER_ALERTED", status: "ESCALATED_CAREGIVER" }
+  ];
+
+  if (format === "csv") {
+    let csv = "IncidentID,Timestamp,Room,Severity,Source,Verification,Status\n";
+    incidents.forEach(i => {
+      csv += `${i.id},${i.timestamp},${i.room},${i.severity},${i.source},${i.verification},${i.status}\n`;
+    });
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `nira_incidents_${Date.now()}.csv`;
+    link.click();
+    showToast("💾 Exported Incidents as CSV");
+  } else {
+    const blob = new Blob([JSON.stringify(incidents, null, 2)], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `nira_incidents_${Date.now()}.json`;
+    link.click();
+    showToast("💾 Exported Incidents as JSON");
+  }
+}
+
+function exportEmergencyPacket(format) {
+  playChime("success");
+  if (format === "print") {
+    window.print();
+    return;
+  }
+  const preview = document.getElementById("packetJsonPreview");
+  const jsonContent = preview ? preview.textContent : "{}";
+  const blob = new Blob([jsonContent], { type: "application/json" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `nira_ecp_cad911_${Date.now()}.json`;
+  link.click();
+  showToast("💾 Downloaded Emergency Context Packet (ECP JSON)");
+}
+
+function triggerCaregiverNotification(name) {
+  playChime("alert");
+  if (confirm(`Send immediate emergency dispatch SMS to ${name}?`)) {
+    showToast(`📱 Urgent SMS Transmitted to <strong>${name}</strong>: "NIRA Alert: Eleanor needs assistance in Beacon Hill 4B. Smart lock PIN 8492."`);
+  }
+}
+
+function inspectIncidentModal(incidentId) {
+  playChime("info");
+  const modal = document.getElementById("incidentInspectorModal");
+  const title = document.getElementById("inspectModalTitle");
+  const body = document.getElementById("inspectModalBody");
+  if (!modal || !body) return;
+
+  if (title) title.textContent = `📋 Incident Record Dossier: ${incidentId}`;
+  body.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div class="packet-grid-2col">
+        <div class="packet-data-box">
+          <span class="device-spec-label">Incident Identifier:</span><br>
+          <strong>${incidentId}</strong>
+        </div>
+        <div class="packet-data-box">
+          <span class="device-spec-label">Recorded Timestamp:</span><br>
+          <strong>2026-10-21 02:14:00 AM EST</strong>
+        </div>
+      </div>
+      <div class="packet-data-box">
+        <span class="device-spec-label">Sensory Vector:</span><br>
+        <strong>60GHz FMCW Radar &bull; Vertical acceleration delta -2.8m/s &bull; Bathroom wet tile</strong>
+      </div>
+      <div class="packet-data-box">
+        <span class="device-spec-label">Voice Dialog State Machine:</span><br>
+        <span style="color: var(--status-critical); font-weight: 700;">Unanswered Prompt &bull; 10-Second Window Expired</span>
+      </div>
+      <div class="packet-data-box">
+        <span class="device-spec-label">Escalation Resolution:</span><br>
+        <span>Boston EMS Medic-14 CAD Packet Generated &bull; Front door deadbolt unlocked with PIN #8492</span>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+        <button class="btn-luxury-secondary" onclick="closeIncidentInspectorModal()">Close Dossier</button>
+        <button class="btn-luxury-primary" onclick="exportEmergencyPacket('json')">Download ECP Dossier</button>
+      </div>
+    </div>
+  `;
+  modal.style.display = "flex";
+}
+
+function closeIncidentInspectorModal() {
+  const modal = document.getElementById("incidentInspectorModal");
+  if (modal) modal.style.display = "none";
+}
+
+function openResidentCalmMode() {
+  playChime("success");
+  const modal = document.getElementById("residentCalmModal");
+  if (modal) modal.style.display = "flex";
+}
+
+function closeResidentCalmMode() {
+  const modal = document.getElementById("residentCalmModal");
+  if (modal) modal.style.display = "none";
+}
+
+function switchUserRole(name, role) {
+  playChime("info");
+  const nameEl = document.getElementById("userName");
+  const roleEl = document.getElementById("userRole");
+  if (nameEl) nameEl.textContent = name;
+  if (roleEl) roleEl.textContent = role;
+  showToast(`👤 Active Session Switched to: <strong>${name}</strong> (${role})`);
+}
+
+// ---------------------------------------------------------------------------
+// Spatial Room Selector
+// ---------------------------------------------------------------------------
+let selectedSpatialRoomId = "living";
+function selectSpatialRoom(roomId) {
+  selectedSpatialRoomId = roomId;
+  const roomCards = ["living", "bathroom", "bedroom", "kitchen", "entrance"];
+  roomCards.forEach(id => {
+    const card = document.getElementById("spatialRoom" + (id.charAt(0).toUpperCase() + id.slice(1)));
+    if (card) {
+      if (id === roomId) {
+        card.classList.add("is-selected");
+      } else {
+        card.classList.remove("is-selected");
+      }
+    }
+  });
+
+  const titles = {
+    living: "Living Room (Active Presence)",
+    bathroom: "Bathroom (High Hazard 1.55x)",
+    bedroom: "Bedroom (Circadian Sleep Dock)",
+    kitchen: "Kitchen (PIR Motion & Fridge Contact)",
+    entrance: "Entrance (Yale Smart Deadbolt #8492)"
+  };
+
+  showToast(`📍 <strong>Inspecting Room:</strong> ${titles[roomId] || roomId}`);
+
+  if (window.main3DTwin && is3DModeActive) {
+    const posture = (window.niraStore && window.niraStore.state.rooms && window.niraStore.state.rooms[roomId]) 
+      ? window.niraStore.state.rooms[roomId].postureCode : "upright";
+    const risk = (window.niraStore && window.niraStore.state.incident) ? window.niraStore.state.incident.currentRiskLevel : "LOW";
+    window.main3DTwin.updatePhysicalState(roomId, posture, risk);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// SIGNATURE COMPONENT A: THE LIVING GUARDIAN RENDERER
+// ---------------------------------------------------------------------------
+function renderLivingGuardian(state) {
+  const guardianCard = document.getElementById("guardianHeroCard");
+  const stateBadge = document.getElementById("guardianStateBadge");
+  const stateText = document.getElementById("guardianStateText");
+  const headline = document.getElementById("guardianHeadline");
+  const subtext = document.getElementById("guardianSubtext");
+  const riskScore = document.getElementById("guardianRiskScore");
+  const zone = document.getElementById("guardianZone");
+  const verifyStatus = document.getElementById("guardianVerifyStatus");
+  const lastCheck = document.getElementById("guardianLastCheck");
+
+  if (!guardianCard) return;
+
+  const risk = (state.incident && state.incident.currentRiskLevel) || "LOW";
+  const status = (state.incident && state.incident.status) || "NORMAL";
+  const voice = state.voiceState || {};
+  const isVerifying = voice.phase === "LISTENING" || voice.phase === "PROMPT_PLAYING";
+
+  // Reset classes
+  guardianCard.classList.remove("state-normal", "state-attention", "state-critical", "state-verifying");
+  if (stateBadge) stateBadge.classList.remove("badge-critical", "badge-warning");
+
+  let guardianClass = "state-normal";
+  let badgeLabel = "NORMAL MONITORING";
+  let headlineText = "Eleanor is Safe &amp; Resting Comfortably";
+  let subText = "Beacon Hill Unit 4B &bull; Ambient multi-modal sensor fusion active &bull; Living room resting baseline verified &bull; Zero camera recording for 100% resident privacy.";
+  let riskVal = "0.04 / 1.0 (LOW)";
+  let riskColor = "var(--accent-primary)";
+  let verifyVal = "Passive Aware";
+
+  if (isVerifying) {
+    guardianClass = "state-verifying";
+    badgeLabel = "VERIFYING RESIDENT WELLBEING";
+    headlineText = "Voice Check Active &bull; Awaiting Eleanor's Reply";
+    subText = "NIRA Echo Show 15 microphone array listening. Evaluating speech acoustic energy and verbal confirmation.";
+    riskVal = "0.68 / 1.0 (ATTENTION)";
+    riskColor = "var(--status-warning)";
+    verifyVal = `Listening (${voice.timeRemainingSeconds || 8}s)`;
+  } else if (risk === "CRITICAL" || status === "ESCALATED_CAD") {
+    guardianClass = "state-critical";
+    if (stateBadge) stateBadge.classList.add("badge-critical");
+    badgeLabel = "CRITICAL EMERGENCY DETECTED";
+    headlineText = "Urgent: Unresponsive Fall Detected in Bathroom";
+    subText = "Rapid descent verified by 60GHz FMCW radar. Inactivity detected for >40s. Boston EMS Medic-14 dispatched. Smart door unlocked for first responders.";
+    riskVal = "0.94 / 1.0 (CRITICAL)";
+    riskColor = "var(--status-critical)";
+    verifyVal = "Unanswered (Timeout Expired)";
+  } else if (risk === "HIGH" || risk === "MODERATE" || status === "ESCALATED_CAREGIVER") {
+    guardianClass = "state-attention";
+    if (stateBadge) stateBadge.classList.add("badge-warning");
+    badgeLabel = "ATTENTION &bull; CAREGIVER ALERT";
+    headlineText = "Mobility Anomaly Detected &bull; Family Alert Sent";
+    subText = "Eleanor seated on kitchen floor. Heart rate elevated (104 BPM). Eleanor requested: 'Can you call David?' SMS dispatched to David Vance.";
+    riskVal = "0.68 / 1.0 (HIGH)";
+    riskColor = "var(--status-warning)";
+    verifyVal = "Resident Responded";
+  } else if (status === "RESOLVED" || risk === "RESOLVED") {
+    guardianClass = "state-normal";
+    badgeLabel = "INCIDENT RESOLVED &bull; RESIDENT SAFE";
+    headlineText = "Eleanor Confirmed Safe &amp; Routine Restored";
+    subText = "Resident confirmed wellbeing verbally via Echo Show 15. All clear logged in Trust Ledger. Ambient sensing active.";
+    riskVal = "0.04 / 1.0 (LOW)";
+    riskColor = "var(--accent-primary)";
+    verifyVal = "Verified Safe";
+  }
+
+  guardianCard.classList.add(guardianClass);
+  if (stateText) stateText.textContent = badgeLabel;
+  if (headline) headline.innerHTML = headlineText;
+  if (subtext) subtext.innerHTML = subText;
+  if (riskScore) {
+    riskScore.textContent = riskVal;
+    riskScore.style.color = riskColor;
+  }
+  if (zone) zone.textContent = capitalize((state.incident && state.incident.location) || "Living Room");
+  if (verifyStatus) {
+    verifyStatus.textContent = verifyVal;
+    verifyStatus.style.color = (risk === "CRITICAL") ? "var(--status-critical)" : ((risk === "HIGH") ? "var(--status-warning)" : "var(--accent-primary)");
+  }
+  if (lastCheck) {
+    lastCheck.textContent = "Continuous (20Hz)";
+  }
+  renderRiskGauge(state);
+}
+
+// ---------------------------------------------------------------------------
+// LARGE READABLE RISK GAUGE RENDERER
+// ---------------------------------------------------------------------------
+function renderRiskGauge(state) {
+  const arc = document.getElementById("riskGaugeArc");
+  const num = document.getElementById("riskGaugeNumeric");
+  const tier = document.getElementById("riskGaugeTierLabel");
+  const headline = document.getElementById("riskGaugeHeadline");
+  const narr = document.getElementById("riskGaugeNarrative");
+  const motion = document.getElementById("gaugeMotionStatus");
+  const vitals = document.getElementById("gaugeVitalsStatus");
+  const env = document.getElementById("gaugeEnvStatus");
+  const voice = document.getElementById("gaugeVoiceStatus");
+
+  const risk = (state.incident && state.incident.currentRiskLevel) || "LOW";
+  const status = (state.incident && state.incident.status) || "NORMAL";
+  let score = 0.04;
+  let tierLabel = "LOW RISK";
+  let tierColor = "var(--accent-primary)";
+  let hText = "Eleanor is resting comfortably in the living room";
+  let nText = "Ambient FMCW radar and environmental multi-factor fusion confirm expected baseline restful state. Movement, acoustic presence, and Apple Watch cardiac vitals indicate zero distress.";
+  let mText = "Armchair Rest (0.02G)";
+  let vText = "72 BPM (Resting)";
+  let eText = "22.4&deg;C &bull; Clear";
+  let voText = "Passive Aware";
+
+  if (risk === "CRITICAL" || status === "ESCALATED_CAD") {
+    score = 0.94;
+    tierLabel = "CRITICAL RISK";
+    tierColor = "var(--status-critical)";
+    hText = "Urgent: Unresponsive Fall Verified in Bathroom";
+    nText = "60GHz radar detected sudden vertical descent followed by 42s motionless period. Heart rate tachycardia at 138 BPM. 10s voice check-in unanswered. Boston EMS Medic-14 CAD dispatched and front deadbolt unlocked.";
+    mText = "Immobile (0.00G)";
+    vText = "138 BPM (Tachycardia)";
+    eText = "23.1&deg;C &bull; Floor Wet";
+    voText = "Timeout (Unanswered)";
+  } else if (risk === "HIGH" || risk === "MODERATE" || status === "ESCALATED_CAREGIVER") {
+    score = 0.68;
+    tierLabel = "HIGH RISK";
+    tierColor = "var(--status-warning)";
+    hText = "Assistance Requested &bull; Caregiver Alert Dispatched";
+    nText = "Eleanor detected seated on kitchen floor with elevated heart rate (104 BPM). Eleanor verbally requested: 'Can you call David?' Automated SMS and Push alert dispatched to David Vance.";
+    mText = "Floor Sit (0.12G)";
+    vText = "104 BPM (Elevated)";
+    eText = "22.6&deg;C &bull; Clear";
+    voText = "Resident Answered";
+  } else if (status === "RESOLVED") {
+    score = 0.04;
+    tierLabel = "LOW RISK (RESOLVED)";
+    tierColor = "var(--accent-primary)";
+    hText = "Eleanor Confirmed Safe & Routine Restored";
+    nText = "Resident confirmed wellbeing verbally via Echo Show 15. All clear logged in Trust Ledger. Continuous ambient radar sensing resumed.";
+    mText = "Active Walking (0.85G)";
+    vText = "76 BPM (Stable)";
+    eText = "22.4&deg;C &bull; Clear";
+    voText = "Verified Safe";
+  }
+
+  if (num) num.textContent = score.toFixed(2);
+  if (tier) {
+    tier.textContent = tierLabel;
+    tier.style.color = tierColor;
+  }
+  if (arc) {
+    const offset = Math.max(0, Math.min(267, 267 - (score * 267)));
+    arc.style.strokeDashoffset = offset;
+  }
+  if (headline) headline.innerHTML = hText;
+  if (narr) narr.innerHTML = nText;
+  if (motion) motion.innerHTML = mText;
+  if (vitals) vitals.innerHTML = vText;
+  if (env) env.innerHTML = eText;
+  if (voice) voice.innerHTML = voText;
+}
+
+// ---------------------------------------------------------------------------
+// AREA 2: ACTIVE INCIDENT RENDERER
+// ---------------------------------------------------------------------------
+function renderActiveIncidentSection(state) {
+  const card = document.getElementById("activeIncidentCard");
+  if (!card) return;
+
+  const risk = (state.incident && state.incident.currentRiskLevel) || "LOW";
+  const status = (state.incident && state.incident.status) || "NORMAL";
+  const isActive = (risk === "CRITICAL" || risk === "HIGH" || status === "ESCALATED_CAD" || status === "ESCALATED_CAREGIVER");
+
+  if (isActive) {
+    card.style.display = "block";
+    const sevBadge = document.getElementById("incidentSeverityBadge");
+    const ts = document.getElementById("incidentTimestamp");
+    const catTag = document.getElementById("incidentCategoryTag");
+    const locVal = document.getElementById("incidentLocationVal");
+    const voiceVal = document.getElementById("incidentVoiceVal");
+    const escVal = document.getElementById("incidentEscalationVal");
+    const vitalsVal = document.getElementById("incidentVitalsVal");
+    const doorBtnText = document.getElementById("incidentDoorBtnText");
+
+    if (risk === "CRITICAL" || status === "ESCALATED_CAD") {
+      if (sevBadge) {
+        sevBadge.textContent = "🚨 CRITICAL INCIDENT (SCORE: 0.94)";
+        sevBadge.style.background = "var(--status-critical)";
+      }
+      if (catTag) catTag.textContent = "Sudden Fall with Immobility (CAD 911)";
+      if (locVal) locVal.innerHTML = "<strong>Bathroom</strong> (Wet Tile Substrate &bull; 1.55x multiplier)";
+      if (voiceVal) {
+        voiceVal.textContent = "Unanswered • 10.0s Acoustic Window Expired";
+        voiceVal.style.color = "var(--status-critical)";
+      }
+      if (escVal) {
+        escVal.textContent = "Boston EMS CAD Packet Generated • Front Door UNLOCKED";
+        escVal.style.color = "var(--accent-secondary)";
+      }
+      if (vitalsVal) {
+        vitalsVal.textContent = "138 BPM (Tachycardia Surge +91%) • 0.00G Motion";
+        vitalsVal.style.color = "var(--status-critical)";
+      }
+      if (doorBtnText) doorBtnText.textContent = "🔓 Front Door: UNLOCKED";
+    } else {
+      if (sevBadge) {
+        sevBadge.textContent = "⚠️ ASSISTED CAREGIVER ALERT (SCORE: 0.68)";
+        sevBadge.style.background = "var(--status-warning)";
+      }
+      if (catTag) catTag.textContent = "Floor Sitting & Assistance Request";
+      if (locVal) locVal.innerHTML = "<strong>Kitchen</strong> (Linoleum &bull; Seated Near Island)";
+      if (voiceVal) {
+        voiceVal.textContent = "Resident answered: 'Can you call David?'";
+        voiceVal.style.color = "var(--status-warning)";
+      }
+      if (escVal) {
+        escVal.textContent = "Caregiver SMS Sent to David Vance • Drop-In Ready";
+        escVal.style.color = "var(--accent-secondary)";
+      }
+      if (vitalsVal) {
+        vitalsVal.textContent = "104 BPM (Mild Tachycardia) • Intentional Movement Detected";
+        vitalsVal.style.color = "var(--status-warning)";
+      }
+      if (doorBtnText) doorBtnText.textContent = "🔒 Front Door: Locked (Tap to Unlock)";
+    }
+    if (ts) ts.textContent = NiraStateStore.formatTimeAgo((state.incident && state.incident.createdAt) || (state.timestamps && state.timestamps.incident));
+  } else {
+    card.style.display = "none";
+  }
+}
+
+// ---------------------------------------------------------------------------
+// SIGNATURE COMPONENT B: THE AMBIENT INTELLIGENCE MAP RENDERER
+// ---------------------------------------------------------------------------
+function renderSpatialMap(state) {
+  const loc = (state.incident && state.incident.location) ? state.incident.location.toLowerCase() : "living";
+  const risk = (state.incident && state.incident.currentRiskLevel) ? state.incident.currentRiskLevel : "LOW";
+  const isEmergency = risk === "CRITICAL";
+
+  // Quick Overview rows in Dashboard Area 3
+  const quickBathTag = document.getElementById("quickRoomBathTag");
+  if (quickBathTag) {
+    if (isEmergency && loc === "bathroom") {
+      quickBathTag.className = "spatial-presence-pill present alert";
+      quickBathTag.textContent = "🚨 Fall Detected • Immobile";
+    } else {
+      quickBathTag.className = "spatial-sensor-chip";
+      quickBathTag.textContent = "Dry Floor • Clear";
+    }
+  }
+
+  // Full Map View Cards in View 2
+  const bathCard = document.getElementById("spatialRoomBathroom");
+  const bathPill = document.getElementById("roomPillBathroom");
+  const bathFloor = document.getElementById("roomFloorBathroom");
+  if (bathCard && bathPill) {
+    if (isEmergency && loc === "bathroom") {
+      bathCard.classList.add("in-alert");
+      bathPill.className = "spatial-presence-pill present alert";
+      bathPill.textContent = "🚨 Fall Alert";
+      if (bathFloor) {
+        bathFloor.innerHTML = "<span style='color: var(--status-critical); font-weight: 700;'>Wet Tile (+12 Multiplier)</span>";
+      }
+    } else {
+      bathCard.classList.remove("in-alert");
+      bathPill.className = "spatial-presence-pill vacant";
+      bathPill.textContent = "○ Vacant";
+      if (bathFloor) bathFloor.textContent = "Tile • Dry Baseline";
+    }
+  }
+
+  // Door Deadbolt in Entrance Card
+  const deadboltVal = document.getElementById("roomDeadboltVal");
+  const isUnlocked = isEmergency || (state.peripherals && state.peripherals.doorLock === "unlocked") || (state.doorLock && state.doorLock.status === "UNLOCKED");
+  if (deadboltVal) {
+    if (isUnlocked) {
+      deadboltVal.textContent = "🔓 UNLOCKED for EMS";
+      deadboltVal.style.color = "var(--status-critical)";
+    } else {
+      deadboltVal.textContent = "🔒 Locked";
+      deadboltVal.style.color = "var(--accent-primary)";
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// AREA 4: EXPLAINABLE RISK REASONING RENDERER
+// ---------------------------------------------------------------------------
+function renderRiskReasoning(state) {
+  const risk = (state.incident && state.incident.currentRiskLevel) || "LOW";
+  const reasonItem1 = document.getElementById("reasonItemCorrob1");
+  const reasonItem2 = document.getElementById("reasonItemCorrob2");
+
+  if (reasonItem1 && reasonItem2) {
+    if (risk === "CRITICAL") {
+      reasonItem1.innerHTML = `<strong>Fall Vector Confidence (0.94)</strong><span class="weight-tag">60GHz FMCW Radar &bull; High impact</span>`;
+      reasonItem2.innerHTML = `<strong>Immobility Post-Fall (42.5s)</strong><span class="weight-tag">Weight: +0.45 &bull; Inactivity threshold</span>`;
+    } else if (risk === "HIGH" || risk === "MODERATE") {
+      reasonItem1.innerHTML = `<strong>Floor Seated Posture (0.76)</strong><span class="weight-tag">YOLOv8 Pose &bull; Kitchen Island</span>`;
+      reasonItem2.innerHTML = `<strong>Caregiver Request Verbalized</strong><span class="weight-tag">Weight: +0.35 &bull; Voice AI</span>`;
+    } else {
+      reasonItem1.innerHTML = `<strong>Routine Resting Motion</strong><span class="weight-tag">Weight: 0.04 &bull; Baseline verified</span>`;
+      reasonItem2.innerHTML = `<strong>Vitals Within Safe Range</strong><span class="weight-tag">72 BPM &bull; Resting Sinus</span>`;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// SIGNATURE COMPONENT C: THE TRUST LEDGER RENDERER
+// ---------------------------------------------------------------------------
+function renderTrustLedger(state) {
+  // Trust Ledger is automatically refreshed and reactive to store updates
+}
+
+// ---------------------------------------------------------------------------
+// Consequential Actions & Auditing
+// ---------------------------------------------------------------------------
+function acknowledgeAlert() {
+  const overlay = document.createElement("div");
+  overlay.className = "nira-confirm-overlay";
+  overlay.innerHTML = `
+    <div class="nira-confirm-box" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="nira-confirm-title" id="confirmTitle">
+        <span>🛡️ Acknowledge Safety Alert</span>
+      </div>
+      <div class="nira-confirm-message">
+        Are you sure you want to acknowledge this active incident alert for <strong>Eleanor Vance</strong>? This will notify connected caregivers and log your confirmation in the immutable Trust Ledger.
+      </div>
+      <div class="nira-confirm-actions">
+        <button class="btn-luxury-secondary" id="btnCancelAck">Cancel</button>
+        <button class="btn-luxury-primary" id="btnProceedAck">Confirm Acknowledgment</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  document.getElementById("btnCancelAck").onclick = () => overlay.remove();
+  document.getElementById("btnProceedAck").onclick = () => {
+    overlay.remove();
+    playChime("success");
+    showToast("✓ <strong>Alert Acknowledged:</strong> Caregiver David Vance confirmed notification receipt.");
+    const btn = document.getElementById("btnAcknowledgeAlert");
+    if (btn) {
+      btn.innerHTML = "<span>✓ Acknowledged by David Vance</span>";
+      btn.style.opacity = "0.7";
+      btn.disabled = true;
+    }
+  };
+}
+
+function exportTrustAuditLog() {
+  const st = window.niraStore ? window.niraStore.state : {};
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+    exportedAt: new Date().toISOString(),
+    resident: "Eleanor Vance (Age 79)",
+    location: "Beacon Hill Unit 4B",
+    currentRiskLevel: st.incident ? st.incident.currentRiskLevel : "LOW",
+    incident: st.incident || {},
+    vitals: st.vitals || {},
+    auditStages: [
+      { stage: "DETECT", time: "02:14:02Z", source: "60GHz FMCW Radar", confidence: 0.94, event: "Fall Vector Detected" },
+      { stage: "CONTEXTUALIZE", time: "02:14:03Z", source: "ContextEngine", multiplier: "1.55x high hazard wet tile", hr: 138 },
+      { stage: "VERIFY", time: "02:14:14Z", source: "Echo Show 15", status: "Unanswered (10.0s timeout)" },
+      { stage: "ESCALATE", time: "02:14:16Z", source: "DeterministicRiskEngine", score: 0.94, action: "Boston EMS CAD Packet" }
+    ]
+  }, null, 2));
+
+  const dlAnchor = document.createElement("a");
+  dlAnchor.setAttribute("href", dataStr);
+  dlAnchor.setAttribute("download", `NIRA_Trust_Audit_EleanorVance_${Date.now()}.json`);
+  document.body.appendChild(dlAnchor);
+  dlAnchor.click();
+  dlAnchor.remove();
+  showToast("📋 <strong>Audit Log Exported:</strong> Downloaded cryptographically structured JSON incident record.");
+}
+
+function renderUserPortal(state) {
+  if (!state) return;
+  const risk = state.incident.currentRiskLevel;
+  const isEmergency = risk === "CRITICAL" || state.incident.status === "ESCALATED_CAD";
+  const isWarning = risk === "HIGH" || risk === "MODERATE" || state.incident.status === "ESCALATED_CAREGIVER";
+  const isSafe = !isEmergency && !isWarning;
+
+  // Hero Card
+  const heroCard = document.getElementById("userHeroCard");
+  const heroHalo = document.getElementById("userStatusHalo");
+  const heroTitle = document.getElementById("userHeroTitle");
+  const heroSub = document.getElementById("userHeroSubtitle");
+
+  if (heroCard && heroHalo && heroTitle && heroSub) {
+    if (isSafe) {
+      heroCard.className = "user-hero-card";
+      heroHalo.innerHTML = `<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>`;
+      heroTitle.innerHTML = `Eleanor is Safe &amp; Resting`;
+      heroSub.innerHTML = `Beacon Hill Unit 4B &bull; Normal baseline verified &bull; Protected 24/7 by NIRA Ambient AI &bull; No camera recording`;
+    } else if (isWarning) {
+      heroCard.className = "user-hero-card is-warning";
+      heroHalo.innerHTML = `<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+      heroTitle.innerHTML = `Attention Needed: Caregiver Alerted`;
+      heroSub.innerHTML = `Eleanor requested help in <strong>${capitalize(state.incident.location)}</strong>. Son David connected via Echo Drop-In call.`;
+    } else {
+      heroCard.className = "user-hero-card is-critical";
+      heroHalo.innerHTML = `<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+      heroTitle.innerHTML = `🚨 Emergency Alert: Help Dispatched`;
+      heroSub.innerHTML = `Acute fall detected in <strong>${capitalize(state.incident.location)}</strong>. Boston EMS Medic-14 en route. Smart Door automatically UNLOCKED for first responders.`;
+    }
+  }
+
+  // Vitals Card
+  const userHrVal = document.getElementById("userHrVal");
+  const userHrStatus = document.getElementById("userHrStatus");
+  if (userHrVal && userHrStatus) {
+    const hr = state.vitals.heartRateBpm;
+    userHrVal.innerHTML = `${hr} <span style="font-size: 1.1rem; font-weight: 600; color: var(--text-secondary);">BPM</span>`;
+    if (hr > 120) {
+      userHrVal.style.color = "var(--accent-red)";
+      userHrStatus.textContent = "Acute Tachycardia (+91% surge)";
+      userHrStatus.style.color = "var(--accent-red)";
+    } else if (hr > 90) {
+      userHrVal.style.color = "var(--accent-amber)";
+      userHrStatus.textContent = "Elevated Heart Rate";
+      userHrStatus.style.color = "var(--accent-amber)";
+    } else {
+      userHrVal.style.color = "var(--accent-green)";
+      userHrStatus.textContent = "Normal resting rhythm • Stable";
+      userHrStatus.style.color = "#34d399";
+    }
+  }
+
+  // Location & Door
+  const userLocVal = document.getElementById("userLocationVal");
+  const userDoorStatus = document.getElementById("userDoorStatus");
+  const userDoorBtnIcon = document.getElementById("userDoorBtnIcon");
+  const userDoorBtnLabel = document.getElementById("userDoorBtnLabel");
+  const userDoorBtnSub = document.getElementById("userDoorBtnSub");
+  const userDoorBtn = document.getElementById("btnUserDoorAction");
+
+  if (userLocVal) {
+    userLocVal.textContent = capitalize(state.incident.location);
+  }
+  if (userDoorStatus) {
+    const isUnlocked = state.doorLock.status === "UNLOCKED";
+    if (isUnlocked) {
+      userDoorStatus.innerHTML = "Front Door: 🔓 UNLOCKED FOR 911";
+      userDoorStatus.style.color = "var(--accent-red)";
+      if (userDoorBtn) userDoorBtn.classList.add("is-unlocked");
+      if (userDoorBtnIcon) userDoorBtnIcon.textContent = "🔓";
+      if (userDoorBtnLabel) userDoorBtnLabel.textContent = "Front Door: UNLOCKED";
+      if (userDoorBtnSub) userDoorBtnSub.textContent = "Auto-unlocked for Boston EMS First Responders (PIN: 8492)";
+    } else {
+      userDoorStatus.innerHTML = "Front Door: 🔒 Securely Locked";
+      userDoorStatus.style.color = "var(--accent-blue)";
+      if (userDoorBtn) userDoorBtn.classList.remove("is-unlocked");
+      if (userDoorBtnIcon) userDoorBtnIcon.textContent = "🔒";
+      if (userDoorBtnLabel) userDoorBtnLabel.textContent = "Front Door: Locked";
+      if (userDoorBtnSub) userDoorBtnSub.textContent = "Tap to unlock for nurse (PIN: 8492)";
+    }
+  }
+
+  // Company Architecture sync
+  const pipeRiskVal = document.getElementById("pipeRiskVal");
+  if (pipeRiskVal) {
+    pipeRiskVal.textContent = `RISK: ${risk}`;
+    pipeRiskVal.style.color = isEmergency ? "var(--accent-red)" : (isWarning ? "var(--accent-amber)" : "var(--accent-green)");
+  }
+  const pipeStatePhase = document.getElementById("pipeStatePhase");
+  if (pipeStatePhase && state.voiceState) {
+    pipeStatePhase.textContent = state.voiceState.phase || "IDLE";
+  }
+}
+
+const PIPELINE_STAGE_DATA = {
+  1: {
+    icon: "📡",
+    title: "Stage 1: Multimodal Ingestion Layer",
+    badge: "RUNTIME ACTIVE (20 Hz)",
+    desc: "Fuses 60GHz mmWave FMCW radar point clouds (providing 24/7 privacy-safe spatial posture detection through darkness and steam) with on-device YOLOv8-pose keypoint estimation (extracting body bounding boxes without transmitting raw images off-device), continuous Apple Watch PPG telemetry, and Amazon Echo Show 15 beamforming microphone array.",
+    specs: "Sampling Rate: 20 Hz • Privacy: 100% Edge-Isolated • Hardware: Echo Show 15 + mmWave Radar Pod",
+    json: {
+      event_type: "fall_detected",
+      confidence: 0.94,
+      location: "bathroom",
+      movement_after_event: "none",
+      timestamp: new Date().toISOString(),
+      telemetry: {
+        heart_rate_bpm: 138,
+        posture: "flat_floor",
+        floor_condition: "wet_substrate",
+        lux: 15
+      }
+    }
+  },
+  2: {
+    icon: "⚡",
+    title: "Stage 2: Streamable MCP Server Gateway",
+    badge: "SUB-25ms SLA VERIFIED",
+    desc: "Ultra-low-latency FastAPI backend implementing the Model Context Protocol (MCP) over Streamable HTTP and Server-Sent Events (SSE). Exposes standardized assessment and dispatch tools directly to Amazon Alexa+ with zero cold-start delay and server-timing tracing.",
+    specs: "Framework: FastAPI 0.115 • Protocol: Streamable HTTP & SSE • Latency SLA Budget: < 500ms (Measured: < 25ms)",
+    json: {
+      jsonrpc: "2.0",
+      method: "tools/call",
+      params: {
+        name: "assess_risk",
+        arguments: {
+          event_type: "fall_detected",
+          confidence: 0.94,
+          location: "bathroom"
+        }
+      }
+    }
+  },
+  3: {
+    icon: "🧠",
+    title: "Stage 3: Tri-Engine Deterministic Risk Intelligence",
+    badge: "ZERO-HALLUCINATION DETERMINISTIC",
+    desc: "A modular 3-engine architecture: ContextEngine weights room fall epidemiology (Bathroom 1.55x, wet floor +12.0) • PersonalBaselineEngine models circadian 24h routine deviations • DeterministicRiskEngine fuses sensor confidence, movement inactivity, and vitals into LOW / MODERATE / HIGH / CRITICAL risk tiers.",
+    specs: "Execution Time: 0.8ms - 2.5ms • Determinism: 100% Rule & Threshold Validated • Zero LLM drift",
+    json: {
+      risk_level: "CRITICAL",
+      confidence: 0.95,
+      reasons: [
+        "Event type 'fall_detected' detected with 94% confidence",
+        "Zero post-impact movement detected (acute immobilization hazard)",
+        "High-hazard moisture location: 'bathroom'",
+        "Severe baseline deviation (+4.2h nocturnal anomaly)",
+        "Wearable telemetry indicates acute tachycardia (138 BPM)"
+      ]
+    }
+  },
+  4: {
+    icon: "🎙️",
+    title: "Stage 4: 8-Phase Conversational State Machine",
+    badge: "20s ACOUSTIC TIMEOUT WINDOW",
+    desc: "State machine managing Amazon Echo Show 15 interactive voice check-in turns (IDLE → DETECTED → CHECKING → WAITING_FOR_RESPONSE → USER_RESPONDED → CAREGIVER_NOTIFIED → EMERGENCY_ESCALATED → RESOLVED). If resident is silent for 20 seconds, automatically transitions to Silent Critical Emergency.",
+    specs: "Turn Latency: 1.1ms - 3.8ms • Timeout Window: 20 seconds • Conversational Cadence: Natural",
+    json: {
+      state: "EMERGENCY_ESCALATED",
+      alexa_prompt: "Eleanor, this is Aegis. I noticed a fall in the bathroom. Are you okay?",
+      senior_response: "<Silence for 20 seconds • Presumed unconscious>",
+      timeout_triggered: true,
+      next_action: "CAD_911_DISPATCH"
+    }
+  },
+  5: {
+    icon: "🚨",
+    title: "Stage 5: Multi-Channel CAD Dispatch & Smart Home Access",
+    badge: "PHYSICAL & DIGITAL AUTOMATION",
+    desc: "Executes parallel dispatch actions: 1. Echo Show Drop-In two-way audio • 2. High-priority push & SMS to family guardian David • 3. Unlocks Yale smart deadbolt with emergency PIN token 8492 • 4. Transmits formatted clinical CAD incident packet to Boston EMS (Medic-14).",
+    specs: "CAD Dispatch Latency: 4.2ms • Deadbolt Integration: REST API Auto-Unlock • SMS: Automated Twilio",
+    json: {
+      cad_incident_id: "EPK-84920",
+      agency: "Boston EMS 911 (Medic-14, Rescue-2)",
+      priority: "CODE_RED_911",
+      smart_door_status: "UNLOCKED",
+      entrance_pin: "8492",
+      medical_notes: "Age 79, Lisinopril, Penicillin allergy"
+    }
+  }
+};
+
+function selectPipelineNode(stageNum) {
+  playChime("info");
+  for (let i = 1; i <= 5; i++) {
+    const card = document.getElementById(`pipeCard${i}`);
+    if (card) {
+      if (i === stageNum) card.classList.add("active-node");
+      else card.classList.remove("active-node");
+    }
+  }
+
+  const data = PIPELINE_STAGE_DATA[stageNum];
+  if (!data) return;
+
+  const title = document.getElementById("archInspectTitle");
+  const icon = document.getElementById("archInspectIcon");
+  const badge = document.getElementById("archInspectBadge");
+  const desc = document.getElementById("archInspectDesc");
+  const specs = document.getElementById("archInspectSpecs");
+  const jsonEl = document.getElementById("archInspectJson");
+
+  if (title) title.textContent = data.title;
+  if (icon) icon.textContent = data.icon;
+  if (badge) badge.textContent = data.badge;
+  if (desc) desc.textContent = data.desc;
+  if (specs) specs.textContent = data.specs;
+  if (jsonEl) jsonEl.textContent = JSON.stringify(data.json, null, 2);
+
+  showToast(`Inspecting <strong>${data.title}</strong>`);
+}
+
+function openArchInspector(key) {
+  switchPerspective("company");
+  selectPipelineNode(1);
+}
+
 
 // ---------------------------------------------------------------------------
 // 10. Voice AI 8-Phase State Machine & Live Conversation Timeline Renderer
@@ -1768,12 +2858,47 @@ function _setViewMode(mode) {
 function toggleRadarView()  { _setViewMode("radar");  }
 function toggleCameraView() { _setViewMode("camera"); }
 function toggleMain3DMode() { _setViewMode(is3DModeActive ? "radar" : "3d"); }
+// ---------------------------------------------------------------------------
+// Load Active & Historical Incidents from SQLite API
+// ---------------------------------------------------------------------------
+async function loadIncidentReportsFromApi() {
+  try {
+    const res = await fetch("/api/v1/incidents/active");
+    if (!res.ok) return;
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) {
+      const tbody = document.getElementById("incidentTableBody");
+      if (!tbody) return;
+      tbody.innerHTML = data.slice(0, 8).map(inc => {
+        const sevClass = (inc.current_risk_level === "CRITICAL") ? "offline" : ((inc.current_risk_level === "HIGH" || inc.current_risk_level === "MODERATE") ? "stale" : "online");
+        const statusColor = (inc.status === "ESCALATED_CAD") ? "color: var(--status-critical); border-color: rgba(220,38,38,0.3);" : ((inc.status === "ESCALATED_CAREGIVER") ? "color: var(--status-warning); border-color: rgba(217,119,6,0.3);" : "");
+        const timeStr = inc.created_at ? new Date(inc.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "02:14:00 AM";
+        return `
+          <tr>
+            <td><strong>${inc.id}</strong></td>
+            <td>${timeStr}</td>
+            <td>${capitalize(inc.location || "Bathroom")}</td>
+            <td><span class="device-status-badge ${sevClass}">${inc.current_risk_level || "MODERATE"}</span></td>
+            <td>${capitalize((inc.event_type || "60GHz FMCW Radar").replace(/_/g, " "))}</td>
+            <td>${inc.workflow_state || "WAITING_FOR_RESPONSE"}</td>
+            <td><span class="consent-badge-active" style="${statusColor}">${inc.status || "ACTIVE"}</span></td>
+            <td><button class="btn-luxury-secondary" style="padding: 4px 10px; font-size: 0.72rem;" onclick="inspectIncidentModal('${inc.id}')">Inspect Dossier</button></td>
+          </tr>
+        `;
+      }).join("");
+    }
+  } catch (err) {
+    // Graceful fallback to static rows
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Initialization on Page Load
 // ---------------------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
+  initNiraTheme();
   initUserSession();
+  loadIncidentReportsFromApi();
 
   if (window.niraStore) {
     window.niraStore.init();

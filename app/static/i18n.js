@@ -7,7 +7,7 @@
 
 const TRANSLATIONS = {
   en: {
-    appTitle: "Aegis Ambient Care",
+    appTitle: "NIRA Ambient Care",
     tagline: "Ambient AI Elder Safety",
     seniorName: "Eleanor Vance (Age 79)",
     seniorLoc: "Beacon Hill, Unit 4B",
