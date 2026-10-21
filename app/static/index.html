@@ -8,7 +8,212 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/dashboard.css?v=6.0">
+  <link rel="stylesheet" href="/static/dashboard.css?v=10.0">
+  <style>
+    /* ==========================================================================
+       NIRA Minimal Triangle Landing Gateway (Apex: NIRA, Base: DEMO & LIVE MODEL)
+       ========================================================================== */
+    #landingGatewayScreen {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at 50% 25%, #0b1528 0%, #030712 80%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #ffffff;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    .nira-gateway-glow {
+      position: absolute;
+      top: 15%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 650px;
+      height: 450px;
+      background: radial-gradient(ellipse, rgba(56, 189, 248, 0.22) 0%, rgba(16, 185, 129, 0.08) 45%, transparent 70%);
+      filter: blur(65px);
+      pointer-events: none;
+    }
+
+    .nira-triangle-layout {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 860px;
+      padding: 24px;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* --- APEX: NIRA --- */
+    .nira-apex-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 72px;
+      user-select: none;
+    }
+
+    .nira-apex-shield {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, rgba(15, 23, 42, 0.9) 100%);
+      border: 1.5px solid rgba(56, 189, 248, 0.5);
+      box-shadow: 0 0 35px rgba(56, 189, 248, 0.45), inset 0 0 15px rgba(56, 189, 248, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #38bdf8;
+      margin-bottom: 18px;
+      transition: transform 0.3s ease;
+    }
+
+    .nira-apex-shield:hover {
+      transform: scale(1.08) rotate(3deg);
+    }
+
+    .nira-apex-title {
+      font-size: 5.4rem;
+      font-weight: 900;
+      letter-spacing: 0.30em;
+      line-height: 1;
+      margin: 0;
+      padding-left: 0.30em; /* Optical balance for letter-spacing */
+      background: linear-gradient(180deg, #FFFFFF 15%, #cbd5e1 55%, #64748b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 40px rgba(56, 189, 248, 0.55));
+      text-transform: uppercase;
+    }
+
+    /* --- BASE: DEMO (LEFT) & LIVE MODEL (RIGHT) --- */
+    .nira-base-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 56px;
+      width: 100%;
+      max-width: 760px;
+    }
+
+    .nira-portal-card {
+      background: rgba(15, 23, 42, 0.72);
+      backdrop-filter: blur(24px);
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 44px 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.55);
+      position: relative;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .nira-portal-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: transparent;
+      transition: all 0.25s ease;
+    }
+
+    /* Demo Card (Green Accent) */
+    .nira-portal-card.demo-portal:hover,
+    .nira-portal-card.demo-portal:focus-visible {
+      border-color: #34d399;
+      background: rgba(16, 185, 129, 0.08);
+      transform: translateY(-8px) scale(1.025);
+      box-shadow: 0 25px 60px rgba(16, 185, 129, 0.3), 0 0 35px rgba(16, 185, 129, 0.25);
+      outline: none;
+    }
+    .nira-portal-card.demo-portal:hover::before {
+      background: linear-gradient(90deg, transparent, #34d399, transparent);
+    }
+
+    /* Live Model Card (Blue Accent) */
+    .nira-portal-card.live-portal:hover,
+    .nira-portal-card.live-portal:focus-visible {
+      border-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.08);
+      transform: translateY(-8px) scale(1.025);
+      box-shadow: 0 25px 60px rgba(56, 189, 248, 0.3), 0 0 35px rgba(56, 189, 248, 0.25);
+      outline: none;
+    }
+    .nira-portal-card.live-portal:hover::before {
+      background: linear-gradient(90deg, transparent, #38bdf8, transparent);
+    }
+
+    .portal-label {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      color: #ffffff;
+      text-transform: uppercase;
+      margin: 0;
+      text-align: center;
+    }
+
+    .portal-arrow {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #ffffff;
+      transition: all 0.25s ease;
+    }
+
+    .demo-portal:hover .portal-arrow {
+      background: #34d399;
+      border-color: #34d399;
+      color: #030712;
+      transform: translateX(4px);
+    }
+
+    .live-portal:hover .portal-arrow {
+      background: #38bdf8;
+      border-color: #38bdf8;
+      color: #030712;
+      transform: translateX(4px);
+    }
+
+    @media (max-width: 768px) {
+      .nira-apex-title {
+        font-size: 3.6rem;
+      }
+      .nira-base-row {
+        grid-template-columns: 1fr;
+        gap: 22px;
+        max-width: 360px;
+      }
+      .nira-apex-section {
+        margin-bottom: 38px;
+      }
+    }
+  </style>
 </head>
 <body>
   <a href="#mainContent" class="skip-link">Skip to main safety content</a>
@@ -19,78 +224,39 @@
                 NIRA
          DEMO         LIVE MODEL
        ====================================================================== -->
-  <div id="landingGatewayScreen" class="landing-gateway-screen" role="main" aria-label="NIRA Landing Gateway">
-    <div class="landing-gateway-glow"></div>
+  <div id="landingGatewayScreen" role="main" aria-label="NIRA Landing Gateway">
+    <div class="nira-gateway-glow"></div>
 
-    <div class="landing-gateway-content">
-      <!-- Centered NIRA Brand Header -->
-      <header class="landing-hero-brand">
-        <div class="landing-shield-emblem" aria-hidden="true">
-          <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <div class="nira-triangle-layout">
+      <!-- Apex: NIRA -->
+      <div class="nira-apex-section">
+        <div class="nira-apex-shield" aria-hidden="true">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             <path d="M9 12l2 2 4-4"/>
           </svg>
         </div>
-        <h1 class="landing-hero-title">NIRA</h1>
-        <p class="landing-hero-tagline">Ambient AI Elder Safety Intelligence</p>
-        <div class="landing-hackathon-pill">
-          <span>AMAZON DEVELOPER HACKATHON 2026 &bull; ALEXA+ INTEGRATION</span>
-        </div>
-      </header>
-
-      <!-- The Two Main Choices (Left: DEMO, Right: LIVE MODEL) -->
-      <div class="landing-gateway-grid">
-        <!-- Choice 1: DEMO -->
-        <div class="landing-card demo-card" onclick="enterSystemMode('demo')" tabindex="0" role="button" aria-label="Enter Demo Mode">
-          <div class="landing-card-top">
-            <span class="card-status-dot demo"></span>
-            <span class="card-badge demo">HACKATHON SHOWCASE</span>
-          </div>
-          <div class="landing-card-icon">🎮</div>
-          <h2 class="landing-card-title">DEMO</h2>
-          <p class="landing-card-desc">
-            Complete Hackathon system demonstration with simulated senior Eleanor Vance (Unit 4B), 3 clinical emergency scenarios, 4-tab mission control, and 3D WebGL digital twin.
-          </p>
-          <ul class="landing-card-features">
-            <li><span>🛡️</span> Eleanor Vance (Age 79, Beacon Hill)</li>
-            <li><span>🚨</span> 3 Test Scenarios: Safe, Assisted &amp; 911 CAD</li>
-            <li><span>📊</span> 4 Multi-View Tabs &amp; 3D Video Reel</li>
-            <li><span>📱</span> Family Admin Guardian Console</li>
-          </ul>
-          <button class="btn-enter-mode demo-btn">
-            <span>Launch Complete Demo System</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </button>
-        </div>
-
-        <!-- Choice 2: LIVE MODEL -->
-        <div class="landing-card live-card" onclick="enterSystemMode('live')" tabindex="0" role="button" aria-label="Enter Live Model">
-          <div class="landing-card-top">
-            <span class="card-status-dot live"></span>
-            <span class="card-badge live">REAL-TIME WORKSPACE</span>
-          </div>
-          <div class="landing-card-icon">⚡</div>
-          <h2 class="landing-card-title">LIVE MODEL</h2>
-          <p class="landing-card-desc">
-            Real-time operational environment for live IoT hardware integration, browser edge webcam fall detection, live microphone acoustic check-in, and custom REST event ingestion.
-          </p>
-          <ul class="landing-card-features">
-            <li><span>📹</span> Live Edge Camera &amp; Pose Kinematics</li>
-            <li><span>🎙️</span> Live Acoustic Voice AI Hub (Web Speech)</li>
-            <li><span>📡</span> Real Sensor REST Ingestion &amp; IoT Fleet</li>
-            <li><span>📲</span> Open-Source TextBee SMS Dispatch</li>
-          </ul>
-          <button class="btn-enter-mode live-btn">
-            <span>Enter Live Model Workspace</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </button>
-        </div>
+        <h1 class="nira-apex-title">NIRA</h1>
       </div>
 
-      <!-- Footer Architecture Meta -->
-      <footer class="landing-gateway-footer">
-        <div>Event-Driven Architecture &bull; FastMCP Server &bull; 14-Signal Multimodal Risk Engine &bull; 150 Automated Tests Passing</div>
-      </footer>
+      <!-- Base: DEMO on Left, LIVE MODEL on Right -->
+      <div class="nira-base-row">
+        <!-- DEMO -->
+        <div id="btnLandingDemo" class="nira-portal-card demo-portal" onclick="enterSystemMode('demo')" tabindex="0" role="button" aria-label="Open Demo Mode">
+          <div class="portal-label">DEMO</div>
+          <div class="portal-arrow" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+
+        <!-- LIVE MODEL -->
+        <div id="btnLandingLive" class="nira-portal-card live-portal" onclick="enterSystemMode('live')" tabindex="0" role="button" aria-label="Open Live Model Mode">
+          <div class="portal-label">LIVE MODEL</div>
+          <div class="portal-arrow" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
