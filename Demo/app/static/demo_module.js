@@ -1,0 +1,1596 @@
+/**
+ * NIRA — Person 2 Complete Demo Module
+ * Centralized Interactive Monitoring & Emergency Workflow System
+ * 
+ * Includes:
+ * 1. Shared Demo-State & Data Layer (LocalStorage Persisted)
+ * 2. Voice Assistant (Mic interaction, speech recognition + synthesis, predefined responses, text fallback)
+ * 3. Daily Check-in (Wellness questions, options, attention alerts, timestamped history)
+ * 4. Fall Detection Simulation (Sensors HUD, Simulate Fall, debouncing, duplicate prevention)
+ * 5. Emergency Alert Screen (Incident ID, type, location, caregiver status, acknowledge, cancel)
+ * 6. Location Map & Nearby Hospitals (Leaflet OpenStreetMap + vector fallback, hospital cards, legend)
+ * 7. Notification Center (Emergency, check-in, reminder categories, unread badges, mark-read, links)
+ * 8. Incident History (Filterable audit logs, incident details modal, duplicate prevention)
+ */
+
+(function() {
+  'use strict';
+
+  const STORAGE_KEY = 'nira_person2_demo_state_v2';
+
+  // ---------------------------------------------------------------------------
+  // Default Initial State
+  // ---------------------------------------------------------------------------
+  function getDefaultDemoState() {
+    return {
+      resident: {
+        id: "user_eleanor_vance",
+        name: "Eleanor Vance",
+        age: 79,
+        address: "Unit 4B - Beacon Hill, Boston, MA 02108",
+        lat: 42.3588,
+        lng: -71.0638,
+        room: "Bathroom",
+        guardian: "David Vance (Son)",
+        guardianPhone: "+1-555-019-2834",
+        medicalConditions: [
+          "Mild Cognitive Impairment (Early Stage)",
+          "Hypertension (Managed with Lisinopril 10mg)",
+          "Documented bathroom slip & fall history (Jan 2026)",
+          "Penicillin Allergy (High Risk)"
+        ],
+        doorPin: "8492",
+        restingHeartRate: 72
+      },
+      activeIncidentId: null,
+      incidents: [
+        {
+          id: "INC-20261021-94821",
+          eventType: "rapid_posture_change",
+          eventLabel: "Rapid Posture Change (Bedside)",
+          timestamp: new Date(Date.now() - 3600000 * 6).toISOString(),
+          severity: "MODERATE",
+          status: "RESOLVED",
+          location: "Bedroom, Unit 4B - Beacon Hill",
+          riskScore: 68,
+          details: "Dropped reading glasses followed by sudden floor reach. Resident verbally verified 'I am fine' on Alexa Echo Show.",
+          sensorReadings: {
+            impactVelocity: "1.4 m/s",
+            heartRate: "82 BPM",
+            posture: "Sitting (Recovered)",
+            substrate: "Oak hardwood (Dry)",
+            lux: 75
+          },
+          caregiverStatus: "Standby (Auto-Resolved)",
+          timeline: [
+            { time: "18:20:00", action: "Rapid drop velocity (1.4 m/s) detected by Optical Sensor" },
+            { time: "18:20:04", action: "Echo Show 15 prompt: 'Eleanor, are you okay?'" },
+            { time: "18:20:11", action: "Eleanor replied: 'I just dropped my glasses, I am fine.'" },
+            { time: "18:20:15", action: "Incident auto-resolved as False Alarm" }
+          ]
+        }
+      ],
+      checkins: [
+        {
+          id: "CHK-20261021-0830",
+          timestamp: new Date(Date.now() - 3600000 * 14).toISOString(),
+          statusText: "I'm fine",
+          statusType: "fine", // 'fine' | 'unwell' | 'assistance'
+          mood: "Energetic & Calm",
+          sleepQuality: "Slept well (7.5 hrs uninterrupted)",
+          medicationsTaken: true,
+          mobilityConcern: "None",
+          notes: "Prepared morning tea, completed living room stretch routine.",
+          requiresAttention: false,
+          elderlyName: "Eleanor Vance"
+        },
+        {
+          id: "CHK-20261020-0845",
+          timestamp: new Date(Date.now() - 3600000 * 38).toISOString(),
+          statusText: "I'm fine",
+          statusType: "fine",
+          mood: "Good",
+          sleepQuality: "Slept 8 hrs",
+          medicationsTaken: true,
+          mobilityConcern: "None",
+          notes: "Enjoyed morning walk down hallway.",
+          requiresAttention: false,
+          elderlyName: "Eleanor Vance"
+        }
+      ],
+      notifications: [
+        {
+          id: "NOTIF-20261021-001",
+          timestamp: new Date(Date.now() - 3600000 * 6).toISOString(),
+          category: "check_in",
+          severity: "info",
+          title: "Wellness Verification Recorded",
+          description: "Eleanor Vance verified 'I am fine' after minor bedside movement.",
+          read: true,
+          incidentId: "INC-20261021-94821",
+          simulated: true,
+          acknowledged: true
+        },
+        {
+          id: "NOTIF-20261021-002",
+          timestamp: new Date(Date.now() - 3600000 * 10).toISOString(),
+          category: "reminder",
+          severity: "info",
+          title: "Hydration & Vital Check",
+          description: "Routine midday vitals logged: 74 BPM, baseline temperature 98.4°F.",
+          read: true,
+          incidentId: null,
+          simulated: true,
+          acknowledged: false
+        }
+      ],
+      voiceHistory: [
+        {
+          id: "vh-1",
+          speaker: "assistant",
+          text: "Hello Eleanor! This is your NIRA Ambient Safety Assistant. How are you feeling right now?",
+          timestamp: new Date(Date.now() - 300000).toISOString()
+        }
+      ],
+      sensors: {
+        accelerometer: { x: 0.08, y: -0.02, z: 0.98, magnitudeG: 0.99 },
+        impactVelocity: 0.2, // m/s
+        posture: "Standing / Ambulatory",
+        torsoAngleDeg: 12,
+        radarMicromotion: 0.35, // m/s
+        heartRateBpm: 74,
+        room: "Living Room",
+        substrateCondition: "Dry",
+        ambientLux: 140,
+        isFallDetected: false,
+        lastUpdated: new Date().toISOString()
+      },
+      hospitals: [
+        {
+          id: "mgh",
+          name: "Massachusetts General Hospital (MGH)",
+          address: "55 Fruit St, Boston, MA 02114",
+          distance: "0.4 miles",
+          eta: "3 mins (EMS)",
+          traumaLevel: "Level 1 Adult & Pediatric Trauma Center",
+          phone: "(617) 726-2000",
+          lat: 42.3631,
+          lng: -71.0686,
+          erStatus: "Accepting Acute Trauma",
+          waitMinutes: 12,
+          sampleDisclaimer: "Sample Data for Demo"
+        },
+        {
+          id: "tufts",
+          name: "Tufts Medical Center",
+          address: "800 Washington St, Boston, MA 02111",
+          distance: "1.1 miles",
+          eta: "6 mins (EMS)",
+          traumaLevel: "Level 1 Trauma Center",
+          phone: "(617) 636-5000",
+          lat: 42.3496,
+          lng: -71.0634,
+          erStatus: "Accepting Critical Dispatch",
+          waitMinutes: 18,
+          sampleDisclaimer: "Sample Data for Demo"
+        },
+        {
+          id: "bmc",
+          name: "Boston Medical Center (BMC)",
+          address: "1 Boston Medical Center Pl, Boston, MA 02118",
+          distance: "1.8 miles",
+          eta: "9 mins (EMS)",
+          traumaLevel: "Level 1 Trauma Center (New England Regional)",
+          phone: "(617) 638-8000",
+          lat: 42.3361,
+          lng: -71.0725,
+          erStatus: "Open 24/7",
+          waitMinutes: 25,
+          sampleDisclaimer: "Sample Data for Demo"
+        },
+        {
+          id: "bwh",
+          name: "Brigham and Women's Hospital",
+          address: "75 Francis St, Boston, MA 02115",
+          distance: "2.4 miles",
+          eta: "12 mins (EMS)",
+          traumaLevel: "Level 1 Trauma Center",
+          phone: "(617) 732-5500",
+          lat: 42.3365,
+          lng: -71.1070,
+          erStatus: "Open 24/7",
+          waitMinutes: 20,
+          sampleDisclaimer: "Sample Data for Demo"
+        }
+      ]
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Central State Store
+  // ---------------------------------------------------------------------------
+  class Person2DemoStore {
+    constructor() {
+      this.listeners = [];
+      this.isSimulatingFall = false;
+      this.loadState();
+    }
+
+    loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          this.state = JSON.parse(raw);
+          // Safety defaults check
+          if (!Array.isArray(this.state.incidents)) this.state.incidents = [];
+          if (!Array.isArray(this.state.checkins)) this.state.checkins = [];
+          if (!Array.isArray(this.state.notifications)) this.state.notifications = [];
+          if (!Array.isArray(this.state.voiceHistory)) this.state.voiceHistory = [];
+          if (!this.state.sensors) this.state.sensors = getDefaultDemoState().sensors;
+          if (!this.state.hospitals) this.state.hospitals = getDefaultDemoState().hospitals;
+          return;
+        }
+      } catch (err) {
+        console.warn("Error loading stored demo state:", err);
+      }
+      this.state = getDefaultDemoState();
+      this.saveState();
+    }
+
+    saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+      } catch (err) {
+        console.warn("Error saving demo state to localStorage:", err);
+      }
+      this.notify();
+    }
+
+    resetDemoData() {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (e) {}
+      this.state = getDefaultDemoState();
+      this.saveState();
+      this.showToast("Demo data reset to clean initial state.", "info");
+    }
+
+    subscribe(fn) {
+      if (typeof fn === 'function') {
+        this.listeners.push(fn);
+        fn(this.state);
+      }
+      return () => {
+        this.listeners = this.listeners.filter(l => l !== fn);
+      };
+    }
+
+    notify() {
+      this.listeners.forEach(fn => {
+        try { fn(this.state); } catch (e) { console.error("Listener error:", e); }
+      });
+      // Synchronize unread badge in header
+      this.updateHeaderBadges();
+    }
+
+    updateHeaderBadges() {
+      const unreadCount = this.getUnreadNotificationCount();
+      const badges = document.querySelectorAll('.demo-unread-badge-counter');
+      badges.forEach(b => {
+        if (unreadCount > 0) {
+          b.textContent = unreadCount > 99 ? '99+' : unreadCount;
+          b.style.display = 'inline-flex';
+        } else {
+          b.style.display = 'none';
+        }
+      });
+    }
+
+    getUnreadNotificationCount() {
+      return (this.state.notifications || []).filter(n => !n.read).length;
+    }
+
+    getActiveIncident() {
+      if (!this.state.activeIncidentId) return null;
+      return this.state.incidents.find(i => i.id === this.state.activeIncidentId) || null;
+    }
+
+    // --- Daily Check-in Action ---
+    submitDailyCheckin({ statusType, mood, sleepQuality, medicationsTaken, mobilityConcern, notes }) {
+      const id = "CHK-" + new Date().toISOString().slice(0, 10).replace(/-/g, '') + "-" + Math.floor(1000 + Math.random() * 9000);
+      const isUrgent = (statusType === 'unwell' || statusType === 'assistance');
+
+      let statusText = "I'm fine";
+      if (statusType === 'unwell') statusText = "Feeling unwell";
+      if (statusType === 'assistance') statusText = "Need assistance";
+
+      const newCheckin = {
+        id,
+        timestamp: new Date().toISOString(),
+        statusText,
+        statusType,
+        mood: mood || "Calm",
+        sleepQuality: sleepQuality || "Normal",
+        medicationsTaken: Boolean(medicationsTaken),
+        mobilityConcern: mobilityConcern || "None",
+        notes: notes ? notes.trim() : "",
+        requiresAttention: isUrgent,
+        elderlyName: this.state.resident.name
+      };
+
+      this.state.checkins.unshift(newCheckin);
+
+      // Create notification
+      const notifSeverity = statusType === 'assistance' ? 'critical' : (statusType === 'unwell' ? 'warning' : 'info');
+      const notifTitle = isUrgent 
+        ? `Daily Check-in Alert: Eleanor Reported '${statusText}'`
+        : `Daily Check-in Completed: Eleanor Reported '${statusText}'`;
+      const notifDesc = isUrgent
+        ? `Eleanor reported: "${notes || statusText}". Attention required. Primary guardian notified.`
+        : `Eleanor confirmed wellness. Sleep: ${sleepQuality || 'Good'}, Meds: ${medicationsTaken ? 'Taken' : 'Pending'}.`;
+
+      const notif = {
+        id: "NOTIF-" + Date.now(),
+        timestamp: new Date().toISOString(),
+        category: "check_in",
+        severity: notifSeverity,
+        title: notifTitle,
+        description: notifDesc,
+        read: false,
+        incidentId: null,
+        simulated: true,
+        acknowledged: false
+      };
+      this.state.notifications.unshift(notif);
+
+      this.saveState();
+      return newCheckin;
+    }
+
+    // --- Fall Simulation Action (Guarded against duplicate calls) ---
+    simulateFall() {
+      if (this.isSimulatingFall) {
+        console.warn("Fall simulation already in progress. Ignoring duplicate trigger.");
+        return null;
+      }
+
+      this.isSimulatingFall = true;
+
+      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      const uniqueSuffix = Math.floor(10000 + Math.random() * 90000);
+      const incidentId = `INC-${dateStr}-${uniqueSuffix}`;
+
+      // Update simulated sensor readings to high-impact fall signature
+      this.state.sensors = {
+        accelerometer: { x: 0.85, y: -1.24, z: 2.98, magnitudeG: 3.42 },
+        impactVelocity: 2.85, // m/s
+        posture: "Lying Prone on Floor (Motionless)",
+        torsoAngleDeg: 84,
+        radarMicromotion: 0.04, // m/s motionless
+        heartRateBpm: 138, // tachycardia surge
+        room: "Bathroom",
+        substrateCondition: "Wet Ceramic Tile",
+        ambientLux: 15,
+        isFallDetected: true,
+        lastUpdated: new Date().toISOString()
+      };
+
+      const newIncident = {
+        id: incidentId,
+        eventType: "possible_fall",
+        eventLabel: "High-Impact Fall Detected",
+        timestamp: new Date().toISOString(),
+        severity: "CRITICAL",
+        status: "ACTIVE", // ACTIVE | ACKNOWLEDGED | CANCELLED_FALSE_ALARM | RESOLVED
+        location: "Bathroom, Unit 4B - Beacon Hill",
+        riskScore: 94,
+        details: "Rapid acceleration spike (3.42g) followed by impact with ceramic tile substrate. Post-impact stillness detected by 60GHz mmWave radar. Acute tachycardia (138 BPM).",
+        sensorReadings: {
+          impactVelocity: "2.85 m/s",
+          heartRate: "138 BPM (Tachycardia)",
+          posture: "Lying Prone (Horizontal 84°)",
+          substrate: "Wet Ceramic Tile",
+          lux: 15,
+          radarMotion: "0.04 m/s (Immobile)"
+        },
+        caregiverStatus: "Simulated Alert Sent (Echo Show Drop-In, SMS, Push Notification) — Awaiting Acknowledgment",
+        timeline: [
+          { time: new Date().toLocaleTimeString(), action: "Tri-axial accelerometer registered 3.42g impact velocity in Bathroom" },
+          { time: new Date().toLocaleTimeString(), action: "60GHz mmWave radar classified posture: Lying Prone (Immobile)" },
+          { time: new Date().toLocaleTimeString(), action: "Aegis Multimodal Risk Engine evaluated: CRITICAL (94% confidence)" },
+          { time: new Date().toLocaleTimeString(), action: "Simulated emergency alert dispatched to Guardian David Vance" }
+        ]
+      };
+
+      this.state.incidents.unshift(newIncident);
+      this.state.activeIncidentId = incidentId;
+
+      // Create corresponding emergency notification
+      const emergencyNotif = {
+        id: "NOTIF-" + Date.now(),
+        timestamp: new Date().toISOString(),
+        category: "emergency",
+        severity: "critical",
+        title: "🚨 CRITICAL: High-Impact Fall Detected in Bathroom",
+        description: `Incident ${incidentId}: Eleanor Vance detected motionless on wet bathroom tile. Pulse: 138 BPM. Simulated dispatch alerted David Vance.`,
+        read: false,
+        incidentId: incidentId,
+        simulated: true,
+        acknowledged: false
+      };
+      this.state.notifications.unshift(emergencyNotif);
+
+      // Add voice assistant dialogue entry
+      this.state.voiceHistory.unshift({
+        id: "vh-" + Date.now(),
+        speaker: "system",
+        text: `EMERGENCY ALERT: High-impact fall detected in Bathroom. Eleanor, this is NIRA. Are you alright? Please speak if you can hear me.`,
+        timestamp: new Date().toISOString()
+      });
+
+      this.saveState();
+
+      // Cooldown timer to prevent accidental double-clicks
+      setTimeout(() => {
+        this.isSimulatingFall = false;
+      }, 1200);
+
+      // Mirror into NiraStateStore if globally present
+      if (window.niraStore && typeof window.niraStore.updateIncidentFromBackend === 'function') {
+        try {
+          window.niraStore.updateIncidentFromBackend({
+            id: incidentId,
+            event_type: "possible_fall",
+            confidence: 0.94,
+            location: "bathroom",
+            movement_after_event: "none",
+            initial_risk_level: "CRITICAL",
+            current_risk_level: "CRITICAL",
+            status: "ACTIVE",
+            workflow_state: "DETECTED",
+            risk_reasons: [
+              "High-impact acceleration signature (3.42g)",
+              "Prolonged post-impact inactivity detected on wet tile",
+              "Acute heart-rate surge (+91% above baseline)"
+            ],
+            recommended_action: "IMMEDIATE_CAD_EMERGENCY_DISPATCH",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+        } catch (err) {
+          console.warn("Could not mirror into NiraStateStore:", err);
+        }
+      }
+
+      return newIncident;
+    }
+
+    // --- Acknowledge Incident Action ---
+    acknowledgeIncident(incidentId) {
+      const inc = this.state.incidents.find(i => i.id === incidentId);
+      if (!inc) return false;
+
+      inc.status = "ACKNOWLEDGED";
+      inc.caregiverStatus = "Acknowledged by David Vance (Primary Guardian)";
+      inc.timeline.unshift({
+        time: new Date().toLocaleTimeString(),
+        action: "Caregiver David Vance acknowledged emergency notification via Guardian App"
+      });
+
+      // Update related notification
+      this.state.notifications.forEach(n => {
+        if (n.incidentId === incidentId) {
+          n.acknowledged = true;
+          n.read = true;
+          n.description += ` [Acknowledged by Caregiver at ${new Date().toLocaleTimeString()}]`;
+        }
+      });
+
+      this.saveState();
+      this.showToast(`Incident ${incidentId} successfully acknowledged.`, "success");
+      return true;
+    }
+
+    // --- Cancel Incident (False Alarm) Action ---
+    cancelIncident(incidentId, reason = "Caregiver confirmed false alarm") {
+      const inc = this.state.incidents.find(i => i.id === incidentId);
+      if (!inc) return false;
+
+      inc.status = "CANCELLED_FALSE_ALARM";
+      inc.caregiverStatus = "Alert Cancelled — False Alarm Confirmed";
+      inc.timeline.unshift({
+        time: new Date().toLocaleTimeString(),
+        action: `Alert cancelled: ${reason}. Incident preserved in audit history.`
+      });
+
+      if (this.state.activeIncidentId === incidentId) {
+        this.state.activeIncidentId = null;
+      }
+
+      // Reset sensors to normal
+      this.state.sensors.isFallDetected = false;
+      this.state.sensors.posture = "Sitting / Recovered";
+      this.state.sensors.heartRateBpm = 76;
+      this.state.sensors.impactVelocity = 0.1;
+
+      // Update related notifications
+      this.state.notifications.forEach(n => {
+        if (n.incidentId === incidentId) {
+          n.acknowledged = true;
+          n.read = true;
+          n.description += ` [Cancelled: False Alarm confirmed at ${new Date().toLocaleTimeString()}]`;
+        }
+      });
+
+      this.saveState();
+      this.showToast(`Incident ${incidentId} cancelled as false alarm and archived.`, "info");
+      return true;
+    }
+
+    // --- Notification Actions ---
+    markNotificationRead(notificationId) {
+      const notif = this.state.notifications.find(n => n.id === notificationId);
+      if (notif) {
+        notif.read = true;
+        this.saveState();
+      }
+    }
+
+    markAllNotificationsRead() {
+      this.state.notifications.forEach(n => { n.read = true; });
+      this.saveState();
+      this.showToast("All notifications marked as read.", "info");
+    }
+
+    clearNotifications() {
+      this.state.notifications = [];
+      this.saveState();
+      this.showToast("Notification center cleared.", "info");
+    }
+
+    // --- Voice Assistant Message ---
+    addVoiceMessage(speaker, text) {
+      const msg = {
+        id: "vh-" + Date.now(),
+        speaker, // 'user' | 'assistant' | 'system'
+        text,
+        timestamp: new Date().toISOString()
+      };
+      this.state.voiceHistory.push(msg);
+      this.saveState();
+      return msg;
+    }
+
+    showToast(message, type = "info") {
+      if (typeof window.showToastNotification === 'function') {
+        window.showToastNotification(message, type);
+        return;
+      }
+      console.log(`[TOAST - ${type.toUpperCase()}]: ${message}`);
+    }
+  }
+
+  // Instantiate global singleton
+  const demoStore = new Person2DemoStore();
+  window.person2DemoStore = demoStore;
+
+  // ---------------------------------------------------------------------------
+  // View Controllers & Renderers
+  // ---------------------------------------------------------------------------
+
+  // --- 1. VOICE ASSISTANT CONTROLLER ---
+  const VoiceAssistantController = {
+    isListening: false,
+    recognition: null,
+
+    init() {
+      this.initSpeechRecognition();
+      this.render();
+      demoStore.subscribe(() => this.renderHistory());
+    },
+
+    initSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        try {
+          this.recognition = new SpeechRecognition();
+          this.recognition.continuous = false;
+          this.recognition.interimResults = true;
+          this.recognition.lang = 'en-US';
+
+          this.recognition.onstart = () => {
+            this.isListening = true;
+            this.updateListeningUI(true);
+          };
+
+          this.recognition.onresult = (event) => {
+            let transcript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+              transcript += event.results[i][0].transcript;
+            }
+            const input = document.getElementById('demoVoiceInput');
+            if (input) input.value = transcript;
+            const liveTrans = document.getElementById('demoLiveTranscriptionText');
+            if (liveTrans) liveTrans.textContent = transcript || 'Listening...';
+          };
+
+          this.recognition.onerror = (event) => {
+            console.warn("Speech recognition error:", event.error);
+            this.isListening = false;
+            this.updateListeningUI(false);
+          };
+
+          this.recognition.onend = () => {
+            this.isListening = false;
+            this.updateListeningUI(false);
+            const input = document.getElementById('demoVoiceInput');
+            if (input && input.value.trim()) {
+              this.handleUserInput(input.value.trim());
+              input.value = '';
+            }
+          };
+        } catch (e) {
+          console.warn("SpeechRecognition init error:", e);
+        }
+      }
+    },
+
+    toggleListening() {
+      if (!this.recognition) {
+        // Fallback: simulated speech input
+        this.simulateVoiceListening();
+        return;
+      }
+
+      if (this.isListening) {
+        try { this.recognition.stop(); } catch (e) {}
+        this.isListening = false;
+        this.updateListeningUI(false);
+      } else {
+        try {
+          this.recognition.start();
+        } catch (e) {
+          console.warn("SpeechRecognition start error:", e);
+          this.simulateVoiceListening();
+        }
+      }
+    },
+
+    simulateVoiceListening() {
+      this.isListening = true;
+      this.updateListeningUI(true);
+      const liveTrans = document.getElementById('demoLiveTranscriptionText');
+      if (liveTrans) liveTrans.textContent = "Listening to ambient speech...";
+
+      setTimeout(() => {
+        const samplePhrases = [
+          "I am feeling okay today.",
+          "I need some assistance getting to the bathroom.",
+          "What is my scheduled medication for today?",
+          "I'm fine, that loud noise was just dropped books."
+        ];
+        const chosen = samplePhrases[Math.floor(Math.random() * samplePhrases.length)];
+        if (liveTrans) liveTrans.textContent = `"${chosen}"`;
+        
+        setTimeout(() => {
+          this.isListening = false;
+          this.updateListeningUI(false);
+          this.handleUserInput(chosen);
+        }, 1000);
+      }, 1600);
+    },
+
+    updateListeningUI(listening) {
+      const micBtn = document.getElementById('demoMicToggleBtn');
+      const micStatus = document.getElementById('demoMicStatusText');
+      const visualizer = document.getElementById('demoAudioVisualizer');
+      const liveBox = document.getElementById('demoLiveTranscriptionBox');
+
+      if (micBtn) {
+        if (listening) {
+          micBtn.classList.add('is-listening');
+          micBtn.setAttribute('aria-pressed', 'true');
+        } else {
+          micBtn.classList.remove('is-listening');
+          micBtn.setAttribute('aria-pressed', 'false');
+        }
+      }
+
+      if (micStatus) {
+        micStatus.textContent = listening ? "Listening... (Speak now)" : "Microphone Ready • Click to speak";
+      }
+
+      if (visualizer) {
+        visualizer.style.display = listening ? "flex" : "none";
+      }
+
+      if (liveBox) {
+        liveBox.style.display = listening ? "block" : "none";
+      }
+    },
+
+    handleUserInput(text) {
+      if (!text || !text.trim()) return;
+      const clean = text.trim();
+      demoStore.addVoiceMessage('user', clean);
+
+      // Generate context-aware assistant response
+      let reply = "I understand Eleanor. I'm keeping an eye on your safety.";
+      const lower = clean.toLowerCase();
+
+      if (lower.includes("help") || lower.includes("fell") || lower.includes("fall") || lower.includes("assistance")) {
+        reply = "I've noted that you need assistance. Your son David has been notified via Echo Show Drop-In and SMS.";
+        // Dispatch checkin notification
+        demoStore.submitDailyCheckin({
+          statusType: "assistance",
+          mood: "Distressed",
+          sleepQuality: "Interrupted",
+          medicationsTaken: false,
+          mobilityConcern: "Needs Help",
+          notes: `Voice request: "${clean}"`
+        });
+      } else if (lower.includes("fine") || lower.includes("okay") || lower.includes("ok")) {
+        reply = "Glad to hear that, Eleanor! I've updated your daily record. Keep staying hydrated.";
+        demoStore.submitDailyCheckin({
+          statusType: "fine",
+          mood: "Good",
+          sleepQuality: "Normal",
+          medicationsTaken: true,
+          mobilityConcern: "None",
+          notes: `Voice check-in: "${clean}"`
+        });
+      } else if (lower.includes("medication") || lower.includes("pill") || lower.includes("medicine")) {
+        reply = "Your Lisinopril 10mg is scheduled with dinner at 7:00 PM. A reminder will sound on this Echo Show.";
+      } else if (lower.includes("heart") || lower.includes("pulse") || lower.includes("vitals")) {
+        const hr = demoStore.state.sensors.heartRateBpm;
+        reply = `Your current heart rate is ${hr} BPM from your Apple Watch, with normal resting rhythm.`;
+      }
+
+      setTimeout(() => {
+        demoStore.addVoiceMessage('assistant', reply);
+        this.speakText(reply);
+      }, 450);
+    },
+
+    speakText(text) {
+      if ('speechSynthesis' in window) {
+        try {
+          window.speechSynthesis.cancel();
+          const utter = new SpeechSynthesisUtterance(text);
+          utter.rate = 1.0;
+          utter.pitch = 1.0;
+          window.speechSynthesis.speak(utter);
+        } catch (e) {
+          console.warn("speechSynthesis error:", e);
+        }
+      }
+    },
+
+    render() {
+      this.renderHistory();
+    },
+
+    renderHistory() {
+      const container = document.getElementById('demoVoiceHistoryList');
+      if (!container) return;
+
+      const history = demoStore.state.voiceHistory || [];
+      if (history.length === 0) {
+        container.innerHTML = `<div class="demo-empty-state">No conversation history yet. Tap the microphone or click a prompt below to begin.</div>`;
+        return;
+      }
+
+      container.innerHTML = history.map(item => {
+        const isUser = item.speaker === 'user';
+        const isSystem = item.speaker === 'system';
+        const avatar = isUser ? '👵' : (isSystem ? '⚠️' : '🛡️');
+        const speakerName = isUser ? 'Eleanor Vance' : (isSystem ? 'NIRA Safety Guard' : 'NIRA Ambient Voice');
+        const roleClass = isUser ? 'user-bubble' : (isSystem ? 'system-bubble' : 'assistant-bubble');
+        const timeStr = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        return `
+          <div class="demo-voice-message ${roleClass}">
+            <div class="demo-msg-avatar" aria-hidden="true">${avatar}</div>
+            <div class="demo-msg-body">
+              <div class="demo-msg-header">
+                <strong>${speakerName}</strong>
+                <span class="demo-msg-time">${timeStr}</span>
+              </div>
+              <div class="demo-msg-text">${escapeHtml(item.text)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.scrollTop = container.scrollHeight;
+    }
+  };
+
+  // --- 2. DAILY CHECK-IN CONTROLLER ---
+  const DailyCheckinController = {
+    selectedStatus: 'fine',
+
+    init() {
+      this.renderHistory();
+      demoStore.subscribe(() => {
+        this.renderHistory();
+        this.renderLatestBadge();
+      });
+    },
+
+    selectStatus(statusType) {
+      this.selectedStatus = statusType;
+      const options = document.querySelectorAll('.demo-checkin-option-card');
+      options.forEach(opt => {
+        if (opt.dataset.status === statusType) {
+          opt.classList.add('selected');
+          opt.setAttribute('aria-checked', 'true');
+        } else {
+          opt.classList.remove('selected');
+          opt.setAttribute('aria-checked', 'false');
+        }
+      });
+    },
+
+    submitCheckin() {
+      const notesEl = document.getElementById('demoCheckinNotes');
+      const sleepEl = document.querySelector('input[name="demoSleep"]:checked');
+      const medsEl = document.getElementById('demoCheckinMeds');
+      const mobilityEl = document.querySelector('input[name="demoMobility"]:checked');
+
+      const notes = notesEl ? notesEl.value : '';
+      const sleepQuality = sleepEl ? sleepEl.value : 'Good';
+      const medicationsTaken = medsEl ? medsEl.checked : true;
+      const mobilityConcern = mobilityEl ? mobilityEl.value : 'None';
+
+      const checkin = demoStore.submitDailyCheckin({
+        statusType: this.selectedStatus,
+        mood: this.selectedStatus === 'fine' ? 'Good' : (this.selectedStatus === 'unwell' ? 'Fatigued' : 'Distressed'),
+        sleepQuality,
+        medicationsTaken,
+        mobilityConcern,
+        notes
+      });
+
+      // Clear input
+      if (notesEl) notesEl.value = '';
+
+      // Show confirmation box
+      const confirmBox = document.getElementById('demoCheckinConfirmation');
+      if (confirmBox) {
+        const isUrgent = checkin.requiresAttention;
+        confirmBox.className = `demo-confirmation-card ${isUrgent ? 'requires-attention' : 'success'}`;
+        confirmBox.style.display = 'block';
+        confirmBox.innerHTML = `
+          <div class="confirm-icon">${isUrgent ? '⚠️' : '✅'}</div>
+          <div class="confirm-details">
+            <h4>Check-in Recorded — ${checkin.statusText}</h4>
+            <p>${isUrgent ? 'Guardian David Vance notified. Clinical staff on standby.' : 'All vitals and responses within Eleanor\'s normal baseline.'}</p>
+            <div class="confirm-meta">Recorded: ${new Date(checkin.timestamp).toLocaleTimeString()} • ID: ${checkin.id}</div>
+          </div>
+        `;
+        confirmBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      demoStore.showToast(`Daily check-in submitted: "${checkin.statusText}"`, checkin.requiresAttention ? "warning" : "success");
+    },
+
+    renderLatestBadge() {
+      const badge = document.getElementById('demoLatestCheckinStatus');
+      if (!badge) return;
+      const latest = demoStore.state.checkins[0];
+      if (!latest) {
+        badge.innerHTML = `<span class="pill-badge pill-neutral">No Check-ins Today</span>`;
+        return;
+      }
+      const timeAgo = formatTimeAgo(latest.timestamp);
+      if (latest.statusType === 'fine') {
+        badge.innerHTML = `<span class="pill-badge pill-green">🟢 Checked in Fine (${timeAgo})</span>`;
+      } else if (latest.statusType === 'unwell') {
+        badge.innerHTML = `<span class="pill-badge pill-amber">🟡 Unwell Reported (${timeAgo})</span>`;
+      } else {
+        badge.innerHTML = `<span class="pill-badge pill-red">🔴 Assistance Requested (${timeAgo})</span>`;
+      }
+    },
+
+    renderHistory() {
+      const container = document.getElementById('demoCheckinHistoryTableBody');
+      if (!container) return;
+
+      const list = demoStore.state.checkins || [];
+      if (list.length === 0) {
+        container.innerHTML = `<tr><td colspan="5" class="demo-empty-cell">No previous check-in records found.</td></tr>`;
+        return;
+      }
+
+      container.innerHTML = list.map(item => {
+        const timeStr = new Date(item.timestamp).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+        let badgeClass = 'pill-green';
+        let badgeIcon = '🟢';
+        if (item.statusType === 'unwell') {
+          badgeClass = 'pill-amber';
+          badgeIcon = '🟡';
+        } else if (item.statusType === 'assistance') {
+          badgeClass = 'pill-red';
+          badgeIcon = '🔴';
+        }
+
+        return `
+          <tr>
+            <td><strong>${timeStr}</strong></td>
+            <td><span class="pill-badge ${badgeClass}">${badgeIcon} ${escapeHtml(item.statusText)}</span></td>
+            <td>${escapeHtml(item.sleepQuality || 'Normal')}</td>
+            <td>${item.medicationsTaken ? '<span style="color: var(--accent-green);">✓ Taken</span>' : '<span style="color: var(--accent-amber);">Pending</span>'}</td>
+            <td><em>${escapeHtml(item.notes || 'No custom notes')}</em></td>
+          </tr>
+        `;
+      }).join('');
+    }
+  };
+
+  // --- 3. FALL DETECTION SIMULATION CONTROLLER ---
+  const FallSimulationController = {
+    init() {
+      this.renderSensors();
+      demoStore.subscribe(() => this.renderSensors());
+    },
+
+    simulateFallAction() {
+      const btn = document.getElementById('btnTriggerFallSimulation');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="demo-spinner"></span> Simulating Fall Impact...`;
+      }
+
+      const incident = demoStore.simulateFall();
+
+      setTimeout(() => {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `🚨 Simulate Fall`;
+        }
+        if (incident) {
+          demoStore.showToast(`Simulated fall triggered! Incident ${incident.id} created.`, "warning");
+          // Offer quick transition or open emergency alert
+          const banner = document.getElementById('demoFallIncidentResultBanner');
+          if (banner) {
+            banner.style.display = 'block';
+            banner.innerHTML = `
+              <div class="banner-top">
+                <strong>🚨 INCIDENT GENERATED: ${incident.id}</strong>
+                <span class="pill-badge pill-red">SEVERITY: ${incident.severity}</span>
+              </div>
+              <p>Bathroom impact registered (3.42g). Eleanor motionless. Simulated caregiver alert dispatched.</p>
+              <div class="banner-actions">
+                <button class="btn-demo-primary" onclick="window.switchTab('alert')">View Emergency Alert Screen &rarr;</button>
+                <button class="btn-demo-secondary" onclick="window.switchTab('map')">View Location & Hospitals &rarr;</button>
+                <button class="btn-demo-secondary" onclick="window.person2DemoStore.acknowledgeIncident('${incident.id}')">Acknowledge Alert</button>
+              </div>
+            `;
+          }
+        }
+      }, 600);
+    },
+
+    resetSensors() {
+      demoStore.state.sensors = getDefaultDemoState().sensors;
+      demoStore.saveState();
+      const banner = document.getElementById('demoFallIncidentResultBanner');
+      if (banner) banner.style.display = 'none';
+      demoStore.showToast("Simulated sensors reset to normal baseline.", "info");
+    },
+
+    renderSensors() {
+      const s = demoStore.state.sensors;
+      if (!s) return;
+
+      const accEl = document.getElementById('demoSensorAccel');
+      const velEl = document.getElementById('demoSensorVelocity');
+      const postEl = document.getElementById('demoSensorPosture');
+      const hrEl = document.getElementById('demoSensorHeartRate');
+      const subEl = document.getElementById('demoSensorSubstrate');
+      const radarEl = document.getElementById('demoSensorRadar');
+
+      if (accEl) accEl.textContent = `${s.accelerometer.magnitudeG.toFixed(2)} g (${s.accelerometer.x}, ${s.accelerometer.y}, ${s.accelerometer.z})`;
+      if (velEl) velEl.textContent = `${s.impactVelocity.toFixed(2)} m/s`;
+      if (postEl) {
+        postEl.textContent = s.posture;
+        postEl.style.color = s.isFallDetected ? 'var(--accent-red)' : 'var(--accent-green-text)';
+      }
+      if (hrEl) {
+        hrEl.textContent = `${s.heartRateBpm} BPM`;
+        hrEl.style.color = s.heartRateBpm > 110 ? 'var(--accent-red)' : 'var(--accent-green-text)';
+      }
+      if (subEl) subEl.textContent = s.substrateCondition;
+      if (radarEl) radarEl.textContent = `${s.radarMicromotion} m/s (${s.room})`;
+    }
+  };
+
+  // --- 4. EMERGENCY ALERT SCREEN CONTROLLER ---
+  const EmergencyAlertController = {
+    init() {
+      this.render();
+      demoStore.subscribe(() => this.render());
+    },
+
+    acknowledgeActiveIncident() {
+      const inc = demoStore.getActiveIncident();
+      if (!inc) {
+        demoStore.showToast("No active incident to acknowledge.", "info");
+        return;
+      }
+      demoStore.acknowledgeIncident(inc.id);
+    },
+
+    cancelActiveIncident() {
+      const inc = demoStore.getActiveIncident();
+      if (!inc) {
+        demoStore.showToast("No active incident to cancel.", "info");
+        return;
+      }
+      if (confirm(`Confirm cancellation of Incident ${inc.id}? This will record a false alarm resolution in the audit log.`)) {
+        demoStore.cancelIncident(inc.id, "Caregiver clicked Cancel False Alarm");
+      }
+    },
+
+    render() {
+      const card = document.getElementById('demoEmergencyAlertContent');
+      if (!card) return;
+
+      const inc = demoStore.getActiveIncident();
+      if (!inc) {
+        card.innerHTML = `
+          <div class="demo-standby-card">
+            <div class="standby-icon">🛡️</div>
+            <h3>No Active Emergency</h3>
+            <p>Eleanor Vance is safe and all biometric sensors indicate normal baseline activity.</p>
+            <div style="margin-top: 18px;">
+              <button class="btn-demo-primary" onclick="window.switchTab('falldetect')">Go to Fall Simulation &rarr;</button>
+              <button class="btn-demo-secondary" onclick="window.switchTab('history')">View Incident History &rarr;</button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const isAcknowledged = inc.status === "ACKNOWLEDGED";
+      const isCritical = inc.severity === "CRITICAL";
+
+      card.innerHTML = `
+        <div class="demo-emergency-banner ${isCritical ? 'critical-pulse' : 'warning-pulse'}">
+          <div class="banner-header-row">
+            <div class="em-title-wrap">
+              <span class="em-pulsing-dot"></span>
+              <h2>${isCritical ? 'CRITICAL SAFETY INCIDENT' : 'SAFETY ANOMALY DETECTED'}</h2>
+            </div>
+            <span class="pill-badge pill-red">${inc.status}</span>
+          </div>
+
+          <div class="em-grid">
+            <div class="em-cell">
+              <label>Incident ID:</label>
+              <strong>${inc.id}</strong>
+            </div>
+            <div class="em-cell">
+              <label>Event Type:</label>
+              <strong>${inc.eventLabel || inc.eventType}</strong>
+            </div>
+            <div class="em-cell">
+              <label>Timestamp:</label>
+              <strong>${new Date(inc.timestamp).toLocaleString()} (${formatTimeAgo(inc.timestamp)})</strong>
+            </div>
+            <div class="em-cell">
+              <label>Severity / Risk Score:</label>
+              <strong style="color: var(--accent-red);">${inc.severity} (${inc.riskScore}%)</strong>
+            </div>
+          </div>
+
+          <div class="em-resident-section">
+            <h4>Resident &amp; Incident Location</h4>
+            <div class="resident-info-bar">
+              <div><strong>Eleanor Vance</strong> (Age 79)</div>
+              <div>${inc.location}</div>
+              <div>Smart Lock Deadbolt: <span class="pill-badge pill-green">UNLOCKED (PIN: 8492)</span></div>
+            </div>
+          </div>
+
+          <div class="em-caregiver-section">
+            <h4>Guardian Dispatch Status (Simulated)</h4>
+            <div class="caregiver-status-box">
+              <div class="cg-icon">📱</div>
+              <div class="cg-text">
+                <strong>David Vance (Son &bull; Primary Guardian)</strong>
+                <p>${escapeHtml(inc.caregiverStatus)}</p>
+                <div class="cg-channels">
+                  <span class="pill-badge pill-blue">Echo Show 15 Drop-In: Active</span>
+                  <span class="pill-badge pill-blue">SMS Alert: Delivered</span>
+                  <span class="pill-badge pill-blue">Mobile Push: Sent</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="em-controls-row">
+            ${!isAcknowledged ? `
+              <button class="btn-demo-primary" id="btnAckEmergency" onclick="window.person2DemoStore.acknowledgeIncident('${inc.id}')">
+                ✅ Acknowledge Incident
+              </button>
+            ` : `
+              <button class="btn-demo-primary" disabled style="opacity: 0.7;">
+                ✓ Acknowledged by Guardian
+              </button>
+            `}
+            <button class="btn-demo-secondary" id="btnCancelEmergency" onclick="window.person2DemoStore.cancelIncident('${inc.id}', 'Guardian cancelled false alarm')">
+              ✖ Cancel Incident (False Alarm)
+            </button>
+            <button class="btn-demo-secondary" onclick="window.switchTab('map')">
+              🗺️ View on Map
+            </button>
+            <button class="btn-demo-secondary" onclick="window.switchTab('history')">
+              📜 View Full History
+            </button>
+          </div>
+        </div>
+      `;
+    }
+  };
+
+  // --- 5. LOCATION MAP & HOSPITALS CONTROLLER ---
+  const LocationMapController = {
+    leafletMap: null,
+    incidentMarker: null,
+    hospitalMarkers: [],
+
+    init() {
+      this.renderHospitalCards();
+      // Render Leaflet or SVG fallback
+      setTimeout(() => this.initMap(), 150);
+      demoStore.subscribe(() => {
+        this.updateMapMarker();
+        this.renderHospitalCards();
+      });
+    },
+
+    initMap() {
+      const container = document.getElementById('demoMapContainer');
+      if (!container) return;
+
+      const resident = demoStore.state.resident;
+      const centerLat = resident.lat || 42.3588;
+      const centerLng = resident.lng || -71.0638;
+
+      if (typeof window.L !== 'undefined') {
+        try {
+          if (!this.leafletMap) {
+            this.leafletMap = window.L.map('demoMapContainer', {
+              zoomControl: true,
+              scrollWheelZoom: false
+            }).setView([centerLat, centerLng], 14);
+
+            window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '&copy; OpenStreetMap contributors | NIRA Demo Data',
+              maxZoom: 18
+            }).addTo(this.leafletMap);
+          }
+
+          this.updateMapMarker();
+          return;
+        } catch (e) {
+          console.warn("Leaflet initialization failed, switching to vector SVG fallback:", e);
+        }
+      }
+
+      // Fallback: High-fidelity interactive vector SVG map
+      this.renderVectorSvgMap(container);
+    },
+
+    updateMapMarker() {
+      if (!this.leafletMap || typeof window.L === 'undefined') return;
+
+      const resident = demoStore.state.resident;
+      const activeInc = demoStore.getActiveIncident();
+      const hasActiveIncident = Boolean(activeInc && activeInc.status === "ACTIVE");
+
+      if (this.incidentMarker) {
+        this.leafletMap.removeLayer(this.incidentMarker);
+      }
+
+      this.hospitalMarkers.forEach(m => this.leafletMap.removeLayer(m));
+      this.hospitalMarkers = [];
+
+      // Add resident marker
+      const markerColor = hasActiveIncident ? "#f43f5e" : "#10b981";
+      const iconHtml = `
+        <div style="
+          width: 32px; height: 32px; border-radius: 50%;
+          background: ${markerColor}; border: 3px solid #ffffff;
+          box-shadow: 0 0 15px ${markerColor}; display: flex; align-items: center; justify-content: center;
+          color: #fff; font-size: 16px; font-weight: bold;
+        ">
+          ${hasActiveIncident ? '🚨' : '🏠'}
+        </div>
+      `;
+
+      const customIcon = window.L.divIcon({
+        className: 'demo-map-custom-marker',
+        html: iconHtml,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      });
+
+      this.incidentMarker = window.L.marker([resident.lat, resident.lng], { icon: customIcon }).addTo(this.leafletMap);
+      this.incidentMarker.bindPopup(`
+        <div style="font-family: sans-serif; color: #1e293b;">
+          <strong>${resident.name} (${resident.address})</strong><br>
+          ${hasActiveIncident ? `<span style="color: #e11d48; font-weight: bold;">🚨 ACTIVE EMERGENCY: ${activeInc.id}</span>` : '🟢 Status: Safe Baseline'}
+        </div>
+      `);
+
+      if (hasActiveIncident) {
+        this.incidentMarker.openPopup();
+      }
+
+      // Add nearby hospital markers
+      const hospitals = demoStore.state.hospitals || [];
+      hospitals.forEach(h => {
+        const hospIcon = window.L.divIcon({
+          className: 'demo-hosp-marker',
+          html: `<div style="background: #38bdf8; width: 26px; height: 26px; border-radius: 6px; border: 2px solid #ffffff; display: flex; align-items: center; justify-content: center; color: #040812; font-size: 14px; font-weight: 800;">🏥</div>`,
+          iconSize: [26, 26],
+          iconAnchor: [13, 13]
+        });
+        const m = window.L.marker([h.lat, h.lng], { icon: hospIcon }).addTo(this.leafletMap);
+        m.bindPopup(`
+          <div style="font-family: sans-serif; color: #1e293b;">
+            <strong>${escapeHtml(h.name)}</strong><br>
+            <span>${escapeHtml(h.traumaLevel)}</span><br>
+            <span>Distance: ${h.distance} &bull; ETA: ${h.eta}</span><br>
+            <span>Phone: ${h.phone}</span>
+          </div>
+        `);
+        this.hospitalMarkers.push(m);
+      });
+    },
+
+    renderVectorSvgMap(container) {
+      const activeInc = demoStore.getActiveIncident();
+      const isEmergency = Boolean(activeInc && activeInc.status === "ACTIVE");
+
+      container.innerHTML = `
+        <div class="demo-vector-map-wrap">
+          <svg viewBox="0 0 800 480" class="demo-vector-svg">
+            <!-- Background / City Base -->
+            <rect width="800" height="480" fill="#0b111e"/>
+            <!-- Charles River curve -->
+            <path d="M 0,260 Q 220,180 420,290 T 800,210 L 800,480 L 0,480 Z" fill="#0d233a" opacity="0.75"/>
+            <!-- Major Arteries / Bridges -->
+            <line x1="260" y1="0" x2="260" y2="480" stroke="#1e293b" stroke-width="6"/>
+            <line x1="0" y1="210" x2="800" y2="210" stroke="#1e293b" stroke-width="6"/>
+            <line x1="120" y1="420" x2="680" y2="80" stroke="#334155" stroke-width="4" stroke-dasharray="8 4"/>
+
+            <!-- Boston Common / Public Garden green zone -->
+            <rect x="360" y="270" width="130" height="110" rx="14" fill="#064e3b" opacity="0.45"/>
+            <text x="425" y="330" fill="#34d399" font-size="12" font-weight="bold" text-anchor="middle">Boston Common</text>
+
+            <!-- Beacon Hill Resident Location Pin -->
+            <g transform="translate(380, 220)" style="cursor: pointer;">
+              <circle cx="0" cy="0" r="${isEmergency ? '28' : '18'}" fill="${isEmergency ? 'rgba(244,63,94,0.3)' : 'rgba(16,185,129,0.25)'}" ${isEmergency ? 'class="pulse-ring"' : ''}/>
+              <circle cx="0" cy="0" r="14" fill="${isEmergency ? '#f43f5e' : '#10b981'}" stroke="#ffffff" stroke-width="2.5"/>
+              <text x="0" y="4" font-size="11" text-anchor="middle" fill="#fff">${isEmergency ? '🚨' : '🏠'}</text>
+              <text x="0" y="-22" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Eleanor Vance (Unit 4B)</text>
+              ${isEmergency ? `<text x="0" y="32" font-size="11" font-weight="bold" fill="#f43f5e" text-anchor="middle">FALL INCIDENT ACTIVE</text>` : ''}
+            </g>
+
+            <!-- Hospital 1: MGH -->
+            <g transform="translate(310, 150)" style="cursor: pointer;">
+              <circle cx="0" cy="0" r="13" fill="#38bdf8" stroke="#ffffff" stroke-width="2"/>
+              <text x="0" y="4" font-size="10" text-anchor="middle" fill="#040812">🏥</text>
+              <text x="0" y="-18" font-size="11" font-weight="600" fill="#38bdf8" text-anchor="middle">MGH (0.4 mi &bull; 3m ETA)</text>
+            </g>
+
+            <!-- Hospital 2: Tufts -->
+            <g transform="translate(450, 360)" style="cursor: pointer;">
+              <circle cx="0" cy="0" r="13" fill="#38bdf8" stroke="#ffffff" stroke-width="2"/>
+              <text x="0" y="4" font-size="10" text-anchor="middle" fill="#040812">🏥</text>
+              <text x="0" y="24" font-size="11" font-weight="600" fill="#38bdf8" text-anchor="middle">Tufts Medical (1.1 mi)</text>
+            </g>
+
+            <!-- Hospital 3: BMC -->
+            <g transform="translate(560, 420)" style="cursor: pointer;">
+              <circle cx="0" cy="0" r="13" fill="#38bdf8" stroke="#ffffff" stroke-width="2"/>
+              <text x="0" y="4" font-size="10" text-anchor="middle" fill="#040812">🏥</text>
+              <text x="0" y="24" font-size="11" font-weight="600" fill="#38bdf8" text-anchor="middle">Boston Medical (1.8 mi)</text>
+            </g>
+          </svg>
+          <div class="demo-vector-map-overlay">
+            <span class="pill-badge pill-neutral">Vector Fallback Map • Beacon Hill, Boston</span>
+            <small style="color: var(--text-secondary);">Interactive simulated coordinate overlay</small>
+          </div>
+        </div>
+      `;
+    },
+
+    renderHospitalCards() {
+      const container = document.getElementById('demoHospitalCardsGrid');
+      if (!container) return;
+
+      const hospitals = demoStore.state.hospitals || [];
+      container.innerHTML = hospitals.map(h => {
+        return `
+          <div class="demo-hospital-card">
+            <div class="hosp-card-header">
+              <div class="hosp-icon">🏥</div>
+              <div class="hosp-title-group">
+                <h5>${escapeHtml(h.name)}</h5>
+                <span class="pill-badge pill-blue">${escapeHtml(h.traumaLevel)}</span>
+              </div>
+            </div>
+            <div class="hosp-meta-grid">
+              <div><small>Distance:</small> <strong>${h.distance}</strong></div>
+              <div><small>EMS Transit:</small> <strong>${h.eta}</strong></div>
+              <div><small>ER Status:</small> <strong style="color: var(--accent-green);">${h.erStatus}</strong></div>
+              <div><small>Phone:</small> <strong>${h.phone}</strong></div>
+            </div>
+            <div class="hosp-card-footer">
+              <span class="hosp-sample-tag">${h.sampleDisclaimer}</span>
+              <button class="btn-demo-secondary" onclick="window.person2DemoStore.showToast('Dispatch route queued to ${escapeHtml(h.name)}.', 'info')">
+                Dispatch Route
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  };
+
+  // --- 6. NOTIFICATION CENTER CONTROLLER ---
+  const NotificationCenterController = {
+    activeCategory: 'all',
+
+    init() {
+      this.render();
+      demoStore.subscribe(() => this.render());
+    },
+
+    setFilter(cat) {
+      this.activeCategory = cat;
+      const pills = document.querySelectorAll('.demo-notif-filter-pill');
+      pills.forEach(p => {
+        if (p.dataset.category === cat) {
+          p.classList.add('active');
+        } else {
+          p.classList.remove('active');
+        }
+      });
+      this.render();
+    },
+
+    render() {
+      const listContainer = document.getElementById('demoNotificationList');
+      const unreadCountEl = document.getElementById('demoNotifUnreadCount');
+      if (!listContainer) return;
+
+      const all = demoStore.state.notifications || [];
+      const unreadCount = demoStore.getUnreadNotificationCount();
+      if (unreadCountEl) {
+        unreadCountEl.textContent = `${unreadCount} unread`;
+      }
+
+      const filtered = all.filter(item => {
+        if (this.activeCategory === 'all') return true;
+        return item.category === this.activeCategory;
+      });
+
+      if (filtered.length === 0) {
+        listContainer.innerHTML = `<div class="demo-empty-state">No notifications in this category.</div>`;
+        return;
+      }
+
+      listContainer.innerHTML = filtered.map(item => {
+        const timeAgo = formatTimeAgo(item.timestamp);
+        let categoryIcon = '🔔';
+        if (item.category === 'emergency') categoryIcon = '🚨';
+        else if (item.category === 'check_in') categoryIcon = '📋';
+        else if (item.category === 'reminder') categoryIcon = '⏰';
+
+        let severityBadge = 'pill-blue';
+        if (item.severity === 'critical') severityBadge = 'pill-red';
+        else if (item.severity === 'warning') severityBadge = 'pill-amber';
+
+        return `
+          <div class="demo-notif-item ${item.read ? 'is-read' : 'is-unread'} ${item.severity === 'critical' ? 'critical-glow' : ''}">
+            <div class="notif-icon-col" aria-hidden="true">${categoryIcon}</div>
+            <div class="notif-content-col">
+              <div class="notif-header-line">
+                <span class="pill-badge ${severityBadge}">${item.severity.toUpperCase()}</span>
+                <span class="notif-title">${escapeHtml(item.title)}</span>
+                <span class="notif-time" title="${item.timestamp}">${timeAgo}</span>
+              </div>
+              <p class="notif-desc">${escapeHtml(item.description)}</p>
+              <div class="notif-actions-line">
+                <span class="notif-sim-badge">Simulated Delivery &bull; Demo Mode</span>
+                <div class="notif-btn-group">
+                  ${item.incidentId ? `
+                    <button class="btn-demo-link" onclick="window.switchTab('alert')">View Emergency Alert &rarr;</button>
+                  ` : ''}
+                  ${!item.read ? `
+                    <button class="btn-demo-link" onclick="window.person2DemoStore.markNotificationRead('${item.id}')">Mark as Read</button>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  };
+
+  // --- 7. INCIDENT HISTORY CONTROLLER ---
+  const IncidentHistoryController = {
+    filterType: 'all',
+    filterStatus: 'all',
+
+    init() {
+      this.render();
+      demoStore.subscribe(() => this.render());
+    },
+
+    setFilters(type, status) {
+      if (type !== undefined) this.filterType = type;
+      if (status !== undefined) this.filterStatus = status;
+      this.render();
+    },
+
+    openIncidentDetails(incidentId) {
+      const inc = demoStore.state.incidents.find(i => i.id === incidentId);
+      if (!inc) return;
+
+      const modal = document.getElementById('demoIncidentDetailModal');
+      const body = document.getElementById('demoIncidentDetailModalBody');
+      if (!modal || !body) return;
+
+      body.innerHTML = `
+        <div class="modal-incident-header">
+          <h3>Incident Details: ${inc.id}</h3>
+          <span class="pill-badge ${inc.severity === 'CRITICAL' ? 'pill-red' : 'pill-amber'}">${inc.severity}</span>
+          <span class="pill-badge pill-neutral">${inc.status}</span>
+        </div>
+        <div class="modal-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0;">
+          <div><small>Location:</small><br><strong>${escapeHtml(inc.location)}</strong></div>
+          <div><small>Timestamp:</small><br><strong>${new Date(inc.timestamp).toLocaleString()}</strong></div>
+          <div><small>Event Type:</small><br><strong>${escapeHtml(inc.eventLabel || inc.eventType)}</strong></div>
+          <div><small>Caregiver Status:</small><br><strong>${escapeHtml(inc.caregiverStatus)}</strong></div>
+        </div>
+        <p><strong>Description:</strong> ${escapeHtml(inc.details || 'No additional narrative logged.')}</p>
+
+        <h4 style="margin-top: 18px; margin-bottom: 8px;">Audit Trail Timeline:</h4>
+        <div class="modal-timeline-strip">
+          ${(inc.timeline || []).map(t => `
+            <div class="tl-item">
+              <span class="tl-time">${t.time}</span>
+              <span class="tl-action">${escapeHtml(t.action)}</span>
+            </div>
+          `).join('')}
+        </div>
+
+        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+          ${inc.status === 'ACTIVE' ? `
+            <button class="btn-demo-primary" onclick="window.person2DemoStore.acknowledgeIncident('${inc.id}'); window.closeIncidentModal();">Acknowledge</button>
+            <button class="btn-demo-secondary" onclick="window.person2DemoStore.cancelIncident('${inc.id}'); window.closeIncidentModal();">Cancel (False Alarm)</button>
+          ` : ''}
+          <button class="btn-demo-secondary" onclick="window.closeIncidentModal()">Close</button>
+        </div>
+      `;
+
+      modal.style.display = 'flex';
+      modal.setAttribute('aria-hidden', 'false');
+    },
+
+    render() {
+      const tbody = document.getElementById('demoIncidentHistoryTableBody');
+      if (!tbody) return;
+
+      const list = demoStore.state.incidents || [];
+      const filtered = list.filter(item => {
+        if (this.filterType !== 'all' && item.eventType !== this.filterType) return false;
+        if (this.filterStatus !== 'all' && item.status !== this.filterStatus) return false;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="demo-empty-cell">No incidents match the active filters.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(item => {
+        const timeStr = new Date(item.timestamp).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+        let statusBadge = 'pill-green';
+        if (item.status === 'ACTIVE') statusBadge = 'pill-red';
+        else if (item.status === 'ACKNOWLEDGED') statusBadge = 'pill-blue';
+        else if (item.status === 'CANCELLED_FALSE_ALARM') statusBadge = 'pill-neutral';
+
+        let sevBadge = 'pill-red';
+        if (item.severity === 'MODERATE') sevBadge = 'pill-amber';
+        else if (item.severity === 'LOW') sevBadge = 'pill-green';
+
+        return `
+          <tr>
+            <td><strong>${item.id}</strong></td>
+            <td>${escapeHtml(item.eventLabel || item.eventType)}</td>
+            <td>${timeStr}</td>
+            <td>${escapeHtml(item.location)}</td>
+            <td><span class="pill-badge ${sevBadge}">${item.severity}</span></td>
+            <td><span class="pill-badge ${statusBadge}">${item.status}</span></td>
+            <td>
+              <button class="btn-demo-link" onclick="window.person2IncidentHistory.openIncidentDetails('${item.id}')">
+                Inspect Details &rarr;
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+  };
+
+  // Expose controllers to window
+  window.person2VoiceAssistant = VoiceAssistantController;
+  window.person2DailyCheckin = DailyCheckinController;
+  window.person2FallSimulation = FallSimulationController;
+  window.person2EmergencyAlert = EmergencyAlertController;
+  window.person2LocationMap = LocationMapController;
+  window.person2NotificationCenter = NotificationCenterController;
+  window.person2IncidentHistory = IncidentHistoryController;
+
+  window.closeIncidentModal = function() {
+    const modal = document.getElementById('demoIncidentDetailModal');
+    if (modal) {
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden', 'true');
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+  function formatTimeAgo(isoDate) {
+    if (!isoDate) return '--';
+    const diff = Math.floor((Date.now() - new Date(isoDate).getTime()) / 1000);
+    if (diff < 5) return 'Just now';
+    if (diff < 60) return `${diff}s ago`;
+    const m = Math.floor(diff / 60);
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ago`;
+    const d = Math.floor(h / 24);
+    return `${d}d ago`;
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // Auto-initialize when DOM is ready
+  function initAllControllers() {
+    VoiceAssistantController.init();
+    DailyCheckinController.init();
+    FallSimulationController.init();
+    EmergencyAlertController.init();
+    LocationMapController.init();
+    NotificationCenterController.init();
+    IncidentHistoryController.init();
+    demoStore.updateHeaderBadges();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAllControllers);
+  } else {
+    initAllControllers();
+  }
+
+})();

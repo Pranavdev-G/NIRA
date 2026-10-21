@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NIRAIncidentModel",
+  "description": "Authoritative contract for safety incidents and lifecycle state tracked by EmergencyWorkflowEngine and consumed by the Frontend Emergency Command Center.",
+  "type": "object",
+  "required": [
+    "incident_id",
+    "resident_id",
+    "severity",
+    "state",
+    "detected_at",
+    "updated_at",
+    "room_id",
+    "evidence",
+    "timeline",
+    "wellness_check",
+    "caregiver_status",
+    "emergency_status",
+    "packet_status"
+  ],
+  "properties": {
+    "incident_id": {
+      "type": "string",
+      "pattern": "^INC-\\d{8}-[A-Za-z0-9]{4,8}$",
+      "description": "Unique incident identifier."
+    },
+    "resident_id": {
+      "type": "string",
+      "description": "Identifier of resident under care."
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["LOW", "MODERATE", "HIGH", "CRITICAL"],
+      "description": "Current severity level of the incident."
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "DETECTED",
+        "VERIFYING",
+        "WELLNESS_CHECK",
+        "WAITING_FOR_RESPONSE",
+        "RESPONSIVE",
+        "CAREGIVER_ESCALATION",
+        "EMERGENCY_ESCALATION",
+        "DISPATCH_READY",
+        "RESOLVED"
+      ],
+      "description": "Finite state machine workflow state."
+    },
+    "detected_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC timestamp when incident was first detected."
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC timestamp of latest update or state transition."
+    },
+    "resolved_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "UTC timestamp when incident reached RESOLVED state."
+    },
+    "room_id": {
+      "type": "string",
+      "description": "Room location of incident."
+    },
+    "evidence": {
+      "type": "object",
+      "description": "Multimodal evidence dictionary (movement, heart rate, radar posture, confidence, etc.)."
+    },
+    "timeline": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["timestamp", "action_type", "actor", "reason"],
+        "properties": {
+          "id": { "type": ["string", "integer"] },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "action_type": { "type": "string" },
+          "actor": { "type": "string" },
+          "previous_state": { "type": ["string", "null"] },
+          "new_state": { "type": ["string", "null"] },
+          "reason": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      },
+      "description": "Chronological audit trail of system events, actions, and transitions."
+    },
+    "wellness_check": {
+      "type": "object",
+      "properties": {
+        "initiated": { "type": "boolean" },
+        "timeout_seconds": { "type": "integer" },
+        "senior_response": { "type": ["string", "null"] },
+        "voice_intent": { "type": ["string", "null"] }
+      }
+    },
+    "caregiver_status": {
+      "type": "object",
+      "properties": {
+        "notified": { "type": "boolean" },
+        "acknowledged": { "type": "boolean" },
+        "acknowledged_at": { "type": ["string", "null"] },
+        "caregiver_actor": { "type": ["string", "null"] }
+      }
+    },
+    "emergency_status": {
+      "type": "object",
+      "properties": {
+        "escalated": { "type": "boolean" },
+        "cad_dispatched": { "type": "boolean" },
+        "dispatch_id": { "type": ["string", "null"] },
+        "units": { "type": "array", "items": { "type": "string" } },
+        "door_unlocked": { "type": "boolean" }
+      }
+    },
+    "packet_status": {
+      "type": "object",
+      "properties": {
+        "packet_id": { "type": ["string", "null"] },
+        "generated": { "type": "boolean" },
+        "triage_priority": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NIRARiskAssessment",
+  "description": "Authoritative contract for explainable multimodal risk evaluation produced by AegisRiskEngine and RiskIntelligenceEngine.",
+  "type": "object",
+  "required": [
+    "risk_level",
+    "risk_score",
+    "confidence",
+    "contributors",
+    "suppressed_factors",
+    "resident_id",
+    "room_id",
+    "timestamp",
+    "action",
+    "correlation_id"
+  ],
+  "properties": {
+    "risk_level": {
+      "type": "string",
+      "enum": ["LOW", "MODERATE", "HIGH", "CRITICAL"],
+      "description": "Multi-modal safety tier badge: LOW (Tier 1 Safe), MODERATE/HIGH (Tier 2 Alert), CRITICAL (Tier 3 Critical)."
+    },
+    "risk_score": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Continuous risk probability score from 0.0 (safe baseline) to 1.0 (confirmed emergency)."
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Algorithmic confidence based on multi-sensor corroboration."
+    },
+    "contributors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["factor", "weight", "description"],
+        "properties": {
+          "factor": { "type": "string" },
+          "weight": { "type": "number" },
+          "description": { "type": "string" }
+        }
+      },
+      "description": "List of active risk multipliers elevating the risk score."
+    },
+    "suppressed_factors": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Potential hazards suppressed due to counter-evidence (e.g. resident confirmed safe verbally)."
+    },
+    "resident_id": {
+      "type": "string",
+      "description": "Resident identifier."
+    },
+    "room_id": {
+      "type": "string",
+      "description": "Room in which risk condition was localized."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 UTC timestamp of risk calculation."
+    },
+    "action": {
+      "type": "string",
+      "description": "Recommended algorithmic intervention (e.g. MONITOR_PASSIVE, INITIATE_VOICE_CHECK, IMMEDIATE_CAD_EMERGENCY_DISPATCH)."
+    },
+    "correlation_id": {
+      "type": "string",
+      "description": "Correlation identifier tying risk calculation back to triggering sensor evidence."
+    }
+  }
+}

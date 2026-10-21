@@ -420,19 +420,37 @@ python mock_event_emitter.py --continuous --interval 3.0
 pip install -r requirements.txt
 ```
 
-### 2. Run Test Suite
+### 2. Run Complete Integration Test Suite
 ```bash
-pytest tests/ -v
-```
-All 23 automated tests validate schema contracts, state machine transitions, latency SLAs, and JSON-RPC dispatching.
-
-### 3. Start Development Server
-```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+pytest Demo/tests
 ```
 
-Interactive OpenAPI Swagger UI is available at:
-`http://localhost:8000/docs`
+### 3. Start Unified NIRA Server
+From the root folder:
+```bash
+uvicorn Demo.app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+Or directly from the `Demo` directory:
+```bash
+cd Demo && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+- **Interactive Safety Dashboard & 3D Digital Twin:** `http://localhost:8000/` or `http://localhost:8000/dashboard`
+- **Family Admin Guardian Console:** `http://localhost:8000/admin`
+- **Interactive OpenAPI Swagger Docs:** `http://localhost:8000/docs`
+- **Model Context Protocol (MCP) Streamable SSE:** `http://localhost:8000/sse`
+- **Real-Time Safety Event Stream:** `http://localhost:8000/api/v1/events/stream` or `http://localhost:8000/events`
+
+### 4. Run Multi-Device Event Simulators
+```bash
+# Run full automated scenario suite (from root or Demo/)
+python Demo/scenario_simulator.py --scenario responsive_emergency
+python Demo/nira_simulator.py --interactive
+# Additional scenario options:
+# python Demo/scenario_simulator.py --scenario silent_emergency
+# python Demo/scenario_simulator.py --scenario false_alarm
+# python Demo/nira_simulator.py --scenario normal_day --steps 10
+```
 
 ---
 
