@@ -13,19 +13,102 @@
 <body>
   <a href="#mainContent" class="skip-link">Skip to main safety content</a>
 
+  <!-- ======================================================================
+       PRIMARY NIRA LANDING PAGE GATEWAY
+       Matches user specification:
+                NIRA
+         DEMO         LIVE MODEL
+       ====================================================================== -->
+  <div id="landingGatewayScreen" class="landing-gateway-screen" role="main" aria-label="NIRA Landing Gateway">
+    <div class="landing-gateway-glow"></div>
+
+    <div class="landing-gateway-content">
+      <!-- Centered NIRA Brand Header -->
+      <header class="landing-hero-brand">
+        <div class="landing-shield-emblem" aria-hidden="true">
+          <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <h1 class="landing-hero-title">NIRA</h1>
+        <p class="landing-hero-tagline">Ambient AI Elder Safety Intelligence</p>
+        <div class="landing-hackathon-pill">
+          <span>AMAZON DEVELOPER HACKATHON 2026 &bull; ALEXA+ INTEGRATION</span>
+        </div>
+      </header>
+
+      <!-- The Two Main Choices (Left: DEMO, Right: LIVE MODEL) -->
+      <div class="landing-gateway-grid">
+        <!-- Choice 1: DEMO -->
+        <div class="landing-card demo-card" onclick="enterSystemMode('demo')" tabindex="0" role="button" aria-label="Enter Demo Mode">
+          <div class="landing-card-top">
+            <span class="card-status-dot demo"></span>
+            <span class="card-badge demo">HACKATHON SHOWCASE</span>
+          </div>
+          <div class="landing-card-icon">🎮</div>
+          <h2 class="landing-card-title">DEMO</h2>
+          <p class="landing-card-desc">
+            Complete Hackathon system demonstration with simulated senior Eleanor Vance (Unit 4B), 3 clinical emergency scenarios, 4-tab mission control, and 3D WebGL digital twin.
+          </p>
+          <ul class="landing-card-features">
+            <li><span>🛡️</span> Eleanor Vance (Age 79, Beacon Hill)</li>
+            <li><span>🚨</span> 3 Test Scenarios: Safe, Assisted &amp; 911 CAD</li>
+            <li><span>📊</span> 4 Multi-View Tabs &amp; 3D Video Reel</li>
+            <li><span>📱</span> Family Admin Guardian Console</li>
+          </ul>
+          <button class="btn-enter-mode demo-btn">
+            <span>Launch Complete Demo System</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+
+        <!-- Choice 2: LIVE MODEL -->
+        <div class="landing-card live-card" onclick="enterSystemMode('live')" tabindex="0" role="button" aria-label="Enter Live Model">
+          <div class="landing-card-top">
+            <span class="card-status-dot live"></span>
+            <span class="card-badge live">REAL-TIME WORKSPACE</span>
+          </div>
+          <div class="landing-card-icon">⚡</div>
+          <h2 class="landing-card-title">LIVE MODEL</h2>
+          <p class="landing-card-desc">
+            Real-time operational environment for live IoT hardware integration, browser edge webcam fall detection, live microphone acoustic check-in, and custom REST event ingestion.
+          </p>
+          <ul class="landing-card-features">
+            <li><span>📹</span> Live Edge Camera &amp; Pose Kinematics</li>
+            <li><span>🎙️</span> Live Acoustic Voice AI Hub (Web Speech)</li>
+            <li><span>📡</span> Real Sensor REST Ingestion &amp; IoT Fleet</li>
+            <li><span>📲</span> Open-Source TextBee SMS Dispatch</li>
+          </ul>
+          <button class="btn-enter-mode live-btn">
+            <span>Enter Live Model Workspace</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Footer Architecture Meta -->
+      <footer class="landing-gateway-footer">
+        <div>Event-Driven Architecture &bull; FastMCP Server &bull; 14-Signal Multimodal Risk Engine &bull; 150 Automated Tests Passing</div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Main System Workspace Container (Revealed upon selecting Demo or Live Model) -->
+  <div id="appWorkspaceContainer" class="app-workspace-container" style="display: none;">
   <div class="app-container">
 
     <!-- Tesla-Style Minimalist Top Header -->
     <header class="app-header" role="banner">
       <div class="brand-section">
-        <div class="brand-logo-shield" aria-hidden="true">
+        <div class="brand-logo-shield" onclick="returnToLandingGateway()" style="cursor: pointer;" title="Return to NIRA Landing Page" aria-hidden="true">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             <path d="M9 12l2 2 4-4"/>
           </svg>
         </div>
         <div>
-          <div class="brand-name">
+          <div class="brand-name" onclick="returnToLandingGateway()" style="cursor: pointer;" title="Return to NIRA Landing Page">
             <span data-i18n="appTitle">Aegis Ambient Care</span>
           </div>
           <div class="brand-subtitle">
@@ -40,6 +123,16 @@
       </div>
 
       <div class="header-actions">
+        <!-- Return to Landing Page Button -->
+        <button class="btn-portal-home" onclick="returnToLandingGateway()" title="Return to NIRA Landing Page" aria-label="Return to NIRA Landing Page">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+            <polyline points="2 17 12 22 22 17"/>
+            <polyline points="2 12 12 17 22 12"/>
+          </svg>
+          <span>NIRA Portal</span>
+        </button>
+
         <!-- Global Language Selector -->
         <select id="langSelector" class="lang-select-box" onchange="setLanguage(this.value)" aria-label="Select Interface Language">
           <option value="en">English (US)</option>
@@ -107,6 +200,58 @@
       </div>
       <button class="banner-action-btn" id="bannerRetryBtn" onclick="if(window.niraStore) window.niraStore.init()">Reconnect Stream</button>
     </div>
+
+    <!-- ======================================================================
+         OPERATING ENVIRONMENT SELECTOR: TWO-SECTION INPUT
+         1. DEMO MODE (Hackathon Showcase & Scenarios)
+         2. LIVE MODE (Real-World Live Telemetry & Device Ingestion)
+         ====================================================================== -->
+    <section class="system-mode-selector-bar" role="region" aria-label="System Operating Mode Selection">
+      <div class="mode-selector-header">
+        <div class="mode-selector-title-wrap">
+          <span class="mode-pulse-dot"></span>
+          <span class="mode-selector-title">OPERATING ENVIRONMENT:</span>
+        </div>
+        <div class="mode-selector-hint">Switch between Hackathon Interactive Showcase and Real-Time Live Ingestion.</div>
+      </div>
+
+      <div class="mode-toggle-group" role="radiogroup" aria-label="System Mode">
+        <!-- Section 1 Input: Demo Mode -->
+        <button class="mode-toggle-card active" id="btnModeDemo" onclick="switchSystemMode('demo')" role="radio" aria-checked="true" aria-label="Switch to Demo Mode: Hackathon Interactive Showcase">
+          <div class="mode-card-badge-row">
+            <span class="mode-status-indicator demo"></span>
+            <span class="mode-pill demo-pill">HACKATHON SHOWCASE</span>
+          </div>
+          <div class="mode-card-main">
+            <div class="mode-card-icon">🎮</div>
+            <div class="mode-card-text">
+              <div class="mode-card-title">1. DEMO MODE</div>
+              <div class="mode-card-desc">Simulated Eleanor Vance (Unit 4B), 3 emergency scenarios, 3D digital twin &amp; radar feeds.</div>
+            </div>
+          </div>
+        </button>
+
+        <!-- Section 2 Input: Live Mode -->
+        <button class="mode-toggle-card" id="btnModeLive" onclick="switchSystemMode('live')" role="radio" aria-checked="false" aria-label="Switch to Live Mode: Real-Time Ingestion & Physical Devices">
+          <div class="mode-card-badge-row">
+            <span class="mode-status-indicator live"></span>
+            <span class="mode-pill live-pill">REAL-TIME INGESTION</span>
+          </div>
+          <div class="mode-card-main">
+            <div class="mode-card-icon">⚡</div>
+            <div class="mode-card-text">
+              <div class="mode-card-title">2. LIVE MODE</div>
+              <div class="mode-card-desc">Live IoT sensor pipeline, browser webcam fall detector, real microphone listener &amp; TextBee SMS.</div>
+            </div>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 1: DEMO MODE (All current Hackathon system components)
+         ====================================================================== -->
+    <div id="sectionDemoMode" class="system-mode-container active" role="region" aria-label="Demo Mode Simulation Showcase">
 
     <!-- Tesla Driving Mode Style Scenario Controller -->
     <div class="scenario-bar-container" role="region" aria-label="Incident Simulation Controls">
@@ -1126,7 +1271,373 @@
     </div>
 
     </main>
+    </div> <!-- end #sectionDemoMode -->
+
+    <!-- ======================================================================
+         SECTION 2: LIVE MODE (Real-World Live Telemetry & Device Ingestion)
+         ====================================================================== -->
+    <div id="sectionLiveMode" class="system-mode-container" style="display: none;" role="region" aria-label="Live Mode: Real-Time Ingestion Console">
+      
+      <!-- Live Monitoring Session Bar -->
+      <section class="live-session-toolbar" role="region" aria-label="Live Operational Setup">
+        <div class="live-status-group">
+          <div class="live-status-chip active">
+            <span class="live-pulse-dot"></span>
+            <span id="liveArmStatusText">LIVE MONITORING ARMED</span>
+          </div>
+          <button class="btn-live-toggle" id="btnToggleArm" onclick="toggleLiveArming()">
+            <span id="btnToggleArmText">Pause Protection</span>
+          </button>
+        </div>
+
+        <div class="live-config-strip">
+          <div class="live-field-wrap">
+            <label for="liveResidentName">Resident Name:</label>
+            <input type="text" id="liveResidentName" class="live-text-input" value="Eleanor Vance" placeholder="Resident Name" onchange="updateLiveResidentProfile()">
+          </div>
+
+          <div class="live-field-wrap">
+            <label for="liveRoomSelect">Active Zone:</label>
+            <select id="liveRoomSelect" class="live-select-input" onchange="updateLiveResidentProfile()">
+              <option value="bathroom" selected>Bathroom (High Risk Zone)</option>
+              <option value="living">Living Room</option>
+              <option value="bedroom">Bedroom</option>
+              <option value="kitchen">Kitchen</option>
+            </select>
+          </div>
+
+          <div class="live-field-wrap">
+            <label for="liveCaregiverPhone">Guardian SMS (TextBee):</label>
+            <input type="text" id="liveCaregiverPhone" class="live-text-input" value="+15550192834" placeholder="+15550192834" onchange="updateLiveResidentProfile()">
+          </div>
+
+          <div class="live-field-wrap">
+            <label for="liveDoorPinDisplay">Smart Deadbolt PIN:</label>
+            <input type="text" id="liveDoorPinDisplay" class="live-text-input pin" value="8492" readonly>
+          </div>
+        </div>
+
+        <div class="live-telemetry-metrics">
+          <div class="metric-chip">
+            <span class="label">SLA Latency</span>
+            <span class="value" id="liveSlaLatency">18ms</span>
+          </div>
+          <div class="metric-chip">
+            <span class="label">Events Ingested</span>
+            <span class="value" id="liveEventCountDisplay">0</span>
+          </div>
+          <div class="metric-chip">
+            <span class="label">Real-Time Risk</span>
+            <span class="value safe" id="liveRiskBadge">NORMAL (0%)</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Live Input Deck (2 Columns: Web Camera Fall Detection & Microphone Voice AI) -->
+      <div class="live-input-deck-grid">
+        <!-- Live Webcam Fall & Pose Kinematics -->
+        <section class="live-card-panel" role="region" aria-label="Live Camera and Optical Fall Detection">
+          <div class="live-card-header">
+            <div class="title-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2">
+                <path d="M23 7l-7 5 7 5V7z"/>
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+              </svg>
+              <span>1. Live Edge Camera &amp; Fall Detection</span>
+            </div>
+            <span class="status-pill offline" id="liveCamPill">STANDBY</span>
+          </div>
+
+          <div class="live-viewport-box">
+            <video id="liveWebcamVideo" autoplay playsinline muted></video>
+            <canvas id="liveWebcamCanvas"></canvas>
+            <div class="live-viewport-placeholder" id="liveCamPlaceholder">
+              <div class="placeholder-icon">📹</div>
+              <div class="placeholder-title">Web Camera Inactive</div>
+              <div class="placeholder-sub">Click "Start Live Camera" to capture real-time optical video feed for kinematic fall detection.</div>
+            </div>
+          </div>
+
+          <div class="live-card-actions">
+            <button class="btn-live-primary" id="btnStartLiveCam" onclick="startLiveWebcam()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+              <span>Start Live Camera</span>
+            </button>
+            <button class="btn-live-secondary" id="btnStopLiveCam" onclick="stopLiveWebcam()" style="display: none;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="6" y="6" width="12" height="12"/>
+              </svg>
+              <span>Stop Camera</span>
+            </button>
+            <button class="btn-live-danger" onclick="triggerOpticalFallDetection()">
+              <span>🚨 Ingest Live Fall Event</span>
+            </button>
+          </div>
+
+          <div class="live-telemetry-row">
+            <div class="tel-item">
+              <span class="tel-label">Estimated Posture</span>
+              <strong class="tel-val" id="liveCamPosture">Upright (Standing)</strong>
+            </div>
+            <div class="tel-item">
+              <span class="tel-label">Vertical Velocity</span>
+              <strong class="tel-val" id="liveCamVelocity">0.0 m/s</strong>
+            </div>
+            <div class="tel-item">
+              <span class="tel-label">Fall Probability</span>
+              <strong class="tel-val safe" id="liveCamFallProb">0%</strong>
+            </div>
+          </div>
+        </section>
+
+        <!-- Live Microphone Voice AI Hub -->
+        <section class="live-card-panel" role="region" aria-label="Live Voice and Acoustic Hub">
+          <div class="live-card-header">
+            <div class="title-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                <line x1="12" y1="19" x2="12" y2="23"/>
+                <line x1="8" y1="23" x2="16" y2="23"/>
+              </svg>
+              <span>2. Live Voice AI &amp; Conversational Hub</span>
+            </div>
+            <span class="status-pill offline" id="liveMicPill">MIC IDLE</span>
+          </div>
+
+          <div class="live-transcript-wrap">
+            <div class="transcript-header-bar">
+              <span class="label">LIVE SPEECH RECOGNITION (WEB SPEECH API):</span>
+              <span class="phase-tag" id="liveVoicePhaseTag">IDLE</span>
+            </div>
+            <div class="live-transcript-text" id="liveVoiceTranscriptText">
+              Click "Start Live Mic" and speak into your microphone. Say <em>"I'm okay"</em> or <em>"Help me, I fell!"</em> to trigger state transitions in real time.
+            </div>
+            <div class="live-soundwave-row" id="liveSoundwaveRow">
+              <div class="live-bar"></div>
+              <div class="live-bar"></div>
+              <div class="live-bar"></div>
+              <div class="live-bar"></div>
+              <div class="live-bar"></div>
+              <div class="live-bar"></div>
+              <div class="live-bar"></div>
+              <div class="live-bar"></div>
+            </div>
+          </div>
+
+          <div class="live-card-actions">
+            <button class="btn-live-primary" id="btnStartLiveMic" onclick="startLiveVoiceListening()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              </svg>
+              <span>Start Live Mic</span>
+            </button>
+            <button class="btn-live-secondary" id="btnStopLiveMic" onclick="stopLiveVoiceListening()" style="display: none;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="6" y="6" width="12" height="12"/>
+              </svg>
+              <span>Stop Mic</span>
+            </button>
+            <button class="btn-live-secondary" onclick="speakLivePrompt()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+              </svg>
+              <span>Speak Alexa Prompt</span>
+            </button>
+          </div>
+
+          <div class="live-telemetry-row">
+            <div class="tel-item">
+              <span class="tel-label">Acoustic State</span>
+              <strong class="tel-val" id="liveAcousticStatus">Passive Listening</strong>
+            </div>
+            <div class="tel-item">
+              <span class="tel-label">Detected Intent</span>
+              <strong class="tel-val" id="liveDetectedIntent">None</strong>
+            </div>
+            <div class="tel-item">
+              <span class="tel-label">Confidence</span>
+              <strong class="tel-val" id="liveIntentConfidence">--%</strong>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Live Hardware REST Event Injector & Quick Dispatches -->
+      <section class="live-card-panel" role="region" aria-label="Live Event Ingestion Console">
+        <div class="live-card-header">
+          <div class="title-wrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+            <span>3. Real-Time Hardware Event Injector (HTTP REST ➔ /api/events/ingest)</span>
+          </div>
+          <span class="status-pill connected">ENDPOINT ACTIVE</span>
+        </div>
+
+        <div class="live-preset-strip">
+          <button class="btn-preset red" onclick="sendLiveHardwarePreset('fall')">
+            <span>🚨 Ingest Acute Fall</span>
+            <small>High impact + 0.95 conf</small>
+          </button>
+          <button class="btn-preset amber" onclick="sendLiveHardwarePreset('wet_floor')">
+            <span>💧 Ingest Wet Floor</span>
+            <small>Ceramic tile hazard</small>
+          </button>
+          <button class="btn-preset red" onclick="sendLiveHardwarePreset('heart_rate_surge')">
+            <span>❤️ Ingest Tachycardia</span>
+            <small>Surge to 142 BPM</small>
+          </button>
+          <button class="btn-preset amber" onclick="sendLiveHardwarePreset('timeout')">
+            <span>⏱️ Ingest Silence Timeout</span>
+            <small>20s voice expiration</small>
+          </button>
+          <button class="btn-preset blue" onclick="sendLiveHardwarePreset('textbee_sms')">
+            <span>📱 Dispatch TextBee SMS</span>
+            <small>Real SMS to Guardian</small>
+          </button>
+          <button class="btn-preset green" onclick="sendLiveHardwarePreset('resolve')">
+            <span>🛡️ Ingest Safe Resolution</span>
+            <small>Restore normal baseline</small>
+          </button>
+        </div>
+
+        <!-- Custom JSON Ingestion Expander -->
+        <details class="live-custom-json-details">
+          <summary>🛠️ Advanced: Ingest Custom JSON NiraEvent Payload</summary>
+          <div class="json-editor-wrap">
+            <textarea id="liveCustomJsonInput" class="custom-json-area" spellcheck="false">{
+  "event_id": "live-evt-custom-01",
+  "resident_id": "eleanor_vance",
+  "room_id": "bathroom",
+  "source": "live_hardware_terminal",
+  "event_type": "possible_fall",
+  "confidence": 0.94,
+  "payload": {
+    "acceleration_g": 3.1,
+    "post_impact_movement": "none",
+    "floor_condition": "wet",
+    "heart_rate_bpm": 138
+  }
+}</textarea>
+            <div class="json-action-row">
+              <button class="btn-live-primary" onclick="dispatchCustomLiveJson()">
+                <span>🚀 POST Event to /api/events/ingest</span>
+              </button>
+              <span class="json-feedback" id="liveJsonFeedback"></span>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <!-- Connected Live Sensor Fleet & Actuators Grid -->
+      <section class="live-fleet-grid" role="region" aria-label="Connected IoT Sensor Fleet">
+        <!-- Wearable Device -->
+        <div class="fleet-card">
+          <div class="fleet-card-header">
+            <div class="fleet-title">
+              <span>⌚ Apple Watch Series 10</span>
+              <span class="fleet-tag live">LIVE BLE</span>
+            </div>
+            <span class="fleet-battery" id="liveFleetBattery">84% 🔋</span>
+          </div>
+          <div class="fleet-metric-value" id="liveFleetHr">138 BPM</div>
+          <div class="fleet-metric-sub" id="liveFleetHrSub">Optical Photoplethysmography (PPG) Active</div>
+        </div>
+
+        <!-- 60GHz mmWave Radar -->
+        <div class="fleet-card">
+          <div class="fleet-card-header">
+            <div class="fleet-title">
+              <span>📡 60GHz FMCW Radar Pod</span>
+              <span class="fleet-tag live">ACTIVE</span>
+            </div>
+            <span class="fleet-zone">Bathroom Zone 1</span>
+          </div>
+          <div class="fleet-metric-value" id="liveFleetRadar">Point Cloud Active</div>
+          <div class="fleet-metric-sub">Micro-Doppler Respiration Tracking Active</div>
+        </div>
+
+        <!-- Environmental Array -->
+        <div class="fleet-card">
+          <div class="fleet-card-header">
+            <div class="fleet-title">
+              <span>🌡️ Environmental Array</span>
+              <span class="fleet-tag live">ONLINE</span>
+            </div>
+            <span class="fleet-zone">Zigbee 3.0</span>
+          </div>
+          <div class="fleet-metric-value" id="liveFleetEnv">22.4°C &bull; 15 Lux</div>
+          <div class="fleet-metric-sub" id="liveFleetEnvSub">Wet Floor Hazard Sensor: Alert Active</div>
+        </div>
+
+        <!-- Smart Door Deadbolt -->
+        <div class="fleet-card">
+          <div class="fleet-card-header">
+            <div class="fleet-title">
+              <span>🔒 Smart Entrance Lock</span>
+              <span class="fleet-tag live">MATTER / Z-WAVE</span>
+            </div>
+            <span class="fleet-pin">PIN: 8492</span>
+          </div>
+          <div class="fleet-metric-value" id="liveFleetLockState" style="color: var(--accent-red);">UNLOCKED FOR 911</div>
+          <button class="btn-fleet-toggle-lock" onclick="toggleLiveDoorLock()">Toggle Lock State</button>
+        </div>
+      </section>
+
+      <!-- Live Real-Time Event Audit Stream & Risk Intelligence -->
+      <div class="live-stream-risk-grid">
+        <!-- Live SSE Ingestion Stream Log -->
+        <section class="live-card-panel" role="region" aria-label="Real-Time Event Stream Log">
+          <div class="live-card-header">
+            <div class="title-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2">
+                <line x1="8" y1="6" x2="21" y2="6"/>
+                <line x1="8" y1="12" x2="21" y2="12"/>
+                <line x1="8" y1="18" x2="21" y2="18"/>
+                <line x1="3" y1="6" x2="3.01" y2="6"/>
+                <line x1="3" y1="12" x2="3.01" y2="12"/>
+                <line x1="3" y1="18" x2="3.01" y2="18"/>
+              </svg>
+              <span>Live Event Stream (SSE Transport: /sse)</span>
+            </div>
+            <span class="stream-counter" id="liveStreamCounter">0 Received</span>
+          </div>
+
+          <div class="live-event-stream-box" id="liveEventStreamBox">
+            <div class="stream-empty" id="liveStreamEmpty">Awaiting live events from IoT devices and simulators...</div>
+          </div>
+        </section>
+
+        <!-- Current Risk Assessment & CAD EPK Viewer -->
+        <section class="live-card-panel" role="region" aria-label="Live Risk & CAD Packet">
+          <div class="live-card-header">
+            <div class="title-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              <span>Live Risk &amp; 911 Emergency Packet (EPK)</span>
+            </div>
+            <span class="status-pill critical" id="liveRiskTriagePill">CRITICAL (94%)</span>
+          </div>
+
+          <div class="epk-preview-box">
+            <div class="epk-header-row">
+              <span>INCIDENT #<span id="liveEpkId">INC-LIVE-88192</span></span>
+              <button class="btn-copy-epk" onclick="copyLiveEpkJson()">📋 Copy EPK JSON</button>
+            </div>
+            <pre class="epk-code-view" id="liveEpkJsonView">Loading live clinical emergency packet...</pre>
+          </div>
+        </section>
+      </div>
+
+    </div> <!-- end #sectionLiveMode -->
   </div>
+  </div> <!-- end #appWorkspaceContainer -->
 
   <!-- Operational Video Demo Modal -->
   <div class="video-demo-modal" id="videoDemoModal">

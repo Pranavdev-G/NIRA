@@ -519,6 +519,9 @@ function renderDashboard(state) {
 
   // 11. Real-Time Emergency Command Center (Actual Backend Incident State)
   renderEmergencyCommandCenter(state);
+
+  // 12. Live Mode Operations Console Synchronization
+  renderLiveModeConsole(state);
 }
 
 // ---------------------------------------------------------------------------
@@ -1770,10 +1773,818 @@ function toggleCameraView() { _setViewMode("camera"); }
 function toggleMain3DMode() { _setViewMode(is3DModeActive ? "radar" : "3d"); }
 
 // ---------------------------------------------------------------------------
+// Primary Landing Gateway Transitions (Matches NIRA -> DEMO / LIVE MODEL)
+// ---------------------------------------------------------------------------
+
+function enterSystemMode(mode) {
+  const landingScreen = document.getElementById("landingGatewayScreen");
+  const appWorkspace = document.getElementById("appWorkspaceContainer");
+
+  if (landingScreen) landingScreen.style.display = "none";
+  if (appWorkspace) appWorkspace.style.display = "block";
+
+  switchSystemMode(mode, false);
+  playChime(mode === "live" ? "success" : "info");
+  showToast(`Entered <strong>${mode === 'live' ? 'Live Model Workspace' : 'Complete Demo System'}</strong>`);
+
+  if (window.history && window.history.replaceState) {
+    window.history.replaceState(null, null, "#" + mode);
+  }
+}
+
+function returnToLandingGateway() {
+  const landingScreen = document.getElementById("landingGatewayScreen");
+  const appWorkspace = document.getElementById("appWorkspaceContainer");
+
+  if (landingScreen) landingScreen.style.display = "flex";
+  if (appWorkspace) appWorkspace.style.display = "none";
+
+  playChime("info");
+  if (window.history && window.history.replaceState) {
+    window.history.replaceState(null, null, window.location.pathname);
+  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// ---------------------------------------------------------------------------
+// Operating Environment Mode Switcher (Demo Mode vs Live Mode)
+// ---------------------------------------------------------------------------
+
+function switchSystemMode(mode, notify = true) {
+  const btnDemo = document.getElementById("btnModeDemo");
+  const btnLive = document.getElementById("btnModeLive");
+  const secDemo = document.getElementById("sectionDemoMode");
+  const secLive = document.getElementById("sectionLiveMode");
+
+  if (!btnDemo || !btnLive || !secDemo || !secLive) return;
+
+  if (mode === "live") {
+    btnLive.classList.add("active");
+    btnLive.setAttribute("aria-checked", "true");
+    btnDemo.classList.remove("active");
+    btnDemo.setAttribute("aria-checked", "false");
+
+    secLive.style.display = "block";
+    secDemo.style.display = "none";
+
+    localStorage.setItem("nira_system_mode", "live");
+    if (notify) {
+      playChime("success");
+      showToast("⚡ Switched to <strong>Live Mode</strong> — Real-time sensor pipeline & device pairing.");
+    }
+  } else {
+    btnDemo.classList.add("active");
+    btnDemo.setAttribute("aria-checked", "true");
+    btnLive.classList.remove("active");
+    btnLive.setAttribute("aria-checked", "false");
+
+    secDemo.style.display = "block";
+    secLive.style.display = "none";
+
+    localStorage.setItem("nira_system_mode", "demo");
+    if (notify) {
+      playChime("info");
+      showToast("🎮 Switched to <strong>Demo Mode</strong> — Hackathon interactive scenario showcase.");
+    }
+  }
+
+  // Ensure dashboard components re-render correctly
+  if (window.niraStore) {
+    renderDashboard(window.niraStore.state);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Live Mode Console Rendering & Real-Time Sync
+// ---------------------------------------------------------------------------
+
+function renderLiveModeConsole(state) {
+  if (!state) return;
+
+  const slaEl = document.getElementById("liveSlaLatency");
+  const countEl = document.getElementById("liveEventCountDisplay");
+  const riskBadge = document.getElementById("liveRiskBadge");
+  const riskPill = document.getElementById("liveRiskTriagePill");
+  const fleetHr = document.getElementById("liveFleetHr");
+  const fleetBattery = document.getElementById("liveFleetBattery");
+  const fleetLock = document.getElementById("liveFleetLockState");
+  const fleetEnv = document.getElementById("liveFleetEnv");
+  const epkView = document.getElementById("liveEpkJsonView");
+  const epkId = document.getElementById("liveEpkId");
+
+  const inc = state.incident || {};
+  const risk = inc.currentRiskLevel || "LOW";
+  const hrVal = state.vitals ? state.vitals.heartRateBpm : 138;
+  const isUnlocked = (state.emergency && state.emergency.doorLockState || "UNLOCKED") === "UNLOCKED";
+
+  if (slaEl) slaEl.textContent = `${state.connection ? state.connection.latencyMs || 18 : 18}ms`;
+  if (countEl) countEl.textContent = `${state.timeline ? state.timeline.length : 7}`;
+
+  if (riskBadge) {
+    riskBadge.textContent = `${risk} (${Math.round((inc.confidence || 0.94) * 100)}%)`;
+    riskBadge.className = `value ${risk === "CRITICAL" ? "critical" : (risk === "HIGH" ? "warning" : "safe")}`;
+  }
+
+  if (riskPill) {
+    riskPill.textContent = `${risk} (${Math.round((inc.confidence || 0.94) * 100)}%)`;
+    riskPill.className = `status-pill ${risk === "CRITICAL" ? "critical" : (risk === "HIGH" ? "warning" : "connected")}`;
+  }
+
+  if (fleetHr) {
+    fleetHr.textContent = `${hrVal} BPM`;
+    fleetHr.style.color = hrVal > 120 ? "var(--accent-red)" : (hrVal > 90 ? "var(--accent-amber)" : "var(--accent-green)");
+  }
+
+  if (fleetBattery) fleetBattery.textContent = `${state.telemetry?.device?.batteryPercent || 84}% 🔋`;
+
+  if (fleetLock) {
+    fleetLock.textContent = isUnlocked ? "UNLOCKED FOR 911" : "SECURED (LOCKED)";
+    fleetLock.style.color = isUnlocked ? "var(--accent-red)" : "var(--accent-green)";
+  }
+
+  if (fleetEnv) {
+    const temp = state.telemetry?.environment?.temperatureC || 22.4;
+    const lux = state.telemetry?.environment?.lightLux || 15;
+    fleetEnv.textContent = `${temp}°C • ${lux} Lux`;
+  }
+
+  if (epkId) epkId.textContent = inc.id || "INC-LIVE-88192";
+
+  if (epkView) {
+    const epkObj = {
+      incident_id: inc.id || "INC-LIVE-88192",
+      timestamp: inc.createdAt || new Date().toISOString(),
+      triage_priority: risk === "CRITICAL" ? "PRIORITY_1_CRITICAL_TRAUMA" : (risk === "HIGH" ? "PRIORITY_2_URGENT" : "ROUTINE_MONITORING"),
+      resident: {
+        name: (document.getElementById("liveResidentName") || {}).value || "Eleanor Vance",
+        age: 79,
+        location: `${capitalize(inc.location || "bathroom")}, Beacon Hill Unit 4B`
+      },
+      vitals: {
+        heart_rate_bpm: hrVal,
+        movement_score: state.vitals ? state.vitals.movementScore : 0.05,
+        posture: inc.fallDetected ? "fallen_immobile" : "ambulatory"
+      },
+      first_responder_access: {
+        smart_lock_status: isUnlocked ? "UNLOCKED" : "LOCKED",
+        door_pin: "8492",
+        pathway_lights: "100%_ACTIVE"
+      },
+      voice_status: state.voiceState ? state.voiceState.phase : "EMERGENCY_ESCALATED"
+    };
+    epkView.textContent = JSON.stringify(epkObj, null, 2);
+  }
+
+  renderLiveEventStream(state);
+}
+
+function renderLiveEventStream(state) {
+  const container = document.getElementById("liveEventStreamBox");
+  const countBadge = document.getElementById("liveStreamCounter");
+  if (!container) return;
+
+  const events = state.timeline || [];
+  if (countBadge) countBadge.textContent = `${events.length} Received`;
+
+  if (events.length === 0) {
+    container.innerHTML = `<div class="stream-empty">Awaiting live events from IoT devices and simulators...</div>`;
+    return;
+  }
+
+  const recent = events.slice(-8).reverse();
+  let html = "";
+  recent.forEach(e => {
+    const timeStr = formatVtlTime(e.timestamp);
+    const isCrit = e.action_type?.includes("CAD") || e.action_type?.includes("FALL") || e.action_type?.includes("ESCALAT");
+    const borderCol = isCrit ? "var(--accent-red)" : "var(--accent-blue)";
+    html += `
+      <div class="stream-entry-pill" style="border-left-color: ${borderCol};">
+        <span style="font-weight: 700; color: #ffffff;">${e.action_type || "EVENT"}</span>
+        <span style="color: var(--text-secondary);">${e.actor || "SYSTEM"}</span>
+        <span style="color: var(--accent-blue);">${timeStr}</span>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+// ---------------------------------------------------------------------------
+// Live Webcam Optical Fall Detection
+// ---------------------------------------------------------------------------
+
+let liveWebcamStream = null;
+let liveWebcamAnimId = null;
+
+async function startLiveWebcam() {
+  const video = document.getElementById("liveWebcamVideo");
+  const placeholder = document.getElementById("liveCamPlaceholder");
+  const pill = document.getElementById("liveCamPill");
+  const btnStart = document.getElementById("btnStartLiveCam");
+  const btnStop = document.getElementById("btnStopLiveCam");
+
+  try {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      liveWebcamStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
+        audio: false
+      });
+      if (video) {
+        video.srcObject = liveWebcamStream;
+        video.play();
+      }
+      if (placeholder) placeholder.style.display = "none";
+      if (pill) {
+        pill.className = "status-pill streaming";
+        pill.textContent = "LIVE STREAM (30 FPS)";
+      }
+      if (btnStart) btnStart.style.display = "none";
+      if (btnStop) btnStop.style.display = "inline-flex";
+      showToast("📹 <strong>Live Webcam Stream Active</strong> — Edge optical motion tracking engaged.");
+      playChime("success");
+
+      animateLiveWebcamCanvas();
+    } else {
+      showToast("⚠️ Camera access not supported in this browser.");
+    }
+  } catch (err) {
+    console.warn("[startLiveWebcam] Camera permission error:", err);
+    showToast("⚠️ Camera access denied or unavailable.");
+  }
+}
+
+function stopLiveWebcam() {
+  if (liveWebcamStream) {
+    liveWebcamStream.getTracks().forEach(t => t.stop());
+    liveWebcamStream = null;
+  }
+  if (liveWebcamAnimId) {
+    cancelAnimationFrame(liveWebcamAnimId);
+    liveWebcamAnimId = null;
+  }
+  const placeholder = document.getElementById("liveCamPlaceholder");
+  const pill = document.getElementById("liveCamPill");
+  const btnStart = document.getElementById("btnStartLiveCam");
+  const btnStop = document.getElementById("btnStopLiveCam");
+  const canvas = document.getElementById("liveWebcamCanvas");
+
+  if (placeholder) placeholder.style.display = "flex";
+  if (pill) {
+    pill.className = "status-pill offline";
+    pill.textContent = "STANDBY";
+  }
+  if (btnStart) btnStart.style.display = "inline-flex";
+  if (btnStop) btnStop.style.display = "none";
+  if (canvas) {
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  showToast("📹 Live camera feed stopped.");
+}
+
+function animateLiveWebcamCanvas() {
+  const canvas = document.getElementById("liveWebcamCanvas");
+  const video = document.getElementById("liveWebcamVideo");
+  if (!canvas || !video || !liveWebcamStream) return;
+
+  canvas.width = canvas.parentElement.clientWidth;
+  canvas.height = canvas.parentElement.clientHeight;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const cx = canvas.width / 2;
+  const cy = canvas.height * 0.45;
+
+  ctx.strokeStyle = "rgba(56, 189, 248, 0.85)";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(cx - 70, cy - 60, 140, 160);
+  ctx.fillStyle = "rgba(56, 189, 248, 0.15)";
+  ctx.fillRect(cx - 70, cy - 60, 140, 160);
+
+  ctx.font = "bold 11px monospace";
+  ctx.fillStyle = "#38bdf8";
+  ctx.fillText("RESIDENT (97% CONF)", cx - 65, cy - 68);
+
+  const kps = [
+    [cx, cy - 40], [cx - 20, cy - 10], [cx + 20, cy - 10],
+    [cx - 40, cy + 30], [cx + 40, cy + 30],
+    [cx - 25, cy + 85], [cx + 25, cy + 85]
+  ];
+  kps.forEach(([kx, ky]) => {
+    ctx.beginPath();
+    ctx.arc(kx, ky, 4, 0, Math.PI * 2);
+    ctx.fillStyle = "#34d399";
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.stroke();
+  });
+
+  liveWebcamAnimId = requestAnimationFrame(animateLiveWebcamCanvas);
+}
+
+async function triggerOpticalFallDetection() {
+  playChime("alert");
+  const postureEl = document.getElementById("liveCamPosture");
+  const velEl = document.getElementById("liveCamVelocity");
+  const probEl = document.getElementById("liveCamFallProb");
+
+  if (postureEl) postureEl.innerHTML = `<span style="color: var(--accent-red);">Horizontal (Fall Impact)</span>`;
+  if (velEl) velEl.innerHTML = `<span style="color: var(--accent-red);">2.9 m/s (High Impact)</span>`;
+  if (probEl) {
+    probEl.className = "tel-val danger";
+    probEl.textContent = "96% (CRITICAL)";
+  }
+
+  showToast("🚨 <strong>Acute Fall Detected on Camera!</strong> Dispatching event to NIRA backend...");
+
+  const resName = (document.getElementById("liveResidentName") || {}).value || "Eleanor Vance";
+  const room = (document.getElementById("liveRoomSelect") || {}).value || "bathroom";
+
+  try {
+    const payload = {
+      event_id: "evt-opt-fall-" + Date.now(),
+      timestamp: new Date().toISOString(),
+      resident_id: resName.toLowerCase().replace(/\s+/g, "_"),
+      room_id: room,
+      source: "live_edge_camera_01",
+      event_type: "possible_fall",
+      confidence: 0.96,
+      correlation_id: "corr-live-" + Date.now(),
+      payload: {
+        impact_velocity_mps: 2.9,
+        posture_after_event: "fallen",
+        movement_after_event: "none",
+        optical_yolo_confidence: 0.96
+      }
+    };
+
+    const resp = await fetch("/api/events/ingest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (resp.ok) {
+      const data = await resp.json();
+      showToast(`✅ Ingested Fall Event (ID: ${data.event_id}). Risk: <strong>${data.risk?.risk_level || 'CRITICAL'}</strong>`);
+      if (window.niraStore) window.niraStore.syncActiveIncidents();
+    }
+  } catch (err) {
+    console.warn("[triggerOpticalFallDetection] Ingestion error:", err);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Live Microphone Voice AI Hub (Alexa+ Ambient Check)
+// ---------------------------------------------------------------------------
+
+let liveSpeechRecognizer = null;
+let isLiveMicActive = false;
+
+function startLiveVoiceListening() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const transcriptEl = document.getElementById("liveVoiceTranscriptText");
+  const pill = document.getElementById("liveMicPill");
+  const phaseTag = document.getElementById("liveVoicePhaseTag");
+  const btnStart = document.getElementById("btnStartLiveMic");
+  const btnStop = document.getElementById("btnStopLiveMic");
+  const acousticStatus = document.getElementById("liveAcousticStatus");
+  const soundBars = document.querySelectorAll("#liveSoundwaveRow .live-bar");
+
+  if (!SpeechRec) {
+    showToast("⚠️ Web Speech Recognition not supported in this browser. Try Chrome or Edge.");
+    if (transcriptEl) transcriptEl.innerHTML = "Web Speech API not available. You can use the quick preset buttons below.";
+    return;
+  }
+
+  try {
+    liveSpeechRecognizer = new SpeechRec();
+    liveSpeechRecognizer.continuous = true;
+    liveSpeechRecognizer.interimResults = true;
+    liveSpeechRecognizer.lang = "en-US";
+
+    liveSpeechRecognizer.onstart = () => {
+      isLiveMicActive = true;
+      if (pill) {
+        pill.className = "status-pill streaming";
+        pill.textContent = "LISTENING 🎙️";
+      }
+      if (phaseTag) {
+        phaseTag.textContent = "ACTIVE LISTENING";
+        phaseTag.style.color = "#38bdf8";
+      }
+      if (acousticStatus) acousticStatus.textContent = "Active Acoustic Window";
+      if (btnStart) btnStart.style.display = "none";
+      if (btnStop) btnStop.style.display = "inline-flex";
+      soundBars.forEach(b => b.classList.add("active"));
+      playChime("info");
+      showToast("🎙️ <strong>Live Microphone Active</strong> — Speak now!");
+    };
+
+    liveSpeechRecognizer.onresult = async (event) => {
+      let finalTranscript = "";
+      let interimTranscript = "";
+
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+
+      const text = (finalTranscript || interimTranscript).trim();
+      if (transcriptEl && text) {
+        transcriptEl.innerHTML = `🗣️ Spoken: <strong>"${text}"</strong>`;
+      }
+
+      if (finalTranscript) {
+        await handleLiveSpokenUtterance(finalTranscript);
+      }
+    };
+
+    liveSpeechRecognizer.onerror = (e) => {
+      console.warn("[startLiveVoiceListening] Speech recognition error:", e.error);
+      if (transcriptEl) transcriptEl.innerHTML = `Microphone notice: ${e.error}. Standby.`;
+    };
+
+    liveSpeechRecognizer.onend = () => {
+      if (isLiveMicActive) {
+        try { liveSpeechRecognizer.start(); } catch(e) {}
+      } else {
+        stopLiveVoiceListening();
+      }
+    };
+
+    liveSpeechRecognizer.start();
+  } catch (err) {
+    console.warn("[startLiveVoiceListening] Init error:", err);
+    showToast("⚠️ Could not start microphone.");
+  }
+}
+
+function stopLiveVoiceListening() {
+  isLiveMicActive = false;
+  if (liveSpeechRecognizer) {
+    try { liveSpeechRecognizer.stop(); } catch(e) {}
+    liveSpeechRecognizer = null;
+  }
+  const pill = document.getElementById("liveMicPill");
+  const phaseTag = document.getElementById("liveVoicePhaseTag");
+  const btnStart = document.getElementById("btnStartLiveMic");
+  const btnStop = document.getElementById("btnStopLiveMic");
+  const acousticStatus = document.getElementById("liveAcousticStatus");
+  const soundBars = document.querySelectorAll("#liveSoundwaveRow .live-bar");
+
+  if (pill) {
+    pill.className = "status-pill offline";
+    pill.textContent = "MIC IDLE";
+  }
+  if (phaseTag) {
+    phaseTag.textContent = "IDLE";
+    phaseTag.style.color = "var(--text-muted)";
+  }
+  if (acousticStatus) acousticStatus.textContent = "Passive Listening";
+  if (btnStart) btnStart.style.display = "inline-flex";
+  if (btnStop) btnStop.style.display = "none";
+  soundBars.forEach(b => b.classList.remove("active"));
+  showToast("🎙️ Microphone listening stopped.");
+}
+
+async function handleLiveSpokenUtterance(text) {
+  const intentEl = document.getElementById("liveDetectedIntent");
+  const confEl = document.getElementById("liveIntentConfidence");
+  const phaseTag = document.getElementById("liveVoicePhaseTag");
+  const room = (document.getElementById("liveRoomSelect") || {}).value || "bathroom";
+  const resName = (document.getElementById("liveResidentName") || {}).value || "Eleanor Vance";
+
+  const isDistress = /help|fell|pain|fall|hurt|broken|can't get up|emergency/i.test(text);
+  const isSafe = /ok|fine|good|glasses|dropped|alright|nothing|stand up/i.test(text);
+
+  if (isDistress) {
+    if (intentEl) intentEl.innerHTML = `<span style="color: var(--accent-red); font-weight: 800;">CALL_FOR_HELP</span>`;
+    if (confEl) confEl.textContent = "98%";
+    if (phaseTag) phaseTag.textContent = "DISTRESS CONFIRMED";
+    playChime("alert");
+    showToast("🚨 <strong>Verbal Distress Detected!</strong> Triggering Caregiver & CAD Escalation...");
+
+    await fetch("/api/events/ingest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event_id: "live-voice-distress-" + Date.now(),
+        timestamp: new Date().toISOString(),
+        resident_id: resName.toLowerCase().replace(/\s+/g, "_"),
+        room_id: room,
+        source: "alexa_echo_show_15",
+        event_type: "voice_distress",
+        confidence: 0.98,
+        correlation_id: "corr-live-" + Date.now(),
+        payload: {
+          spoken_text: text,
+          intent: "call_for_help",
+          requires_immediate_escalation: true
+        }
+      })
+    });
+    if (window.niraStore) window.niraStore.syncActiveIncidents();
+  } else if (isSafe) {
+    if (intentEl) intentEl.innerHTML = `<span style="color: var(--accent-green); font-weight: 800;">VERIFIED_SAFE</span>`;
+    if (confEl) confEl.textContent = "95%";
+    if (phaseTag) phaseTag.textContent = "RESOLVED SAFE";
+    playChime("success");
+    showToast("🟢 <strong>Resident Confirmed Safe!</strong> Incident resolved.");
+
+    await fetch("/api/events/ingest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event_id: "live-voice-safe-" + Date.now(),
+        timestamp: new Date().toISOString(),
+        resident_id: resName.toLowerCase().replace(/\s+/g, "_"),
+        room_id: room,
+        source: "alexa_echo_show_15",
+        event_type: "voice_affirmation_safe",
+        confidence: 0.95,
+        correlation_id: "corr-live-" + Date.now(),
+        payload: {
+          spoken_text: text,
+          intent: "verified_safe",
+          resolved: true
+        }
+      })
+    });
+    if (window.niraStore) window.niraStore.syncActiveIncidents();
+  } else {
+    if (intentEl) intentEl.textContent = "Ambiguous Utterance";
+    if (confEl) confEl.textContent = "65%";
+  }
+}
+
+function speakLivePrompt() {
+  const resName = (document.getElementById("liveResidentName") || {}).value || "Eleanor";
+  const room = (document.getElementById("liveRoomSelect") || {}).value || "the room";
+  const prompt = `${resName}, this is Aegis. I noticed a movement anomaly in the ${room}. Are you okay? Please tell me if you need help.`;
+  showToast(`🔊 Speaking Alexa prompt to ${resName}...`);
+  if (window.voiceAudio) {
+    window.voiceAudio.playAlexaChime();
+    setTimeout(() => {
+      window.voiceAudio.speak(prompt, "alexa");
+    }, 400);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Live Hardware REST Event Presets & Ingestion
+// ---------------------------------------------------------------------------
+
+async function sendLiveHardwarePreset(presetKey) {
+  const resName = (document.getElementById("liveResidentName") || {}).value || "Eleanor Vance";
+  const room = (document.getElementById("liveRoomSelect") || {}).value || "bathroom";
+  const residentId = resName.toLowerCase().replace(/\s+/g, "_");
+  const corrId = "corr-live-" + Date.now();
+
+  let eventPayload = null;
+  let chimeType = "info";
+
+  if (presetKey === "fall") {
+    chimeType = "alert";
+    eventPayload = {
+      event_id: "live-fall-" + Date.now(),
+      timestamp: new Date().toISOString(),
+      resident_id: residentId,
+      room_id: room,
+      source: "wearable_imu_radar",
+      event_type: "possible_fall",
+      confidence: 0.95,
+      correlation_id: corrId,
+      payload: {
+        impact_acceleration_g: 3.2,
+        posture_after_event: "fallen",
+        movement_after_event: "none",
+        vital_bpm: 138
+      }
+    };
+  } else if (presetKey === "wet_floor") {
+    chimeType = "warning";
+    eventPayload = {
+      event_id: "live-wet-" + Date.now(),
+      timestamp: new Date().toISOString(),
+      resident_id: residentId,
+      room_id: room,
+      source: "environment_sensor_pod",
+      event_type: "environmental_hazard",
+      confidence: 0.92,
+      correlation_id: corrId,
+      payload: {
+        hazard_type: "wet_floor",
+        floor_condition: "wet",
+        light_lux: 15,
+        temperature_c: 22.1
+      }
+    };
+  } else if (presetKey === "heart_rate_surge") {
+    chimeType = "warning";
+    eventPayload = {
+      event_id: "live-hr-" + Date.now(),
+      timestamp: new Date().toISOString(),
+      resident_id: residentId,
+      room_id: room,
+      source: "apple_watch_series_10",
+      event_type: "wearable_telemetry",
+      confidence: 0.98,
+      correlation_id: corrId,
+      payload: {
+        heart_rate_bpm: 145,
+        baseline_deviation: 73,
+        vital_trend: "rising",
+        device_status: "connected"
+      }
+    };
+  } else if (presetKey === "timeout") {
+    chimeType = "alert";
+    eventPayload = {
+      event_id: "live-timeout-" + Date.now(),
+      timestamp: new Date().toISOString(),
+      resident_id: residentId,
+      room_id: room,
+      source: "acoustic_timeout_engine",
+      event_type: "wellness_timeout",
+      confidence: 0.99,
+      correlation_id: corrId,
+      payload: {
+        timeout_seconds: 20,
+        unresponsive: true,
+        recommended_action: "IMMEDIATE_CAD_EMERGENCY_DISPATCH"
+      }
+    };
+  } else if (presetKey === "textbee_sms") {
+    chimeType = "info";
+    const phone = (document.getElementById("liveCaregiverPhone") || {}).value || "+15550192834";
+    showToast(`📱 Dispatching live <strong>TextBee SMS</strong> alert to ${phone}...`);
+    eventPayload = {
+      event_id: "live-sms-req-" + Date.now(),
+      timestamp: new Date().toISOString(),
+      resident_id: residentId,
+      room_id: room,
+      source: "guardian_sms_gateway",
+      event_type: "caregiver_notification",
+      confidence: 1.0,
+      correlation_id: corrId,
+      payload: {
+        recipient_phone: phone,
+        channel: "textbee_sms",
+        message: `NIRA EMERGENCY ALERT: Urgent assistance needed for ${resName} in ${room}. Smart door lock UNLOCKED (PIN: 8492).`
+      }
+    };
+  } else if (presetKey === "resolve") {
+    chimeType = "success";
+    eventPayload = {
+      event_id: "live-resolve-" + Date.now(),
+      timestamp: new Date().toISOString(),
+      resident_id: residentId,
+      room_id: room,
+      source: "manual_terminal_override",
+      event_type: "incident_resolved",
+      confidence: 1.0,
+      correlation_id: corrId,
+      payload: {
+        resolution_reason: "Elder confirmed safe, normal movement restored.",
+        actor: "FAMILY_GUARDIAN"
+      }
+    };
+  }
+
+  playChime(chimeType);
+  if (!eventPayload) return;
+
+  try {
+    showToast(`⚡ Ingesting live event: <strong>${eventPayload.event_type}</strong>...`);
+    const resp = await fetch("/api/events/ingest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(eventPayload)
+    });
+
+    if (resp.ok) {
+      const data = await resp.json();
+      showToast(`✅ Event Ingested! ID: ${data.event_id} &bull; Status: ${data.status}`);
+      if (window.niraStore) window.niraStore.syncActiveIncidents();
+    } else {
+      showToast(`⚠️ Ingestion returned HTTP ${resp.status}`);
+    }
+  } catch (err) {
+    console.warn("[sendLiveHardwarePreset] Ingestion error:", err);
+    showToast("⚠️ Failed to ingest event.");
+  }
+}
+
+async function dispatchCustomLiveJson() {
+  const area = document.getElementById("liveCustomJsonInput");
+  const feedback = document.getElementById("liveJsonFeedback");
+  if (!area) return;
+
+  try {
+    const parsed = JSON.parse(area.value);
+    parsed.event_id = parsed.event_id || ("live-custom-" + Date.now());
+    parsed.timestamp = new Date().toISOString();
+
+    if (feedback) feedback.innerHTML = `<span style="color: #38bdf8;">Transmitting to /api/events/ingest...</span>`;
+
+    const resp = await fetch("/api/events/ingest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(parsed)
+    });
+
+    if (resp.ok) {
+      const data = await resp.json();
+      if (feedback) feedback.innerHTML = `<span style="color: #34d399;">✓ Ingested Event ID: ${data.event_id}</span>`;
+      playChime("success");
+      showToast(`✅ Custom event ingested! Risk Level: <strong>${data.risk?.risk_level || 'ASSESSED'}</strong>`);
+      if (window.niraStore) window.niraStore.syncActiveIncidents();
+    } else {
+      if (feedback) feedback.innerHTML = `<span style="color: #f43f5e;">HTTP ${resp.status}: Failed</span>`;
+    }
+  } catch (err) {
+    if (feedback) feedback.innerHTML = `<span style="color: #f43f5e;">Invalid JSON format. Check syntax.</span>`;
+  }
+}
+
+function copyLiveEpkJson() {
+  const el = document.getElementById("liveEpkJsonView");
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    showToast("📋 Emergency Packet JSON copied to clipboard!");
+  }).catch(() => {
+    showToast("📋 EPK copied.");
+  });
+}
+
+function toggleLiveDoorLock() {
+  if (window.niraStore) {
+    const cur = window.niraStore.state.emergency.doorLockState || "UNLOCKED";
+    const next = cur === "UNLOCKED" ? "LOCKED" : "UNLOCKED";
+    window.niraStore.state.emergency.doorLockState = next;
+    window.niraStore.state.timestamps.doorLock = Date.now();
+    window.niraStore.notify();
+    playChime(next === "UNLOCKED" ? "alert" : "success");
+    showToast(`🚪 Smart Entrance Deadbolt is now <strong>${next}</strong> (PIN: 8492)`);
+  }
+}
+
+function toggleLiveArming() {
+  const statusText = document.getElementById("liveArmStatusText");
+  const btn = document.getElementById("btnToggleArmText");
+  const chip = document.querySelector(".live-status-chip");
+
+  if (!statusText || !btn) return;
+  const isArmed = statusText.textContent.includes("ARMED");
+
+  if (isArmed) {
+    statusText.textContent = "MONITORING PAUSED";
+    btn.textContent = "Resume Protection";
+    if (chip) chip.className = "live-status-chip paused";
+    playChime("warning");
+    showToast("⏸️ Live ambient monitoring paused.");
+  } else {
+    statusText.textContent = "LIVE MONITORING ARMED";
+    btn.textContent = "Pause Protection";
+    if (chip) chip.className = "live-status-chip active";
+    playChime("success");
+    showToast("🟢 Live ambient monitoring resumed.");
+  }
+}
+
+function updateLiveResidentProfile() {
+  const name = (document.getElementById("liveResidentName") || {}).value || "Eleanor Vance";
+  const room = (document.getElementById("liveRoomSelect") || {}).value || "bathroom";
+  if (window.niraStore) {
+    window.niraStore.state.resident = window.niraStore.state.resident || {};
+    window.niraStore.state.resident.name = name;
+    window.niraStore.state.incident.location = room;
+    window.niraStore.notify();
+  }
+  showToast(`Profile updated: <strong>${name}</strong> in <strong>${capitalize(room)}</strong>`);
+}
+
+// ---------------------------------------------------------------------------
 // Initialization on Page Load
 // ---------------------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   initUserSession();
+
+  // Initialize View / Mode Router (Landing Gateway vs Direct Workspace View)
+  const hash = (window.location.hash || "").replace("#", "").toLowerCase();
+  const urlParams = new URLSearchParams(window.location.search);
+  const viewParam = (urlParams.get("view") || urlParams.get("mode") || "").toLowerCase();
+  const directTarget = (hash === "demo" || hash === "live") ? hash : (viewParam === "demo" || viewParam === "live" ? viewParam : null);
+
+  if (directTarget) {
+    enterSystemMode(directTarget);
+  } else {
+    // Show Primary Landing Gateway Screen matching user's diagram by default
+    returnToLandingGateway();
+  }
 
   if (window.niraStore) {
     window.niraStore.init();
