@@ -655,12 +655,12 @@
           <span class="demo-unread-badge-counter demo-unread-badge-counter" id="headerNotifBadge" style="display: none;">0</span>
         </button>
 
-        <!-- Interactive Demo Video Button -->
-        <button class="btn-header-action" id="btnHeaderDemoVideo" onclick="switchTab('demovideo')" title="Watch Application Demo Video & Walkthrough" aria-label="Demo Video Guide" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; font-weight: 800;">
+        <!-- Interactive Explainable Video Button -->
+        <button class="btn-header-action" id="btnHeaderDemoVideo" onclick="switchTab('demovideo')" title="Watch Application Explainable Video & Walkthrough" aria-label="Explainable Video Guide" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; font-weight: 800;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <polygon points="5 3 19 12 5 21 5 3"/>
           </svg>
-          <span>🎬 Demo Video</span>
+          <span>🎬 Explainable Video</span>
         </button>
 
         <!-- Quick Reset: Demo Data -->
@@ -848,12 +848,12 @@
         <span class="pill-badge pill-red" style="font-size: 0.62rem; padding: 2px 6px; margin-left: 4px;">Medic 14</span>
       </button>
 
-      <!-- How-To Demo Video Tab -->
+      <!-- How-To Explainable Video Tab -->
       <button class="tab-nav-btn" id="tabBtnDemoVideo" onclick="switchTab('demovideo')" role="tab" aria-selected="false" aria-controls="panelDemoVideo" tabindex="-1" style="border: 1px solid rgba(56, 189, 248, 0.45); background: rgba(56, 189, 248, 0.08);">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" aria-hidden="true">
           <polygon points="5 3 19 12 5 21 5 3"/>
         </svg>
-        <span style="color: #38bdf8;">🎬 Demo Video &amp; Guide</span>
+        <span style="color: #38bdf8;">🎬 Explainable Video</span>
       </button>
 
       <button class="tab-nav-btn" id="tabBtnLocationMap" onclick="switchTab('locationmap')" role="tab" aria-selected="false" aria-controls="panelLocationMap" tabindex="-1">
@@ -938,15 +938,15 @@
           <div style="display: flex; align-items: center; gap: 12px;">
             <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.45); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">🎬</div>
             <div>
-              <div style="font-weight: 800; color: #ffffff; font-size: 0.95rem;">New to NIRA? Watch the Interactive Demo Video &amp; Guide</div>
-              <div style="font-size: 0.8rem; color: #94a3b8;">5-step animated walkthrough explaining Voice Assistant, Daily Check-in, Fall Detection &amp; Ambulance CAD Dispatch.</div>
+              <div style="font-weight: 800; color: #ffffff; font-size: 0.95rem;">New to NIRA? Watch the Explainable AI Video &amp; System Guide</div>
+              <div style="font-size: 0.8rem; color: #94a3b8;">5-step animated explainable video explaining Voice Assistant, Daily Check-in, Fall Detection &amp; Ambulance CAD Dispatch.</div>
             </div>
           </div>
           <div style="display: flex; gap: 8px;">
-            <button class="btn-demo-primary" onclick="window.switchTab('demovideo')" style="white-space: nowrap; font-size: 0.82rem;">
-              ▶ Open Interactive Guide &rarr;
+            <button class="btn-demo-primary" onclick="window.switchTab('demovideo')" style="white-space: nowrap; font-size: 0.82rem;" title="Watch Explainable Video Guide">
+              ▶ Watch Explainable Video &rarr;
             </button>
-            <button class="btn-demo-secondary" onclick="openVideoDemoModal()" style="white-space: nowrap; font-size: 0.82rem;">
+            <button class="btn-demo-secondary" onclick="openVideoDemoModal()" style="white-space: nowrap; font-size: 0.82rem;" title="Watch 3D Visual Simulation Reel">
               🎥 3D Reel
             </button>
           </div>
@@ -1375,7 +1375,7 @@
     </div>
 
     <!-- ======================================================================
-         PAGE H: DEMO VIDEO & HOW-TO APPLICATION GUIDE
+         PAGE H: EXPLAINABLE AI VIDEO & APPLICATION GUIDE
          ====================================================================== -->
     <div class="tab-content-panel" id="panelDemoVideo" role="tabpanel" aria-labelledby="tabBtnDemoVideo">
       <div class="demo-module-card">
@@ -1383,15 +1383,15 @@
           <div class="demo-card-title-wrap">
             <span class="demo-card-icon" aria-hidden="true">🎬</span>
             <div>
-              <h3>NIRA Interactive System Demo &amp; How-To Video Guide</h3>
-              <div class="demo-card-desc">Step-by-step interactive visual demonstration showcasing Voice Assistant, Daily Check-in, Fall Detection Simulation, David Vance Family Alerts, and Boston EMS Medic 14 Ambulance CAD Dispatch.</div>
+              <h3>NIRA Explainable AI Video &amp; Application Guide</h3>
+              <div class="demo-card-desc">Step-by-step explainable video walkthrough with AI decision rationale, live voiceover narration, and telemetry breakdown across all 5 safety phases.</div>
             </div>
           </div>
           <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <button class="btn-luxury-primary" onclick="openVideoDemoModal()" style="font-size: 0.82rem; padding: 8px 16px;">
               <span>🎥 Watch 3D Video Reel</span>
             </button>
-            <span class="pill-badge pill-blue">INTERACTIVE GUIDE</span>
+            <span class="pill-badge pill-blue">EXPLAINABLE VIDEO</span>
           </div>
         </div>
 
@@ -2814,9 +2814,12 @@
         </div>
       </div>
 
-      <div style="padding: 0 20px 20px 20px; text-align: center;">
-        <button class="btn-luxury-primary" style="width: 100%; justify-content: center;" onclick="openVideoDemoModal(); closeVideoGuideModal();">
-          Launch Video Demo Reel
+      <div style="padding: 0 20px 20px 20px; text-align: center; display: flex; gap: 10px;">
+        <button class="btn-demo-primary" style="flex: 1; justify-content: center;" onclick="closeVideoGuideModal(); window.switchTab('demovideo');">
+          🎬 Play Explainable Video
+        </button>
+        <button class="btn-luxury-primary" style="flex: 1; justify-content: center;" onclick="openVideoDemoModal(); closeVideoGuideModal();">
+          🎥 3D Video Reel
         </button>
       </div>
     </div>

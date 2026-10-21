@@ -5287,6 +5287,75 @@ a:hover {
   color: #030712;
 }
 
+/* Explainable AI (XAI) Video Panel Styling */
+.video-xai-panel {
+  margin-top: 14px;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.7) 100%);
+  border: 1.5px solid rgba(56, 189, 248, 0.35);
+  border-radius: 12px;
+  padding: 14px 18px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.video-xai-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.xai-chip {
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #38bdf8;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.xai-confidence {
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+.xai-confidence strong {
+  color: #34d399;
+}
+
+.video-xai-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+
+.xai-col {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.xai-col small {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #38bdf8;
+  margin-bottom: 4px;
+}
+
+.xai-col div {
+  font-size: 0.8rem;
+  color: #e2e8f0;
+  line-height: 1.45;
+}
+
 /* Enforce pure Demo Model: hide Live Mode operating bar and live container */
 .system-mode-selector-bar,
 #btnModeLive,

@@ -1598,12 +1598,13 @@
       .replace(/'/g, '&#039;');
   }
 
-  // --- 8. DEMO VIDEO & HOW-TO GUIDE CONTROLLER ---
+  // --- 8. EXPLAINABLE AI DEMO VIDEO & SYSTEM WALKTHROUGH CONTROLLER ---
   const DemoVideoController = {
     currentScene: 0,
     isPlaying: false,
     timer: null,
     playbackSpeed: 1,
+    voiceNarrationEnabled: false,
     scenes: [
       {
         id: "voice",
@@ -1613,6 +1614,12 @@
         tabTarget: "voiceassistant",
         tag: "VOICE INTERACTION",
         caption: "Resident says: 'Alexa, I feel a little dizzy, can you check on me?' NIRA listens passively with zero wake latency, reassures Eleanor, checks biometric telemetry, and alerts her son David.",
+        explanation: {
+          confidence: "99.4%",
+          aiRationale: "Real-time edge acoustic model detected resident query ('dizzy'). Sub-250ms NLP queried wearable baseline telemetry without false alert escalation.",
+          sensorFusion: "Echo Show 15 beamforming microphone + Apple Watch PPG sensor (74 BPM normal resting pulse).",
+          safetyOutput: "Issued verbal reassurance to resident, logged entry into Daily Wellness log, and sent passive reassurance ping to Son David."
+        },
         visual: `
           <div class="sim-video-viewport">
             <div class="sim-echo-card">
@@ -1651,6 +1658,12 @@
         tabTarget: "dailycheckin",
         tag: "DAILY CHECK-IN",
         caption: "Every morning at 09:30 AM, Eleanor selects her wellness status ('I'm fine', 'Feeling unwell', 'Need assistance'). Confirmation is instantly logged and synced to David's Family Admin console.",
+        explanation: {
+          confidence: "100.0%",
+          aiRationale: "Verified positive morning compliance response. Automatically clears 10:00 AM unresponsiveness escalation countdown timer.",
+          sensorFusion: "Screen touch verification event + Hallway motion passive radar confirmation.",
+          safetyOutput: "Updated resident wellness index to 'Optimal', synced timestamped check-in record to David Vance Family Admin portal."
+        },
         visual: `
           <div class="sim-video-viewport">
             <div class="sim-checkin-cards-row">
@@ -1679,6 +1692,12 @@
         tabTarget: "falldetection",
         tag: "FALL SENSING",
         caption: "When a rapid floor velocity impact occurs (>2.2 m/s), NIRA evaluates optical pose skeleton and radar reflections. A 30s verbal verification timer begins to prevent false alarms.",
+        explanation: {
+          confidence: "98.7%",
+          aiRationale: "Dual-sensor fusion triggered: rapid descent velocity >2.2 m/s matched with 78° horizontal posture angle and abrupt zero-mobility.",
+          sensorFusion: "60GHz mmWave Radar doppler shift (2.84 m/s impact) + Optical YOLOv8-pose skeleton floor angle.",
+          safetyOutput: "Triggered Level-3 Emergency State; initiated 30-second Alexa verbal inquiry countdown before auto-escalation."
+        },
         visual: `
           <div class="sim-video-viewport">
             <div class="sim-radar-hud">
@@ -1711,6 +1730,12 @@
         tabTarget: "emergencyalert",
         tag: "FAMILY ALERT",
         caption: "David Vance receives an urgent notification on his smartphone with live telemetry and door controls. NIRA's smart lock deadbolt automatically generates access PIN 8492.",
+        explanation: {
+          confidence: "99.8%",
+          aiRationale: "Zero resident response detected after 30s verbal verification timeout. Escalated incident to Tier-1 Family Guardian emergency protocol.",
+          sensorFusion: "Living Room acoustic silence verification + Biometric tachycardia alert (94 BPM pulse on floor).",
+          safetyOutput: "Dispatched high-priority push & SMS alerts to Son David Vance; activated Smart Lock Deadbolt with emergency token PIN 8492."
+        },
         visual: `
           <div class="sim-video-viewport">
             <div class="sim-phone-mockup">
@@ -1735,6 +1760,12 @@
         tabTarget: "emergencyalert",
         tag: "AMBULANCE CAD",
         caption: "Ambulance CAD receives live telemetry, GPS coordinates to Beacon Hill Apt 3B, pre-notifies Mass General Hospital Level 1 Trauma Center, and arrives with token 8492 for instant door entry.",
+        explanation: {
+          confidence: "99.9%",
+          aiRationale: "Autonomous Computer-Aided Dispatch (CAD) packet generated with clinical vitals summary, floorplan GPS coordinates, and hospital pre-alert.",
+          sensorFusion: "Telemetry packet (Fall severity, pulse, address Beacon Hill Apt 3B) + Mass General Trauma 1 route telemetry.",
+          safetyOutput: "Boston EMS Medic 14 ambulance dispatched under Code 3; Smart Door Token 8492 issued for direct zero-delay paramedic entry."
+        },
         visual: `
           <div class="sim-video-viewport">
             <div class="sim-cad-hud">
@@ -1765,12 +1796,14 @@
       if (this.isPlaying) return;
       this.isPlaying = true;
       this.updateControlsUI();
+      this.speakNarration(this.scenes[this.currentScene].caption);
       this.startTimer();
     },
 
     pause() {
       this.isPlaying = false;
       this.clearTimer();
+      this.stopNarration();
       this.updateControlsUI();
     },
 
@@ -1782,31 +1815,78 @@
       }
     },
 
+    toggleVoiceover() {
+      this.voiceNarrationEnabled = !this.voiceNarrationEnabled;
+      if (this.voiceNarrationEnabled) {
+        this.speakNarration(this.scenes[this.currentScene].caption);
+      } else {
+        this.stopNarration();
+      }
+      this.render();
+    },
+
+    speakNarration(text) {
+      if (!this.voiceNarrationEnabled || !('speechSynthesis' in window)) return;
+      try {
+        window.speechSynthesis.cancel();
+        const utt = new SpeechSynthesisUtterance(text);
+        utt.rate = this.playbackSpeed || 1.0;
+        utt.pitch = 1.0;
+        const voices = window.speechSynthesis.getVoices();
+        const enVoice = voices.find(v => v.lang && v.lang.startsWith('en'));
+        if (enVoice) utt.voice = enVoice;
+        window.speechSynthesis.speak(utt);
+      } catch (e) {
+        console.warn("Speech narration:", e);
+      }
+    },
+
+    stopNarration() {
+      if ('speechSynthesis' in window) {
+        try { window.speechSynthesis.cancel(); } catch (e) {}
+      }
+    },
+
     next() {
       this.clearTimer();
+      this.stopNarration();
       this.currentScene = (this.currentScene + 1) % this.scenes.length;
       this.render();
-      if (this.isPlaying) this.startTimer();
+      if (this.isPlaying) {
+        this.speakNarration(this.scenes[this.currentScene].caption);
+        this.startTimer();
+      }
     },
 
     prev() {
       this.clearTimer();
+      this.stopNarration();
       this.currentScene = (this.currentScene - 1 + this.scenes.length) % this.scenes.length;
       this.render();
-      if (this.isPlaying) this.startTimer();
+      if (this.isPlaying) {
+        this.speakNarration(this.scenes[this.currentScene].caption);
+        this.startTimer();
+      }
     },
 
     goToScene(index) {
       this.clearTimer();
+      this.stopNarration();
       this.currentScene = Math.max(0, Math.min(index, this.scenes.length - 1));
       this.render();
+      if (this.isPlaying || this.voiceNarrationEnabled) {
+        this.speakNarration(this.scenes[this.currentScene].caption);
+      }
       if (this.isPlaying) this.startTimer();
     },
 
     setSpeed(speed) {
       this.playbackSpeed = speed;
       this.clearTimer();
-      if (this.isPlaying) this.startTimer();
+      if (this.isPlaying) {
+        this.speakNarration(this.scenes[this.currentScene].caption);
+        this.startTimer();
+      }
       this.updateControlsUI();
     },
 
@@ -1830,7 +1910,7 @@
       const playBtn = document.getElementById('demoVideoPlayBtn');
       if (playBtn) {
         playBtn.innerHTML = this.isPlaying ? '⏸ Pause' : '▶ Play';
-        playBtn.setAttribute('aria-label', this.isPlaying ? 'Pause Demo Video' : 'Play Demo Video');
+        playBtn.setAttribute('aria-label', this.isPlaying ? 'Pause Explainable Video' : 'Play Explainable Video');
       }
     },
 
@@ -1840,6 +1920,12 @@
 
       const sc = this.scenes[this.currentScene];
       const total = this.scenes.length;
+      const xai = sc.explanation || {
+        confidence: "99.0%",
+        aiRationale: "Real-time edge sensor processing.",
+        sensorFusion: "Multimodal edge ingestion.",
+        safetyOutput: "Automated verified action."
+      };
 
       container.innerHTML = `
         <div class="video-player-card">
@@ -1847,11 +1933,11 @@
           <div class="video-top-bar">
             <div class="video-rec-indicator">
               <span class="video-rec-dot"></span>
-              <span>LIVE DEMO PLAYBACK</span>
+              <span>EXPLAINABLE AI VIDEO PLAYBACK</span>
             </div>
             <div class="video-scene-indicator">
               <span class="pill-badge pill-blue">${sc.tag}</span>
-              <span style="font-weight: 700; color: #e2e8f0;">Scene ${this.currentScene + 1} of ${total}</span>
+              <span style="font-weight: 700; color: #e2e8f0;">Phase ${this.currentScene + 1} of ${total}</span>
             </div>
             <div class="video-speed-pill">
               <span>Speed: <strong>${this.playbackSpeed}x</strong></span>
@@ -1878,6 +1964,28 @@
               <span class="caption-icon">🎙️</span>
               <span class="caption-text">${escapeHtml(sc.caption)}</span>
             </div>
+
+            <!-- Explainable AI Decision Breakdown Panel -->
+            <div class="video-xai-panel">
+              <div class="video-xai-header">
+                <span class="xai-chip">🧠 EXPLAINABLE AI (XAI) DECISION BREAKDOWN</span>
+                <span class="xai-confidence">Confidence Score: <strong>${escapeHtml(xai.confidence)}</strong></span>
+              </div>
+              <div class="video-xai-grid">
+                <div class="xai-col">
+                  <small>🔍 AI Decision Rationale</small>
+                  <div>${escapeHtml(xai.aiRationale)}</div>
+                </div>
+                <div class="xai-col">
+                  <small>📡 Sensor Fusion Inputs</small>
+                  <div>${escapeHtml(xai.sensorFusion)}</div>
+                </div>
+                <div class="xai-col">
+                  <small>⚡ Actuation &amp; Safety Output</small>
+                  <div>${escapeHtml(xai.safetyOutput)}</div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Player Controls Bar -->
@@ -1886,7 +1994,7 @@
             <div class="video-chapters-track">
               ${this.scenes.map((s, idx) => `
                 <button class="chapter-dot-btn ${idx === this.currentScene ? 'active-chapter' : ''}" onclick="window.demoVideoController.goToScene(${idx})" title="Go to ${escapeHtml(s.title)}">
-                  <span class="dot-num">${idx + 1}</span>
+                  <span class="dot-num">0${idx + 1}</span>
                   <span class="dot-label">${escapeHtml(s.id.toUpperCase())}</span>
                 </button>
               `).join('')}
@@ -1895,12 +2003,15 @@
             <!-- Playback Action Buttons -->
             <div class="video-actions-row">
               <div class="btn-group-left">
-                <button class="btn-demo-secondary" onclick="window.demoVideoController.prev()" title="Previous Scene">⏮ Prev</button>
+                <button class="btn-demo-secondary" onclick="window.demoVideoController.prev()" title="Previous Phase">⏮ Prev</button>
                 <button class="btn-demo-primary" id="demoVideoPlayBtn" onclick="window.demoVideoController.togglePlay()">
                   ${this.isPlaying ? '⏸ Pause' : '▶ Play'}
                 </button>
-                <button class="btn-demo-secondary" onclick="window.demoVideoController.next()" title="Next Scene">Next ⏭</button>
+                <button class="btn-demo-secondary" onclick="window.demoVideoController.next()" title="Next Phase">Next ⏭</button>
                 <button class="btn-demo-secondary" onclick="window.demoVideoController.goToScene(0); window.demoVideoController.play();" title="Restart Video">⟲ Restart</button>
+                <button class="btn-demo-secondary" id="demoVideoTtsBtn" onclick="window.demoVideoController.toggleVoiceover()" title="Toggle Real-Time Voiceover Narration" style="${this.voiceNarrationEnabled ? 'background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #34d399;' : ''}">
+                  ${this.voiceNarrationEnabled ? '🔊 Voiceover: ON' : '🔇 Voiceover: OFF'}
+                </button>
               </div>
 
               <div class="btn-group-right">
