@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aegis Ambient Care — Senior Safety Intelligence</title>
+  <title>NIRA Ambient Care — Senior Safety Intelligence & Multimodal Architecture</title>
   <meta name="description" content="Visual AI camera, voice notes, and ambient elder safety monitoring system for Amazon Developer Hackathon 2026.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -364,6 +364,7 @@
 
     <!-- Tesla-Style Minimalist Top Header -->
     <header class="app-header" role="banner">
+      <button class="btn-sidebar-toggle" id="btnSidebarToggle" onclick="toggleMobileSidebar()" aria-label="Toggle Navigation Sidebar">☰</button>
       <div class="brand-section">
         <div class="brand-logo-shield" onclick="returnToLandingGateway()" style="cursor: pointer;" title="Return to NIRA Landing Page" aria-hidden="true">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -373,7 +374,7 @@
         </div>
         <div>
           <div class="brand-name" onclick="returnToLandingGateway()" style="cursor: pointer;" title="Return to NIRA Landing Page">
-            <span data-i18n="appTitle">Aegis Ambient Care</span>
+            <span data-i18n="appTitle">NIRA Ambient Care</span>
           </div>
           <div class="brand-subtitle">
             <span data-i18n="tagline">Ambient AI Elder Safety</span> &bull; 
@@ -396,6 +397,23 @@
           </svg>
           <span>NIRA Portal</span>
         </button>
+
+        <!-- Dark / Light / System Theme Selector -->
+        <div class="theme-selector-pill" role="radiogroup" aria-label="Theme Selection">
+          <button class="theme-toggle-btn active" id="themeBtnDark" onclick="setNiraTheme('dark')" role="radio" aria-checked="true" title="Dark Theme">
+            <span>🌙</span>
+            <span>Dark</span>
+          </button>
+          <button class="theme-toggle-btn" id="themeBtnLight" onclick="setNiraTheme('light')" role="radio" aria-checked="false" title="Light Theme">
+            <span>☀️</span>
+            <span>Light</span>
+          </button>
+          <button class="theme-toggle-btn" id="themeBtnSystem" onclick="setNiraTheme('system')" role="radio" aria-checked="false" title="System Preference">
+            <span>💻</span>
+            <span>Auto</span>
+          </button>
+        </div>
+
 
         <!-- Global Language Selector -->
         <select id="langSelector" class="lang-select-box" onchange="setLanguage(this.value)" aria-label="Select Interface Language">
@@ -437,7 +455,7 @@
         <!-- User Role Session -->
         <div class="header-chip" id="userSessionBadge" role="region" aria-label="Active User Session">
           <div class="avatar-chip" id="userAvatar" aria-hidden="true">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="15" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
               <circle cx="9" cy="7" r="4"/>
             </svg>
@@ -453,7 +471,7 @@
       </div>
     </header>
 
-    <!-- System Status & Disconnected Warning Banner (Active upon disconnect or reconnection) -->
+    <!-- System Status & Disconnected Warning Banner -->
     <div id="systemStateBanner" class="system-state-banner" style="display: none;" role="alert" aria-live="assertive">
       <div class="banner-content">
         <span class="banner-icon" id="bannerIcon">⚠️</span>
@@ -585,10 +603,10 @@
     <!-- Main Content Container with ARIA region -->
     <main id="mainContent">
 
-    <!-- ======================================================================
-         TAB 1: OVERVIEW & HEALTH VITALS (Executive Health Snapshot)
-         ====================================================================== -->
-    <div class="tab-content-panel active" id="panelOverview" role="tabpanel" aria-labelledby="tabBtnOverview">
+      <!-- ======================================================================
+           TAB 1: OVERVIEW & HEALTH VITALS (Executive Health Snapshot)
+           ====================================================================== -->
+      <div class="tab-content-panel active" id="panelOverview" role="tabpanel" aria-labelledby="tabBtnOverview">
       <!-- 1-Glance Reassurance Banner -->
       <section class="hero-ribbon is-critical" id="heroStatusCard" role="status" aria-live="polite">
         <div class="ribbon-info-left">
@@ -1533,6 +1551,93 @@
         </section>
       </div>
     </div>
+    </div> <!-- /perspectiveSandbox -->
+
+    <!-- ======================================================================
+         VIEW 12: RESIDENT CALM MODE & ADMIN PORTALS
+         ====================================================================== -->
+    <div class="command-section-view perspective-panel" id="viewResidentAdmin" data-section="resident-admin" role="region" aria-label="Resident and Admin Portals">
+      <section class="content-card" style="margin-bottom: 24px;">
+        <div class="card-header-bar">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.3rem;">🌐</span>
+            <div>
+              <div style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary);">Resident Calm Reassurance Mode &amp; Guardian Administrative Portals</div>
+              <div style="font-size: 0.78rem; color: var(--text-secondary);">Role-tailored interfaces for Eleanor's bedside Echo Show display, family administrative configuration, and clinical session delegation</div>
+            </div>
+          </div>
+          <span class="consent-badge-active" style="font-size: 0.72rem;">Role-Aware Access</span>
+        </div>
+
+        <div class="portals-grid">
+          <!-- Portal 1: Resident Calm Mode -->
+          <div class="portal-access-card">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                <span style="font-size: 1.5rem;">🧘‍♀️</span>
+                <div>
+                  <div style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary);">Resident Calm Reassurance Mode</div>
+                  <div style="font-size: 0.72rem; color: var(--accent-primary); font-weight: 700;">Eleanor's Bedside Display Interface</div>
+                </div>
+              </div>
+              <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.55; margin-bottom: 14px;">
+                A soothing, high-contrast, uncluttered interface designed specifically for elderly residents. Replaces stressful numerical metrics with calming, reassuring visual language, ambient time display, and large one-tap touch confirmation controls.
+              </p>
+              <div class="provenance-tag tag-fact" style="margin-bottom: 14px;">ZERO AUDITORY PANIC</div>
+            </div>
+            <button class="btn-luxury-primary" style="width: 100%; justify-content: center;" onclick="openResidentCalmMode()">
+              Launch Resident Calm Mode
+            </button>
+          </div>
+
+          <!-- Portal 2: Family Admin Portal -->
+          <div class="portal-access-card">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                <span style="font-size: 1.5rem;">🛡️</span>
+                <div>
+                  <div style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary);">Family Guardian Admin Portal</div>
+                  <div style="font-size: 0.72rem; color: var(--accent-secondary); font-weight: 700;">Guardian Configuration (/admin)</div>
+                </div>
+              </div>
+              <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.55; margin-bottom: 14px;">
+                Full administrative command suite for David Vance. Manage emergency contact telephone escalation trees, edit doctor clinical summary preferences, calibrate sensor detection thresholds, and manage smart lock PIN tokens.
+              </p>
+              <div class="provenance-tag tag-fact" style="margin-bottom: 14px;">ADMIN PRIVILEGES GRANTED</div>
+            </div>
+            <a href="/admin" target="_blank" class="btn-luxury-primary" style="text-decoration: none; width: 100%; justify-content: center;">
+              Open Family Admin Portal &rarr;
+            </a>
+          </div>
+
+          <!-- Portal 3: Multi-Role Session Switcher -->
+          <div class="portal-access-card">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                <span style="font-size: 1.5rem;">👥</span>
+                <div>
+                  <div style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary);">Role-Based Perspective Switcher</div>
+                  <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">Simulate Access Perspectives</div>
+                </div>
+              </div>
+              <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.55; margin-bottom: 14px;">
+                Switch between active user sessions to verify tailored access control, emergency action authorizations, and accessibility layouts.
+              </p>
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <button class="btn-luxury-secondary" style="font-size: 0.76rem; justify-content: flex-start;" onclick="switchUserRole('David Vance (Son)', 'Primary Guardian')">
+                  👤 David Vance &bull; Primary Guardian
+                </button>
+                <button class="btn-luxury-secondary" style="font-size: 0.76rem; justify-content: flex-start;" onclick="switchUserRole('Dr. Sarah Jenkins', 'Geriatrician')">
+                  👩‍⚕️ Dr. Sarah Jenkins &bull; Physician
+                </button>
+                <button class="btn-luxury-secondary" style="font-size: 0.76rem; justify-content: flex-start;" onclick="switchUserRole('Medic-14 Unit', 'EMS First Responder')">
+                  🚑 Boston EMS Medic-14 &bull; First Responder
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
     </main>
     </div> <!-- end #sectionDemoMode -->
@@ -2024,6 +2129,49 @@
         <button class="btn-luxury-primary" style="width: 100%; justify-content: center;" onclick="openVideoDemoModal(); closeVideoGuideModal();">
           Launch Video Demo Reel
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resident Calm Reassurance Mode Modal -->
+  <div class="modal-overlay" id="residentCalmModal" style="display: none;">
+    <div class="modal-content" style="max-width: 650px; text-align: center; padding: 36px 24px; background: #FAF9F6; color: #0F1E36; border: 2px solid #0D9488; border-radius: 20px;">
+      <div style="font-size: 3rem; margin-bottom: 12px;" aria-hidden="true">🌿</div>
+      <div style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #0D9488; margin-bottom: 8px;">
+        NIRA Ambient Living Companion
+      </div>
+      <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 12px; color: #0F1E36;">
+        Eleanor, Everything is Peaceful
+      </h2>
+      <p style="font-size: 1.05rem; color: #475569; max-width: 480px; margin: 0 auto 24px; line-height: 1.6;">
+        Your home is comfortable and secure. David is in touch, your living room is 22.4&deg;C, and NIRA is watching over you with gentle radar protection.
+      </p>
+
+      <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn-luxury-primary" style="font-size: 1rem; padding: 12px 28px; border-radius: 9999px; background: #0D9488; border-color: #0D9488;" onclick="userAnswer('ok'); closeResidentCalmMode();">
+          ✓ I'm Feeling Good
+        </button>
+        <button class="btn-luxury-secondary" style="font-size: 1rem; padding: 12px 24px; border-radius: 9999px; border-color: #D97706; color: #D97706;" onclick="playSonVoiceMemo();">
+          📞 Speak to David
+        </button>
+        <button class="btn-luxury-secondary" style="font-size: 1rem; padding: 12px 24px; border-radius: 9999px; border-color: #94A3B8; color: #475569;" onclick="closeResidentCalmMode()">
+          Close Calm Display
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Incident Dossier Inspector Modal -->
+  <div class="modal-overlay" id="incidentInspectorModal" style="display: none;">
+    <div class="modal-content" style="max-width: 720px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span id="inspectModalTitle">📋 Incident Record Dossier</span>
+        </div>
+        <button class="btn-close-modal" onclick="closeIncidentInspectorModal()">&times;</button>
+      </div>
+      <div style="padding: 20px;" id="inspectModalBody">
+        <!-- Injected via JavaScript -->
       </div>
     </div>
   </div>
