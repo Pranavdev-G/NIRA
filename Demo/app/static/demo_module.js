@@ -1792,6 +1792,16 @@
       this.render();
     },
 
+    currentTime: 0,
+    captionsVisible: true,
+    progressInterval: null,
+    viewMode: 'split',
+
+    setViewMode(mode) {
+      this.viewMode = mode;
+      this.render();
+    },
+
     play() {
       if (this.isPlaying) return;
       this.isPlaying = true;
@@ -1805,13 +1815,6 @@
       this.clearTimer();
       this.stopNarration();
       this.updateControlsUI();
-    },
-
-    viewMode: 'split',
-
-    setViewMode(mode) {
-      this.viewMode = mode;
-      this.render();
     },
 
     togglePlay() {
@@ -1857,6 +1860,7 @@
     next() {
       this.clearTimer();
       this.stopNarration();
+      this.currentTime = 0;
       this.currentScene = (this.currentScene + 1) % this.scenes.length;
       this.render();
       if (this.isPlaying) {
@@ -1868,6 +1872,7 @@
     prev() {
       this.clearTimer();
       this.stopNarration();
+      this.currentTime = 0;
       this.currentScene = (this.currentScene - 1 + this.scenes.length) % this.scenes.length;
       this.render();
       if (this.isPlaying) {
@@ -1879,6 +1884,7 @@
     goToScene(index) {
       this.clearTimer();
       this.stopNarration();
+      this.currentTime = 0;
       this.currentScene = Math.max(0, Math.min(index, this.scenes.length - 1));
       this.render();
       if (this.isPlaying || this.voiceNarrationEnabled) {
@@ -1897,19 +1903,81 @@
       this.updateControlsUI();
     },
 
+    seek(e) {
+      const container = document.getElementById('videoProgressContainer');
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+      const current = this.scenes[this.currentScene];
+      this.currentTime = ratio * current.duration;
+      this.updateTimelineUI();
+    },
+
+    toggleCaptions() {
+      this.captionsVisible = !this.captionsVisible;
+      const ccEl = document.getElementById('videoCaptionsOverlay');
+      if (ccEl) {
+        ccEl.style.display = this.captionsVisible ? 'block' : 'none';
+      }
+      const ccBtn = document.getElementById('btnToggleCC');
+      if (ccBtn) {
+        ccBtn.classList.toggle('active-view-mode', this.captionsVisible);
+      }
+    },
+
+    toggleFullscreen() {
+      const card = document.getElementById('demoVideoPlayerCard');
+      if (!card) return;
+      if (!document.fullscreenElement) {
+        if (card.requestFullscreen) card.requestFullscreen();
+        else if (card.webkitRequestFullscreen) card.webkitRequestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    },
+
     startTimer() {
       this.clearTimer();
-      const current = this.scenes[this.currentScene];
-      const durationMs = (current.duration * 1000) / this.playbackSpeed;
-      this.timer = setTimeout(() => {
-        this.next();
-      }, durationMs);
+      const tickMs = 100;
+      this.progressInterval = setInterval(() => {
+        const current = this.scenes[this.currentScene];
+        this.currentTime += (tickMs / 1000) * this.playbackSpeed;
+        this.updateTimelineUI();
+
+        if (this.currentTime >= current.duration) {
+          this.currentTime = 0;
+          this.next();
+        }
+      }, tickMs);
     },
 
     clearTimer() {
+      if (this.progressInterval) {
+        clearInterval(this.progressInterval);
+        this.progressInterval = null;
+      }
       if (this.timer) {
         clearTimeout(this.timer);
         this.timer = null;
+      }
+    },
+
+    updateTimelineUI() {
+      const fill = document.getElementById('videoProgressFill');
+      const timecode = document.getElementById('videoTimecodeText');
+      const current = this.scenes[this.currentScene];
+      if (!current) return;
+
+      const pct = Math.min(100, (this.currentTime / current.duration) * 100);
+      if (fill) fill.style.width = pct.toFixed(1) + '%';
+
+      if (timecode) {
+        const curSec = Math.floor(this.currentTime);
+        const durSec = Math.floor(current.duration);
+        const curFmt = (curSec < 10 ? '0' : '') + curSec;
+        const durFmt = (durSec < 10 ? '0' : '') + durSec;
+        timecode.innerHTML = `<strong>00:${curFmt}</strong> / 00:${durFmt}`;
       }
     },
 
@@ -1917,7 +1985,11 @@
       const playBtn = document.getElementById('demoVideoPlayBtn');
       if (playBtn) {
         playBtn.innerHTML = this.isPlaying ? '⏸ Pause' : '▶ Play';
-        playBtn.setAttribute('aria-label', this.isPlaying ? 'Pause Explainable Video' : 'Play Explainable Video');
+        playBtn.setAttribute('aria-label', this.isPlaying ? 'Pause Animated Video' : 'Play Animated Video');
+      }
+      const centerPlay = document.getElementById('videoCenterPlayOverlay');
+      if (centerPlay) {
+        centerPlay.style.display = this.isPlaying ? 'none' : 'flex';
       }
     },
 
@@ -1935,7 +2007,7 @@
       };
 
       container.innerHTML = `
-        <div class="video-player-card">
+        <div class="video-player-card" id="demoVideoPlayerCard">
           <!-- Top Stream Status Bar with Gemini Branding & View Toggles -->
           <div class="video-top-bar" style="flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
@@ -1946,7 +2018,7 @@
             <!-- 3D / Human Presenter View Switcher -->
             <div class="gemini-view-toggles" role="group" aria-label="Explainer Presentation Mode">
               <button class="view-mode-btn ${this.viewMode === 'split' ? 'active-view-mode' : ''}" onclick="window.demoVideoController.setViewMode('split')" title="Side-by-side 3D Simulation and Human AI Presenter">
-                ✨ Split Studio
+                ✨ Split Studio Video
               </button>
               <button class="view-mode-btn ${this.viewMode === 'human' ? 'active-view-mode' : ''}" onclick="window.demoVideoController.setViewMode('human')" title="Focused Human AI Presenter View">
                 👤 Human Presenter
@@ -1964,70 +2036,130 @@
             </div>
           </div>
 
-          <!-- Gemini 3D & Human Explainer Main Stage Viewport -->
-          <div class="gemini-stage-container ${this.viewMode === 'human' ? 'view-human-only' : (this.viewMode === '3d' ? 'view-3d-only' : '')}">
+          <!-- Gemini 3D & Human Explainer Main Video Viewport -->
+          <div class="gemini-video-viewport-wrapper">
             
-            <!-- Left Pane: 3D Floorplan or Interactive Simulation Scene -->
-            <div class="gemini-simulation-pane">
-              ${this.viewMode === '3d' ? `
-                <div class="gemini-3d-preview-wrap" style="background-image: url('/static/gemini_3d_twin.jpg');">
-                  <div class="gemini-3d-hud-overlay">
-                    <div>
-                      <strong style="color: #38bdf8;">🌐 3D DIGITAL TWIN &bull; UNIT 4B</strong>
-                      <div style="font-size: 0.7rem; color: #94a3b8;">4 Active Sensors &bull; 60GHz mmWave Radar Array</div>
+            <div class="gemini-video-screen" id="geminiVideoScreen" onclick="if(event.target.closest('.view-mode-btn, button, input')) return; window.demoVideoController.togglePlay();" title="Click to Play / Pause Video">
+              
+              <!-- Subtle CRT/Film Scanlines Layer -->
+              <div class="video-cinematic-scanlines" aria-hidden="true"></div>
+
+              <!-- Top Left Watermark Badge -->
+              <div class="video-broadcast-watermark">
+                <span class="rec-pulse-dot"></span>
+                <span>🔴 LIVE GEMINI AI EXPLAINER &bull; 4K 60FPS</span>
+              </div>
+
+              <!-- Center Big Play Button Overlay (visible when paused) -->
+              <div class="video-center-play-overlay" id="videoCenterPlayOverlay" style="display: ${this.isPlaying ? 'none' : 'flex'};">
+                <div class="video-center-play-btn" aria-label="Play Video">▶</div>
+              </div>
+
+              <!-- The Split Stage: 3D Simulation & Human Presenter -->
+              <div class="gemini-stage-container ${this.viewMode === 'human' ? 'view-human-only' : (this.viewMode === '3d' ? 'view-3d-only' : '')}" style="margin: 0; border: none; min-height: 420px; border-radius: 0;">
+                
+                <!-- Left Pane: 3D Floorplan or Interactive Simulation Scene -->
+                <div class="gemini-simulation-pane">
+                  ${this.viewMode === '3d' ? `
+                    <div class="gemini-3d-preview-wrap animated-3d-bg" style="background-image: url('/static/gemini_3d_twin.jpg');">
+                      <div class="gemini-3d-hud-overlay">
+                        <div>
+                          <strong style="color: #38bdf8;">🌐 3D DIGITAL TWIN &bull; UNIT 4B</strong>
+                          <div style="font-size: 0.7rem; color: #94a3b8;">4 Active Sensors &bull; 60GHz mmWave Radar Array</div>
+                        </div>
+                        <span class="pill-badge pill-green" style="font-size: 0.65rem;">TELEMETRY SYNCED</span>
+                      </div>
                     </div>
-                    <span class="pill-badge pill-green" style="font-size: 0.65rem;">TELEMETRY SYNCED</span>
+                  ` : `
+                    ${sc.visual}
+                  `}
+                </div>
+
+                <!-- Right Pane: Dr. Maya (Gemini Healthcare AI Presenter) -->
+                <div class="gemini-presenter-pane">
+                  <div>
+                    <div class="gemini-presenter-header">
+                      <div class="gemini-avatar-frame">
+                        <img src="/static/gemini_presenter.jpg" alt="Dr. Maya - Gemini Healthcare AI Doctor / Presenter" loading="eager" />
+                        <span class="gemini-live-pulse-dot" title="Gemini Multimodal Presenter Online"></span>
+                      </div>
+                      <div class="gemini-presenter-identity">
+                        <h4>
+                          <span>Dr. Maya Thorne</span>
+                          <span style="font-size: 0.7rem; color: #38bdf8; font-weight: 700;">MD</span>
+                        </h4>
+                        <div class="presenter-title">Gemini Healthcare AI Explainer</div>
+                        <div style="font-size: 0.68rem; color: #6ee7b7; font-weight: 700; margin-top: 3px;">
+                          ● Clinical Presenter &bull; Active
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Speech Narration Bubble -->
+                    <div class="gemini-speech-bubble">
+                      <div class="gemini-speech-meta">
+                        <span>✨ GEMINI CLINICAL EXPLANATION</span>
+                        <div class="gemini-soundbars" aria-hidden="true">
+                          <div class="gemini-bar"></div>
+                          <div class="gemini-bar"></div>
+                          <div class="gemini-bar"></div>
+                          <div class="gemini-bar"></div>
+                        </div>
+                      </div>
+                      <div>${escapeHtml(sc.caption)}</div>
+                    </div>
+                  </div>
+
+                  <!-- Action Bar in Presenter Card -->
+                  <div style="margin-top: 14px; display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                    <button class="btn-demo-primary" onclick="window.switchTab('${sc.tabTarget}')" style="white-space: nowrap; font-size: 0.76rem; padding: 6px 12px;">
+                      🚀 Try Feature Live &rarr;
+                    </button>
+                    <button class="btn-demo-secondary" onclick="window.demoVideoController.toggleVoiceover()" style="white-space: nowrap; font-size: 0.76rem; padding: 6px 12px; ${this.voiceNarrationEnabled ? 'background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #34d399;' : ''}">
+                      ${this.voiceNarrationEnabled ? '🔊 Voice: ON' : '🔇 Voice: OFF'}
+                    </button>
                   </div>
                 </div>
-              ` : `
-                ${sc.visual}
-              `}
-            </div>
 
-            <!-- Right Pane: Dr. Maya (Gemini Healthcare AI Presenter) -->
-            <div class="gemini-presenter-pane">
-              <div>
-                <div class="gemini-presenter-header">
-                  <div class="gemini-avatar-frame">
-                    <img src="/static/gemini_presenter.jpg" alt="Dr. Maya - Gemini Healthcare AI Doctor / Presenter" loading="eager" />
-                    <span class="gemini-live-pulse-dot" title="Gemini Multimodal Presenter Online"></span>
-                  </div>
-                  <div class="gemini-presenter-identity">
-                    <h4>
-                      <span>Dr. Maya Thorne</span>
-                      <span style="font-size: 0.7rem; color: #38bdf8; font-weight: 700;">MD</span>
-                    </h4>
-                    <div class="presenter-title">Gemini Healthcare AI Explainer</div>
-                    <div style="font-size: 0.68rem; color: #6ee7b7; font-weight: 700; margin-top: 3px;">
-                      ● Clinical Presenter &bull; Active
-                    </div>
+              </div>
+
+              <!-- TV Style Lower Third Banner -->
+              <div class="video-tv-lower-third">
+                <div class="tv-lower-name">
+                  <span>DR. MAYA THORNE, MD</span>
+                  <span style="color: #94a3b8; font-size: 0.68rem;">&bull; GEMINI CLINICAL AI</span>
+                </div>
+                <div class="tv-lower-topic">Phase 0${this.currentScene + 1}: ${escapeHtml(sc.title)}</div>
+              </div>
+
+              <!-- Floating Subtitles / Closed Captions (CC) Overlay -->
+              <div class="video-captions-overlay" id="videoCaptionsOverlay" style="display: ${this.captionsVisible ? 'block' : 'none'};">
+                ${escapeHtml(sc.caption)}
+              </div>
+
+              <!-- Video Scrubber Bar & Controls Overlay -->
+              <div class="video-scrubber-track-bar">
+                <div class="video-progress-container" id="videoProgressContainer" onclick="window.demoVideoController.seek(event)" title="Click to seek">
+                  <div class="video-progress-fill" id="videoProgressFill" style="width: 0%;">
+                    <div class="video-progress-thumb"></div>
                   </div>
                 </div>
 
-                <!-- Speech Narration Bubble -->
-                <div class="gemini-speech-bubble">
-                  <div class="gemini-speech-meta">
-                    <span>✨ GEMINI CLINICAL EXPLANATION</span>
-                    <div class="gemini-soundbars" aria-hidden="true">
-                      <div class="gemini-bar"></div>
-                      <div class="gemini-bar"></div>
-                      <div class="gemini-bar"></div>
-                      <div class="gemini-bar"></div>
-                    </div>
+                <div class="video-bar-bottom-row">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <span class="video-timecode" id="videoTimecodeText"><strong>00:00</strong> / 00:0${sc.duration}</span>
                   </div>
-                  <div>${escapeHtml(sc.caption)}</div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="view-mode-btn ${this.captionsVisible ? 'active-view-mode' : ''}" id="btnToggleCC" onclick="window.demoVideoController.toggleCaptions()" title="Toggle Closed Captions (CC)">
+                      CC
+                    </button>
+                    <button class="view-mode-btn" onclick="window.demoVideoController.toggleFullscreen()" title="Fullscreen Video Mode">
+                      ⛶ Fullscreen
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <!-- Action Bar in Presenter Card -->
-              <div style="margin-top: 14px; display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
-                <button class="btn-demo-primary" onclick="window.switchTab('${sc.tabTarget}')" style="white-space: nowrap; font-size: 0.76rem; padding: 6px 12px;">
-                  🚀 Try Feature Live &rarr;
-                </button>
-                <button class="btn-demo-secondary" onclick="window.demoVideoController.toggleVoiceover()" style="white-space: nowrap; font-size: 0.76rem; padding: 6px 12px; ${this.voiceNarrationEnabled ? 'background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #34d399;' : ''}">
-                  ${this.voiceNarrationEnabled ? '🔊 Voice: ON' : '🔇 Voice: OFF'}
-                </button>
-              </div>
             </div>
 
           </div>
@@ -2101,6 +2233,7 @@
         </div>
       `;
       this.updateControlsUI();
+      this.updateTimelineUI();
     }
   };
 
