@@ -1806,6 +1806,10 @@ function returnToLandingGateway() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+window.enterSystemMode = enterSystemMode;
+window.returnToLandingGateway = returnToLandingGateway;
+window.switchSystemMode = switchSystemMode;
+
 // ---------------------------------------------------------------------------
 // Operating Environment Mode Switcher (Demo Mode vs Live Mode)
 // ---------------------------------------------------------------------------

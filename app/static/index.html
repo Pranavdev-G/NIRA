@@ -214,6 +214,55 @@
       }
     }
   </style>
+
+  <!-- Immediate inline router for NIRA Landing Page (guarantees instant responsiveness even if external JS is delayed/cached) -->
+  <script>
+    function enterSystemMode(mode) {
+      var landingScreen = document.getElementById("landingGatewayScreen");
+      var appWorkspace = document.getElementById("appWorkspaceContainer");
+      if (landingScreen) landingScreen.style.display = "none";
+      if (appWorkspace) appWorkspace.style.display = "block";
+
+      if (typeof window.switchSystemMode === "function") {
+        window.switchSystemMode(mode, false);
+      } else {
+        var secDemo = document.getElementById("sectionDemoMode");
+        var secLive = document.getElementById("sectionLiveMode");
+        var btnDemo = document.getElementById("btnModeDemo");
+        var btnLive = document.getElementById("btnModeLive");
+        if (mode === "live") {
+          if (secLive) secLive.style.display = "block";
+          if (secDemo) secDemo.style.display = "none";
+          if (btnLive) { btnLive.classList.add("active"); btnLive.setAttribute("aria-checked", "true"); }
+          if (btnDemo) { btnDemo.classList.remove("active"); btnDemo.setAttribute("aria-checked", "false"); }
+        } else {
+          if (secDemo) secDemo.style.display = "block";
+          if (secLive) secLive.style.display = "none";
+          if (btnDemo) { btnDemo.classList.add("active"); btnDemo.setAttribute("aria-checked", "true"); }
+          if (btnLive) { btnLive.classList.remove("active"); btnLive.setAttribute("aria-checked", "false"); }
+        }
+      }
+
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, null, "#" + mode);
+      }
+    }
+
+    function returnToLandingGateway() {
+      var landingScreen = document.getElementById("landingGatewayScreen");
+      var appWorkspace = document.getElementById("appWorkspaceContainer");
+      if (landingScreen) landingScreen.style.display = "flex";
+      if (appWorkspace) appWorkspace.style.display = "none";
+
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.pathname);
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    window.enterSystemMode = enterSystemMode;
+    window.returnToLandingGateway = returnToLandingGateway;
+  </script>
 </head>
 <body>
   <a href="#mainContent" class="skip-link">Skip to main safety content</a>
@@ -1916,6 +1965,6 @@
   <script src="/static/nira_store.js?v=1.0"></script>
   <script src="/static/camera_sim.js?v=6.0"></script>
   <script src="/static/video_reel.js?v=6.0"></script>
-  <script src="/static/dashboard.js?v=6.0"></script>
+  <script src="/static/dashboard.js?v=12.0"></script>
 </body>
 </html>
