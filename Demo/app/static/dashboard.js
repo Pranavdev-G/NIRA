@@ -551,21 +551,33 @@ function setNiraTheme(theme, notify = true) {
   const chosen = validThemes.includes(theme) ? theme : "dark";
 
   localStorage.setItem("nira_theme", chosen);
-  root.setAttribute("data-theme", chosen);
 
-  // Update theme toggle buttons active class
-  const themeIds = { dark: "btnThemeDark", light: "btnThemeLight", system: "btnThemeAuto" };
+  if (chosen === "system") {
+    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    root.setAttribute("data-theme", prefersDark ? "dark" : "light");
+  } else {
+    root.setAttribute("data-theme", chosen);
+  }
+
+  // Update theme toggle buttons active class (supporting both naming conventions)
+  const themeIds = {
+    dark: ["btnThemeDark", "themeBtnDark"],
+    light: ["btnThemeLight", "themeBtnLight"],
+    system: ["btnThemeAuto", "themeBtnSystem"]
+  };
   Object.keys(themeIds).forEach(t => {
-    const btn = document.getElementById(themeIds[t]);
-    if (btn) {
-      if (t === chosen) {
-        btn.classList.add("active");
-        btn.setAttribute("aria-pressed", "true");
-      } else {
-        btn.classList.remove("active");
-        btn.setAttribute("aria-pressed", "false");
+    themeIds[t].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        if (t === chosen) {
+          btn.classList.add("active");
+          btn.setAttribute("aria-pressed", "true");
+        } else {
+          btn.classList.remove("active");
+          btn.setAttribute("aria-pressed", "false");
+        }
       }
-    }
+    });
   });
 
   if (notify) {
