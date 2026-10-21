@@ -422,15 +422,17 @@ pip install -r requirements.txt
 
 ### 2. Run Complete Integration Test Suite
 ```bash
-pytest
+pytest Demo/tests
 ```
-All **150 automated tests** across 11 test suites validate:
-- 125 backend intelligence tests (multimodal event pipeline, 9-state finite state machine emergency orchestration, 14-signal explainable risk engine, multi-device simulators, MCP JSON-RPC protocol, production hardening).
-- 25 frontend contract and real-time state store tests (SSE streaming, backoff reconnection, 6 W's Briefing Grid, rolling telemetry sparklines, mobile responsiveness, accessibility).
 
 ### 3. Start Unified NIRA Server
+From the root folder:
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn Demo.app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+Or directly from the `Demo` directory:
+```bash
+cd Demo && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 - **Interactive Safety Dashboard & 3D Digital Twin:** `http://localhost:8000/` or `http://localhost:8000/dashboard`
@@ -441,13 +443,13 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 ### 4. Run Multi-Device Event Simulators
 ```bash
-# Run full automated scenario suite (Scenarios A through J)
-python scenario_simulator.py --scenario responsive_fall
-python scenario_simulator.py --scenario silent_emergency
-python scenario_simulator.py --scenario false_alarm
-
-# Run continuous 24-hour routine simulator (wearable, radar, ambient)
-python nira_simulator.py --scenario normal_day --steps 10
+# Run full automated scenario suite (from root or Demo/)
+python Demo/scenario_simulator.py --scenario responsive_emergency
+python Demo/nira_simulator.py --interactive
+# Additional scenario options:
+# python Demo/scenario_simulator.py --scenario silent_emergency
+# python Demo/scenario_simulator.py --scenario false_alarm
+# python Demo/nira_simulator.py --scenario normal_day --steps 10
 ```
 
 ---

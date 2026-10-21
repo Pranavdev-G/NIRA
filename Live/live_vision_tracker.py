@@ -27,7 +27,13 @@ class LiveVisionTracker:
     real-time skeletal poses using YOLOv8-pose keypoints.
     """
     def __init__(self, model_path: Optional[str] = None, backend_url: str = "http://localhost:8000"):
-        self.model_path = model_path or os.path.join(os.path.dirname(os.path.dirname(__file__)), "yolov8n-pose.pt")
+        if model_path:
+            self.model_path = model_path
+        else:
+            base = os.path.dirname(os.path.dirname(__file__))
+            demo_model = os.path.join(base, "Demo", "yolov8n-pose.pt")
+            root_model = os.path.join(base, "yolov8n-pose.pt")
+            self.model_path = demo_model if os.path.exists(demo_model) else root_model
         self.backend_url = backend_url.rstrip("/")
         self.model = None
 
