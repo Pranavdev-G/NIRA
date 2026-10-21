@@ -1603,203 +1603,177 @@
     currentScene: 0,
     isPlaying: false,
     timer: null,
+    progressInterval: null,
     playbackSpeed: 1,
     voiceNarrationEnabled: false,
+    currentTime: 0,
+    captionsVisible: true,
+    viewMode: 'split',
+    reelInstance: null,
+
     scenes: [
       {
         id: "voice",
-        title: "Voice Assistant & Alexa+ Integration",
-        sub: "Ambient Voice Interaction • Sub-500ms Response • 10 Languages",
-        duration: 8,
+        title: "Ambient Non-Invasive Protection & Alexa+ Integration",
+        sub: "Ceiling mmWave Radar • 0 Cameras (100% Privacy) • Sub-500ms Voice Verification",
+        duration: 10,
         tabTarget: "voiceassistant",
-        tag: "VOICE INTERACTION",
-        caption: "Resident says: 'Alexa, I feel a little dizzy, can you check on me?' NIRA listens passively with zero wake latency, reassures Eleanor, checks biometric telemetry, and alerts her son David.",
+        tag: "1. AMBIENT PROTECTION",
+        roomTitle: "🌐 3D DIGITAL TWIN • UNIT 4B LIVING ROOM",
+        roomTelemetry: "3D Articulated Eleanor Walking • 60GHz Ceiling Micro-Radar Active • 0 Cameras (100% Privacy)",
+        statusPill: "🟢 3D ANIMATION LIVE",
+        timeOffset: 0.0,
+        caption: "Eleanor Vance, age 79, lives independently in Beacon Hill Unit 4B. The apartment is continuously protected by ceiling micro-radar and ambient sensors, preserving total privacy without cameras.",
         explanation: {
           confidence: "99.4%",
-          aiRationale: "Real-time edge acoustic model detected resident query ('dizzy'). Sub-250ms NLP queried wearable baseline telemetry without false alert escalation.",
-          sensorFusion: "Echo Show 15 beamforming microphone + Apple Watch PPG sensor (74 BPM normal resting pulse).",
-          safetyOutput: "Issued verbal reassurance to resident, logged entry into Daily Wellness log, and sent passive reassurance ping to Son David."
-        },
-        visual: `
-          <div class="sim-video-viewport">
-            <div class="sim-echo-card">
-              <div class="echo-status-pill">
-                <span class="echo-pulse-dot"></span>
-                <span>Alexa+ Smart Echo Show 15 &bull; Living Room</span>
-              </div>
-              <div class="sim-audio-waves">
-                <div class="sim-wave-bar h-1"></div>
-                <div class="sim-wave-bar h-3"></div>
-                <div class="sim-wave-bar h-5"></div>
-                <div class="sim-wave-bar h-4"></div>
-                <div class="sim-wave-bar h-2"></div>
-                <div class="sim-wave-bar h-5"></div>
-                <div class="sim-wave-bar h-3"></div>
-              </div>
-              <div class="sim-dialogue-bubbles">
-                <div class="sim-user-bubble">
-                  <div class="bubble-sender">👵 Eleanor (Resident)</div>
-                  <div class="bubble-text">"Alexa, I feel a little dizzy, can you check on me?"</div>
-                </div>
-                <div class="sim-alexa-bubble">
-                  <div class="bubble-sender">🤖 NIRA Alexa+ Agent &bull; 240ms</div>
-                  <div class="bubble-text">"I'm here Eleanor. Your pulse is 74 BPM and normal. I've noted this in your daily wellness log and sent a reassuring update to David."</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        `
+          aiRationale: "Continuous mmWave radar Doppler frequency evaluation confirms steady ambulatory gait (0.92 m/s) with zero spatial obstruction.",
+          sensorFusion: "Echo Show 15 beamforming microphone + Ceiling mmWave radar array + Apple Watch resting heart rate (74 BPM).",
+          safetyOutput: "All baseline telemetry optimal. 0 privacy violations, continuous non-invasive protection."
+        }
       },
       {
         id: "checkin",
-        title: "Daily Morning Wellness Check-In",
-        sub: "1-Tap Safety Verification • Reason Options • Family Sync",
-        duration: 7,
+        title: "Daily Morning Wellness Check-In & Motion Sync",
+        sub: "1-Tap Safety Verification • Hallway Radar Confirmation • Family Sync",
+        duration: 10,
         tabTarget: "dailycheckin",
-        tag: "DAILY CHECK-IN",
+        tag: "2. DAILY VERIFICATION",
+        roomTitle: "🌐 3D DIGITAL TWIN • UNIT 4B HALLWAY & LIVING ROOM",
+        roomTelemetry: "Verified Ambulatory Gait 0.92 m/s • Morning Check-In Completed • Son David Synced",
+        statusPill: "✅ MORNING VERIFIED",
+        timeOffset: 5.0,
         caption: "Every morning at 09:30 AM, Eleanor selects her wellness status ('I'm fine', 'Feeling unwell', 'Need assistance'). Confirmation is instantly logged and synced to David's Family Admin console.",
         explanation: {
           confidence: "100.0%",
           aiRationale: "Verified positive morning compliance response. Automatically clears 10:00 AM unresponsiveness escalation countdown timer.",
           sensorFusion: "Screen touch verification event + Hallway motion passive radar confirmation.",
           safetyOutput: "Updated resident wellness index to 'Optimal', synced timestamped check-in record to David Vance Family Admin portal."
-        },
-        visual: `
-          <div class="sim-video-viewport">
-            <div class="sim-checkin-cards-row">
-              <div class="sim-choice-card is-active-choice">
-                <div style="font-size: 2.2rem; margin-bottom: 8px;">😊</div>
-                <div style="font-weight: 800; color: #34d399; font-size: 1.15rem;">"I'm Fine"</div>
-                <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 4px;">Routine normal &bull; Good sleep</div>
-              </div>
-              <div class="sim-choice-card" style="opacity: 0.55;">
-                <div style="font-size: 2.2rem; margin-bottom: 8px;">🤒</div>
-                <div style="font-weight: 800; color: #fbbf24; font-size: 1.15rem;">"Feeling Unwell"</div>
-                <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 4px;">Dizzy / Low energy</div>
-              </div>
-            </div>
-            <div class="sim-verified-badge" style="margin-top: 18px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); padding: 8px 18px; border-radius: 9999px; color: #34d399; font-weight: 800; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px;">
-              <span>✅</span> Check-in Recorded at 09:30 AM &bull; Synced to Son David Vance
-            </div>
-          </div>
-        `
+        }
       },
       {
         id: "falldetect",
-        title: "Ambient Radar & Fall Detection Simulation",
-        sub: "60GHz mmWave Radar • Optical Pose • 30-Second Immobility Timer",
-        duration: 8,
+        title: "Sudden Fall Detected & Biometric Telemetry Surge",
+        sub: "Bathroom Wet Tile Impact • >2.2 m/s Descent • Acute Tachycardia 138 BPM",
+        duration: 10,
         tabTarget: "falldetection",
-        tag: "FALL SENSING",
-        caption: "When a rapid floor velocity impact occurs (>2.2 m/s), NIRA evaluates optical pose skeleton and radar reflections. A 30s verbal verification timer begins to prevent false alarms.",
+        tag: "3. SUDDEN FALL KINEMATICS",
+        roomTitle: "🚨 3D KINEMATICS • BATHROOM WET TILE FALL",
+        roomTelemetry: "Sudden Downward Drop (2.84 m/s) • Horizontal Posture (78°) • Red Shockwave Ring",
+        statusPill: "🚨 FALL DETECTED (98.7%)",
+        timeOffset: 10.5,
+        caption: "At 2:14 AM, the ceiling radar detects a sudden downward drop in the bathroom. The multimodal AI confirms a 94 percent probability of a fall, while Apple Watch telemetry captures acute tachycardia surging to 138 BPM.",
         explanation: {
           confidence: "98.7%",
           aiRationale: "Dual-sensor fusion triggered: rapid descent velocity >2.2 m/s matched with 78° horizontal posture angle and abrupt zero-mobility.",
-          sensorFusion: "60GHz mmWave Radar doppler shift (2.84 m/s impact) + Optical YOLOv8-pose skeleton floor angle.",
+          sensorFusion: "60GHz mmWave Radar doppler shift (2.84 m/s impact) + Optical YOLOv8-pose skeleton + Apple Watch PPG tachycardia surge (138 BPM).",
           safetyOutput: "Triggered Level-3 Emergency State; initiated 30-second Alexa verbal inquiry countdown before auto-escalation."
-        },
-        visual: `
-          <div class="sim-video-viewport">
-            <div class="sim-radar-hud">
-              <div class="sim-hud-grid">
-                <div class="hud-box alert-box">
-                  <small>Posture Classification</small>
-                  <strong>Horizontal (78° Floor Angle)</strong>
-                </div>
-                <div class="hud-box alert-box">
-                  <small>Impact Velocity</small>
-                  <strong>2.84 m/s (Threshold Exceeded)</strong>
-                </div>
-                <div class="hud-box warn-box">
-                  <small>Verification Timer</small>
-                  <strong style="color: #fbbf24;">30s Countdown Active</strong>
-                </div>
-              </div>
-              <div class="sim-hazard-banner" style="margin-top: 16px; background: rgba(244, 63, 94, 0.2); border: 1.5px solid rgba(244, 63, 94, 0.6); padding: 10px 18px; border-radius: 12px; color: #fda4af; font-weight: 800; font-size: 0.88rem;">
-                🚨 High-Confidence Fall Detected in Living Room &bull; Acoustic Query Initiated
-              </div>
-            </div>
-          </div>
-        `
+        }
       },
       {
         id: "escalation",
-        title: "Son David Vance & Family Escalation",
-        sub: "Multi-Channel SMS & Push Notification • Smart Deadbolt PIN: 8492",
-        duration: 7,
+        title: "Son David Vance Alerted & 2-Way Echo Drop-In",
+        sub: "Multi-Channel Push & SMS • Live Guardian Audio • Smart Deadbolt PIN: 8492",
+        duration: 10,
         tabTarget: "emergencyalert",
-        tag: "FAMILY ALERT",
-        caption: "David Vance receives an urgent notification on his smartphone with live telemetry and door controls. NIRA's smart lock deadbolt automatically generates access PIN 8492.",
+        tag: "4. FAMILY GUARDIAN",
+        roomTitle: "📱 GUARDIAN ESCALATION • SON DAVID VANCE",
+        roomTelemetry: "Live 2-Way Drop-In Connected • Mobile Priority Push • Deadbolt Token 8492 Generated",
+        statusPill: "📲 GUARDIAN ALERTED",
+        timeOffset: 30.5,
+        caption: "Aegis immediately connects her primary guardian and son, David Vance. His phone receives an instant priority notification and opens a live Echo Drop-In audio stream, allowing David to speak directly to his mother.",
         explanation: {
           confidence: "99.8%",
           aiRationale: "Zero resident response detected after 30s verbal verification timeout. Escalated incident to Tier-1 Family Guardian emergency protocol.",
           sensorFusion: "Living Room acoustic silence verification + Biometric tachycardia alert (94 BPM pulse on floor).",
           safetyOutput: "Dispatched high-priority push & SMS alerts to Son David Vance; activated Smart Lock Deadbolt with emergency token PIN 8492."
-        },
-        visual: `
-          <div class="sim-video-viewport">
-            <div class="sim-phone-mockup">
-              <div class="phone-notch"></div>
-              <div class="phone-alert-card">
-                <div class="phone-alert-title">🚨 NIRA Priority Alert: Eleanor Vance</div>
-                <div class="phone-alert-body">Unresponsive fall detected in Living Room. Pulse 94 BPM. Front Door Deadbolt unlocked for emergency personnel.</div>
-                <div class="phone-alert-meta">Sent via Push &bull; SMS &bull; Echo Show Drop-In</div>
-              </div>
-              <div class="door-token-highlight" style="margin-top: 14px; background: rgba(16, 185, 129, 0.2); border: 1.5px solid #10b981; padding: 10px 18px; border-radius: 10px; color: #34d399; font-weight: 800; font-size: 0.9rem;">
-                🔑 Smart Door Token Generated: <span style="font-family: monospace; font-size: 1.15rem; color: #fff;">8492</span>
-              </div>
-            </div>
-          </div>
-        `
+        }
       },
       {
         id: "ambulance",
-        title: "Medic 14 Boston EMS CAD Ambulance Dispatch",
-        sub: "First Responder Mode • Smart Door Token: 8492 • MGH Trauma 1",
-        duration: 9,
+        title: "Boston EMS Medic 14 CAD Dispatch & Smart Door Unlocked",
+        sub: "Autonomous CAD Packet • Deadbolt PIN 8492 Auto-Unlocked • MGH Trauma 1",
+        duration: 10,
         tabTarget: "emergencyalert",
-        tag: "AMBULANCE CAD",
-        caption: "Ambulance CAD receives live telemetry, GPS coordinates to Beacon Hill Apt 3B, pre-notifies Mass General Hospital Level 1 Trauma Center, and arrives with token 8492 for instant door entry.",
+        tag: "5. 911 EMS CAD DISPATCH",
+        roomTitle: "🚑 FIRST RESPONDER • BOSTON EMS MEDIC 14",
+        roomTelemetry: "Smart Door LED Green (Unlocked) • Ambulance Drives In • Dual Flashing Strobes",
+        statusPill: "🚑 AMBULANCE ARRIVED",
+        timeOffset: 40.5,
+        caption: "Simultaneously, Aegis dispatches Boston EMS Medic 14 with Eleanor's clinical vitals and floor status. The front door smart lock is automatically unlocked with emergency PIN 8492, allowing paramedics to enter instantly without delay.",
         explanation: {
-          confidence: "99.9%",
+          confidence: "100.0%",
           aiRationale: "Autonomous Computer-Aided Dispatch (CAD) packet generated with clinical vitals summary, floorplan GPS coordinates, and hospital pre-alert.",
-          sensorFusion: "Telemetry packet (Fall severity, pulse, address Beacon Hill Apt 3B) + Mass General Trauma 1 route telemetry.",
+          sensorFusion: "Telemetry packet (Fall severity, pulse, address Beacon Hill Unit 4B) + Mass General Trauma 1 route telemetry.",
           safetyOutput: "Boston EMS Medic 14 ambulance dispatched under Code 3; Smart Door Token 8492 issued for direct zero-delay paramedic entry."
-        },
-        visual: `
-          <div class="sim-video-viewport">
-            <div class="sim-cad-hud">
-              <div class="cad-header-row">
-                <span style="font-weight: 900; color: #ffffff; font-size: 0.95rem;">🚑 BOSTON EMS CAD &bull; UNIT: MEDIC-14</span>
-                <span class="pill-badge pill-red">EN ROUTE &bull; CODE 3</span>
-              </div>
-              <div class="cad-info-columns" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; text-align: left;">
-                <div>Resident: <strong>Eleanor Vance (Age 79)</strong><br>Address: <strong>Beacon Hill Apt 3B</strong></div>
-                <div>Hospital: <strong>Mass General Hospital</strong><br>ETA: <strong>4 mins (1.2 miles)</strong></div>
-              </div>
-              <div class="cad-door-token-box" style="margin-top: 14px; background: rgba(0, 0, 0, 0.45); border: 1.5px dashed rgba(244, 63, 94, 0.6); padding: 10px 16px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between;">
-                <span style="color: #fda4af; font-size: 0.8rem; font-weight: 800; text-transform: uppercase;">Smart Door PIN:</span>
-                <span style="font-size: 1.3rem; font-weight: 900; color: #34d399; font-family: monospace; letter-spacing: 0.15em;">8492</span>
-                <span class="pill-badge pill-green" style="font-size: 0.65rem;">DEADBOLT UNLOCKED</span>
-              </div>
-            </div>
-          </div>
-        `
+        }
       }
     ],
 
     init() {
       this.render();
+      setTimeout(() => {
+        this.init3DReel();
+      }, 50);
     },
 
-    currentTime: 0,
-    captionsVisible: true,
-    progressInterval: null,
-    viewMode: 'split',
+    init3DReel() {
+      if (typeof THREE === "undefined" || typeof OperationalVideoReel === "undefined") {
+        return;
+      }
+      const canvas = document.getElementById("geminiSplit3dCanvas");
+      if (!canvas) return;
+
+      try {
+        if (!this.reelInstance || this.reelInstance.canvas !== canvas) {
+          this.reelInstance = new OperationalVideoReel("geminiSplit3dCanvas");
+          this.reelInstance.isAudioMuted = true;
+        }
+        this.sync3DReel();
+      } catch (err) {
+        console.warn("3D Reel Init:", err);
+      }
+    },
+
+    sync3DReel() {
+      if (!this.reelInstance) {
+        this.init3DReel();
+        if (!this.reelInstance) return;
+      }
+      const sc = this.scenes[this.currentScene];
+      if (!sc) return;
+
+      const baseTime = sc.timeOffset || 0;
+      const targetTime = baseTime + (this.currentTime || 0);
+      try {
+        this.reelInstance.seek(targetTime);
+        this.reelInstance.resize();
+        if (this.isPlaying) {
+          this.reelInstance.play();
+        } else {
+          this.reelInstance.pause();
+        }
+      } catch (e) {
+        console.warn("3D Reel Sync:", e);
+      }
+    },
 
     setViewMode(mode) {
       this.viewMode = mode;
-      this.render();
+      const stage = document.getElementById("geminiStageContainer");
+      if (stage) {
+        stage.className = "gemini-stage-container" + 
+          (mode === "human" ? " view-human-only" : (mode === "3d" ? " view-3d-only" : ""));
+      }
+      const btns = document.querySelectorAll(".gemini-view-toggles .view-mode-btn");
+      btns.forEach(b => {
+        const isTarget = b.getAttribute("data-mode") === mode;
+        b.classList.toggle("active-view-mode", isTarget);
+      });
+      if (this.reelInstance) {
+        setTimeout(() => {
+          this.reelInstance.resize();
+        }, 60);
+      }
     },
 
     play() {
@@ -1808,6 +1782,12 @@
       this.updateControlsUI();
       this.speakNarration(this.scenes[this.currentScene].caption);
       this.startTimer();
+      if (this.reelInstance) {
+        this.reelInstance.play();
+      } else {
+        this.init3DReel();
+        if (this.reelInstance) this.reelInstance.play();
+      }
     },
 
     pause() {
@@ -1815,6 +1795,9 @@
       this.clearTimer();
       this.stopNarration();
       this.updateControlsUI();
+      if (this.reelInstance) {
+        this.reelInstance.pause();
+      }
     },
 
     togglePlay() {
@@ -1827,12 +1810,29 @@
 
     toggleVoiceover() {
       this.voiceNarrationEnabled = !this.voiceNarrationEnabled;
+      const ttsBtn = document.getElementById('demoVideoTtsBtn');
+      const sideBtn = document.getElementById('demoVideoVoiceSideBtn');
+      const text = this.voiceNarrationEnabled ? '🔊 Voice: ON' : '🔇 Voice: OFF';
+      const fullText = this.voiceNarrationEnabled ? '🔊 Voiceover: ON' : '🔇 Voiceover: OFF';
+
+      if (ttsBtn) {
+        ttsBtn.textContent = fullText;
+        ttsBtn.style.background = this.voiceNarrationEnabled ? 'rgba(16, 185, 129, 0.2)' : '';
+        ttsBtn.style.borderColor = this.voiceNarrationEnabled ? '#10b981' : '';
+        ttsBtn.style.color = this.voiceNarrationEnabled ? '#34d399' : '';
+      }
+      if (sideBtn) {
+        sideBtn.textContent = text;
+        sideBtn.style.background = this.voiceNarrationEnabled ? 'rgba(16, 185, 129, 0.2)' : '';
+        sideBtn.style.borderColor = this.voiceNarrationEnabled ? '#10b981' : '';
+        sideBtn.style.color = this.voiceNarrationEnabled ? '#34d399' : '';
+      }
+
       if (this.voiceNarrationEnabled) {
         this.speakNarration(this.scenes[this.currentScene].caption);
       } else {
         this.stopNarration();
       }
-      this.render();
     },
 
     speakNarration(text) {
@@ -1901,6 +1901,8 @@
         this.startTimer();
       }
       this.updateControlsUI();
+      const speedPill = document.getElementById("videoSpeedDisplay");
+      if (speedPill) speedPill.textContent = speed + "x";
     },
 
     seek(e) {
@@ -1912,6 +1914,7 @@
       const current = this.scenes[this.currentScene];
       this.currentTime = ratio * current.duration;
       this.updateTimelineUI();
+      this.sync3DReel();
     },
 
     toggleCaptions() {
@@ -1991,6 +1994,10 @@
       if (centerPlay) {
         centerPlay.style.display = this.isPlaying ? 'none' : 'flex';
       }
+      const soundbars = document.getElementById('geminiSoundbars');
+      if (soundbars) {
+        soundbars.style.opacity = this.isPlaying ? '1' : '0.4';
+      }
     },
 
     render() {
@@ -2006,32 +2013,93 @@
         safetyOutput: "Automated verified action."
       };
 
+      const existingCard = document.getElementById('demoVideoPlayerCard');
+      if (existingCard) {
+        // Fast in-place DOM update so 3D WebGL Canvas never loses context or reloads!
+        const phasePill = document.getElementById('videoPhasePill');
+        if (phasePill) phasePill.textContent = sc.tag;
+
+        const phaseCounter = document.getElementById('videoPhaseCounter');
+        if (phaseCounter) phaseCounter.textContent = `Phase ${this.currentScene + 1} of ${total}`;
+
+        const roomTitle = document.getElementById('gemini3dRoomTitle');
+        if (roomTitle) roomTitle.textContent = sc.roomTitle;
+
+        const telemetrySub = document.getElementById('gemini3dTelemetrySub');
+        if (telemetrySub) telemetrySub.textContent = sc.roomTelemetry;
+
+        const statusPill = document.getElementById('gemini3dStatusPill');
+        if (statusPill) statusPill.textContent = sc.statusPill;
+
+        const speechText = document.getElementById('geminiSpeechText');
+        if (speechText) speechText.textContent = sc.caption;
+
+        const lowerTopic = document.getElementById('tvLowerTopic');
+        if (lowerTopic) lowerTopic.textContent = `Phase 0${this.currentScene + 1}: ${sc.title}`;
+
+        const captionsOverlay = document.getElementById('videoCaptionsOverlay');
+        if (captionsOverlay) captionsOverlay.textContent = sc.caption;
+
+        const sceneTitle = document.getElementById('videoSceneTitle');
+        if (sceneTitle) sceneTitle.textContent = sc.title;
+
+        const sceneSub = document.getElementById('videoSceneSub');
+        if (sceneSub) sceneSub.textContent = sc.sub;
+
+        const xaiConf = document.getElementById('xaiConfidence');
+        if (xaiConf) xaiConf.innerHTML = `Confidence Score: <strong>${escapeHtml(xai.confidence)}</strong>`;
+
+        const xaiRat = document.getElementById('xaiAiRationale');
+        if (xaiRat) xaiRat.textContent = xai.aiRationale;
+
+        const xaiSens = document.getElementById('xaiSensorFusion');
+        if (xaiSens) xaiSens.textContent = xai.sensorFusion;
+
+        const xaiSafe = document.getElementById('xaiSafetyOutput');
+        if (xaiSafe) xaiSafe.textContent = xai.safetyOutput;
+
+        const tryBtn = document.getElementById('btnTryFeatureLive');
+        if (tryBtn) tryBtn.setAttribute('onclick', `window.switchTab('${sc.tabTarget}')`);
+
+        // Update chapter dots
+        const chapterBtns = document.querySelectorAll('.chapter-dot-btn');
+        chapterBtns.forEach((btn, idx) => {
+          btn.classList.toggle('active-chapter', idx === this.currentScene);
+        });
+
+        this.updateControlsUI();
+        this.updateTimelineUI();
+        this.sync3DReel();
+        return;
+      }
+
+      // Initial Mount: Render Full Video Stage HTML including Three.js Canvas
       container.innerHTML = `
         <div class="video-player-card" id="demoVideoPlayerCard">
           <!-- Top Stream Status Bar with Gemini Branding & View Toggles -->
           <div class="video-top-bar" style="flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
               <span class="gemini-brand-pill">✨ Powered by Gemini Multimodal AI</span>
-              <span class="pill-badge pill-blue">${sc.tag}</span>
+              <span class="pill-badge pill-blue" id="videoPhasePill">${escapeHtml(sc.tag)}</span>
             </div>
 
             <!-- 3D / Human Presenter View Switcher -->
             <div class="gemini-view-toggles" role="group" aria-label="Explainer Presentation Mode">
-              <button class="view-mode-btn ${this.viewMode === 'split' ? 'active-view-mode' : ''}" onclick="window.demoVideoController.setViewMode('split')" title="Side-by-side 3D Simulation and Human AI Presenter">
+              <button class="view-mode-btn ${this.viewMode === 'split' ? 'active-view-mode' : ''}" data-mode="split" onclick="window.demoVideoController.setViewMode('split')" title="Side-by-side 3D Simulation and Human AI Presenter">
                 ✨ Split Studio Video
               </button>
-              <button class="view-mode-btn ${this.viewMode === 'human' ? 'active-view-mode' : ''}" onclick="window.demoVideoController.setViewMode('human')" title="Focused Human AI Presenter View">
+              <button class="view-mode-btn ${this.viewMode === 'human' ? 'active-view-mode' : ''}" data-mode="human" onclick="window.demoVideoController.setViewMode('human')" title="Focused Human AI Presenter View">
                 👤 Human Presenter
               </button>
-              <button class="view-mode-btn ${this.viewMode === '3d' ? 'active-view-mode' : ''}" onclick="window.demoVideoController.setViewMode('3d')" title="Focused 3D Digital Twin View">
+              <button class="view-mode-btn ${this.viewMode === '3d' ? 'active-view-mode' : ''}" data-mode="3d" onclick="window.demoVideoController.setViewMode('3d')" title="Focused 3D Digital Twin View">
                 🌐 3D Digital Twin
               </button>
             </div>
 
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-weight: 700; color: #e2e8f0; font-size: 0.78rem;">Phase ${this.currentScene + 1} of ${total}</span>
+              <span style="font-weight: 700; color: #e2e8f0; font-size: 0.78rem;" id="videoPhaseCounter">Phase ${this.currentScene + 1} of ${total}</span>
               <div class="video-speed-pill">
-                <span>Speed: <strong>${this.playbackSpeed}x</strong></span>
+                <span>Speed: <strong id="videoSpeedDisplay">${this.playbackSpeed}x</strong></span>
               </div>
             </div>
           </div>
@@ -2056,23 +2124,26 @@
               </div>
 
               <!-- The Split Stage: 3D Simulation & Human Presenter -->
-              <div class="gemini-stage-container ${this.viewMode === 'human' ? 'view-human-only' : (this.viewMode === '3d' ? 'view-3d-only' : '')}" style="margin: 0; border: none; min-height: 420px; border-radius: 0;">
+              <div class="gemini-stage-container ${this.viewMode === 'human' ? 'view-human-only' : (this.viewMode === '3d' ? 'view-3d-only' : '')}" id="geminiStageContainer" style="margin: 0; border: none; min-height: 420px; border-radius: 0;">
                 
-                <!-- Left Pane: 3D Floorplan or Interactive Simulation Scene -->
+                <!-- Left Pane: True 3D Three.js Animated WebGL Operational Canvas -->
                 <div class="gemini-simulation-pane">
-                  ${this.viewMode === '3d' ? `
-                    <div class="gemini-3d-preview-wrap animated-3d-bg" style="background-image: url('/static/gemini_3d_twin.jpg');">
-                      <div class="gemini-3d-hud-overlay">
+                  <div class="gemini-3d-canvas-wrap" id="gemini3dCanvasWrap">
+                    <canvas id="geminiSplit3dCanvas" class="gemini-split-3d-canvas"></canvas>
+                    
+                    <div class="gemini-3d-hud-overlay" id="gemini3dHudOverlay">
+                      <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="rec-pulse-dot" style="background: #38bdf8; box-shadow: 0 0 8px #38bdf8;"></span>
                         <div>
-                          <strong style="color: #38bdf8;">🌐 3D DIGITAL TWIN &bull; UNIT 4B</strong>
-                          <div style="font-size: 0.7rem; color: #94a3b8;">4 Active Sensors &bull; 60GHz mmWave Radar Array</div>
+                          <strong style="color: #38bdf8;" id="gemini3dRoomTitle">${escapeHtml(sc.roomTitle)}</strong>
+                          <div style="font-size: 0.7rem; color: #94a3b8;" id="gemini3dTelemetrySub">
+                            ${escapeHtml(sc.roomTelemetry)}
+                          </div>
                         </div>
-                        <span class="pill-badge pill-green" style="font-size: 0.65rem;">TELEMETRY SYNCED</span>
                       </div>
+                      <span class="pill-badge pill-green" id="gemini3dStatusPill" style="font-size: 0.65rem;">${escapeHtml(sc.statusPill)}</span>
                     </div>
-                  ` : `
-                    ${sc.visual}
-                  `}
+                  </div>
                 </div>
 
                 <!-- Right Pane: Dr. Maya (Gemini Healthcare AI Presenter) -->
@@ -2099,23 +2170,23 @@
                     <div class="gemini-speech-bubble">
                       <div class="gemini-speech-meta">
                         <span>✨ GEMINI CLINICAL EXPLANATION</span>
-                        <div class="gemini-soundbars" aria-hidden="true">
+                        <div class="gemini-soundbars" id="geminiSoundbars" aria-hidden="true" style="opacity: ${this.isPlaying ? '1' : '0.4'};">
                           <div class="gemini-bar"></div>
                           <div class="gemini-bar"></div>
                           <div class="gemini-bar"></div>
                           <div class="gemini-bar"></div>
                         </div>
                       </div>
-                      <div>${escapeHtml(sc.caption)}</div>
+                      <div id="geminiSpeechText">${escapeHtml(sc.caption)}</div>
                     </div>
                   </div>
 
                   <!-- Action Bar in Presenter Card -->
                   <div style="margin-top: 14px; display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
-                    <button class="btn-demo-primary" onclick="window.switchTab('${sc.tabTarget}')" style="white-space: nowrap; font-size: 0.76rem; padding: 6px 12px;">
+                    <button class="btn-demo-primary" id="btnTryFeatureLive" onclick="window.switchTab('${sc.tabTarget}')" style="white-space: nowrap; font-size: 0.76rem; padding: 6px 12px;">
                       🚀 Try Feature Live &rarr;
                     </button>
-                    <button class="btn-demo-secondary" onclick="window.demoVideoController.toggleVoiceover()" style="white-space: nowrap; font-size: 0.76rem; padding: 6px 12px; ${this.voiceNarrationEnabled ? 'background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #34d399;' : ''}">
+                    <button class="btn-demo-secondary" id="demoVideoVoiceSideBtn" onclick="window.demoVideoController.toggleVoiceover()" style="white-space: nowrap; font-size: 0.76rem; padding: 6px 12px; ${this.voiceNarrationEnabled ? 'background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #34d399;' : ''}">
                       ${this.voiceNarrationEnabled ? '🔊 Voice: ON' : '🔇 Voice: OFF'}
                     </button>
                   </div>
@@ -2129,7 +2200,7 @@
                   <span>DR. MAYA THORNE, MD</span>
                   <span style="color: #94a3b8; font-size: 0.68rem;">&bull; GEMINI CLINICAL AI</span>
                 </div>
-                <div class="tv-lower-topic">Phase 0${this.currentScene + 1}: ${escapeHtml(sc.title)}</div>
+                <div class="tv-lower-topic" id="tvLowerTopic">Phase 0${this.currentScene + 1}: ${escapeHtml(sc.title)}</div>
               </div>
 
               <!-- Floating Subtitles / Closed Captions (CC) Overlay -->
@@ -2168,8 +2239,8 @@
           <div class="video-meta-section">
             <div class="video-title-row">
               <div>
-                <h3 class="video-scene-title">${escapeHtml(sc.title)}</h3>
-                <div class="video-scene-sub">${escapeHtml(sc.sub)}</div>
+                <h3 class="video-scene-title" id="videoSceneTitle">${escapeHtml(sc.title)}</h3>
+                <div class="video-scene-sub" id="videoSceneSub">${escapeHtml(sc.sub)}</div>
               </div>
             </div>
 
@@ -2177,20 +2248,20 @@
             <div class="video-xai-panel">
               <div class="video-xai-header">
                 <span class="xai-chip">🧠 EXPLAINABLE AI (XAI) DECISION BREAKDOWN &bull; GEMINI 1.5 PRO REASONING</span>
-                <span class="xai-confidence">Confidence Score: <strong>${escapeHtml(xai.confidence)}</strong></span>
+                <span class="xai-confidence" id="xaiConfidence">Confidence Score: <strong>${escapeHtml(xai.confidence)}</strong></span>
               </div>
               <div class="video-xai-grid">
                 <div class="xai-col">
                   <small>🔍 AI Decision Rationale</small>
-                  <div>${escapeHtml(xai.aiRationale)}</div>
+                  <div id="xaiAiRationale">${escapeHtml(xai.aiRationale)}</div>
                 </div>
                 <div class="xai-col">
                   <small>📡 Sensor Fusion Inputs</small>
-                  <div>${escapeHtml(xai.sensorFusion)}</div>
+                  <div id="xaiSensorFusion">${escapeHtml(xai.sensorFusion)}</div>
                 </div>
                 <div class="xai-col">
                   <small>⚡ Actuation &amp; Safety Output</small>
-                  <div>${escapeHtml(xai.safetyOutput)}</div>
+                  <div id="xaiSafetyOutput">${escapeHtml(xai.safetyOutput)}</div>
                 </div>
               </div>
             </div>
@@ -2232,8 +2303,12 @@
           </div>
         </div>
       `;
+
       this.updateControlsUI();
       this.updateTimelineUI();
+      setTimeout(() => {
+        this.init3DReel();
+      }, 50);
     }
   };
 

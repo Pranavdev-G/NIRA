@@ -97,8 +97,8 @@ class OperationalVideoReel {
     }
 
     const parent = this.canvas.parentElement;
-    const w = parent ? parent.clientWidth : 760;
-    const h = 360;
+    const w = (parent && parent.clientWidth > 100) ? parent.clientWidth : (this.canvas.clientWidth || 760);
+    const h = (parent && parent.clientHeight > 200) ? parent.clientHeight : (this.canvas.clientHeight || 400);
 
     // 1. Scene
     this.scene = new THREE.Scene();
@@ -711,8 +711,8 @@ class OperationalVideoReel {
   resize() {
     if (!this.renderer || !this.camera || !this.canvas) return;
     const parent = this.canvas.parentElement;
-    const w = parent ? parent.clientWidth : 760;
-    const h = 360;
+    const w = (parent && parent.clientWidth > 100) ? parent.clientWidth : (this.canvas.clientWidth || 760);
+    const h = (parent && parent.clientHeight > 200) ? parent.clientHeight : (this.canvas.clientHeight || 400);
 
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
