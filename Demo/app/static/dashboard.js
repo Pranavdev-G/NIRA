@@ -1346,13 +1346,57 @@ function sleep(ms) {
 // ---------------------------------------------------------------------------
 // Multi-View Tab Navigation (Overview, Vision & Floorplan, Voice AI, Dispatch)
 // ---------------------------------------------------------------------------
+// Multi-View Tab Navigation (Overview, Vision, Voice AI, Dispatch & Person 2 Demo Module Views)
+// ---------------------------------------------------------------------------
 function switchTab(tabId) {
   playChime("info");
-  const tabs = ['overview', 'vision', 'voice', 'dispatch'];
-  tabs.forEach(t => {
-    const btn = document.getElementById('tabBtn' + capitalize(t));
-    const panel = document.getElementById('panel' + capitalize(t));
-    const isActive = (t === tabId);
+  
+  // Tab ID canonical mapping & aliases
+  const aliasMap = {
+    'voiceassistant': 'voiceassistant',
+    'assistant': 'voiceassistant',
+    'dailycheckin': 'dailycheckin',
+    'checkin': 'dailycheckin',
+    'falldetection': 'falldetection',
+    'fall': 'falldetection',
+    'falldetect': 'falldetection',
+    'emergencyalert': 'emergencyalert',
+    'alert': 'emergencyalert',
+    'locationmap': 'locationmap',
+    'map': 'locationmap',
+    'hospitals': 'locationmap',
+    'notificationcenter': 'notificationcenter',
+    'notifications': 'notificationcenter',
+    'notif': 'notificationcenter',
+    'incidenthistory': 'incidenthistory',
+    'history': 'incidenthistory',
+    'incidents': 'incidenthistory',
+    'overview': 'overview',
+    'vision': 'vision',
+    'voice': 'voice',
+    'dispatch': 'dispatch'
+  };
+
+  const canonical = (tabId && aliasMap[tabId.toLowerCase()]) ? aliasMap[tabId.toLowerCase()] : (tabId ? tabId.toLowerCase() : 'voiceassistant');
+
+  const allTabs = [
+    { id: 'voiceassistant', btn: 'tabBtnVoiceAssistant', panel: 'panelVoiceAssistant' },
+    { id: 'dailycheckin', btn: 'tabBtnDailyCheckin', panel: 'panelDailyCheckin' },
+    { id: 'falldetection', btn: 'tabBtnFallDetection', panel: 'panelFallDetection' },
+    { id: 'emergencyalert', btn: 'tabBtnEmergencyAlert', panel: 'panelEmergencyAlert' },
+    { id: 'locationmap', btn: 'tabBtnLocationMap', panel: 'panelLocationMap' },
+    { id: 'notificationcenter', btn: 'tabBtnNotificationCenter', panel: 'panelNotificationCenter' },
+    { id: 'incidenthistory', btn: 'tabBtnIncidentHistory', panel: 'panelIncidentHistory' },
+    { id: 'overview', btn: 'tabBtnOverview', panel: 'panelOverview' },
+    { id: 'vision', btn: 'tabBtnVision', panel: 'panelVision' },
+    { id: 'voice', btn: 'tabBtnVoice', panel: 'panelVoice' },
+    { id: 'dispatch', btn: 'tabBtnDispatch', panel: 'panelDispatch' }
+  ];
+
+  allTabs.forEach(t => {
+    const btn = document.getElementById(t.btn);
+    const panel = document.getElementById(t.panel);
+    const isActive = (t.id === canonical);
     if (btn) {
       if (isActive) {
         btn.classList.add('active');
@@ -1374,10 +1418,24 @@ function switchTab(tabId) {
   });
 
   // If switched to vision tab, trigger camera canvas resize to fit viewport
-  if (tabId === 'vision' && window.cameraSim) {
+  if (canonical === 'vision' && window.cameraSim) {
     setTimeout(() => {
       window.cameraSim.resizeCanvas();
     }, 60);
+  }
+
+  // If switched to locationmap, trigger Leaflet resize
+  if (canonical === 'locationmap' && window.person2LocationMap) {
+    setTimeout(() => {
+      if (window.person2LocationMap.leafletMap) {
+        window.person2LocationMap.leafletMap.invalidateSize();
+      }
+    }, 100);
+  }
+
+  // Update hash safely without full reload
+  if (window.history && window.history.replaceState) {
+    window.history.replaceState(null, null, '#demo/' + canonical);
   }
 }
 
@@ -1876,9 +1934,15 @@ window.switchSystemMode = switchSystemMode;
 // Check URL hash immediately on boot or navigation
 if (typeof window !== "undefined") {
   const checkInitialHash = () => {
-    const hash = (window.location.hash || "").replace("#", "").toLowerCase();
-    if (hash === "demo" || hash === "live") {
-      enterSystemMode(hash);
+    const raw = (window.location.hash || "").replace("#", "").toLowerCase();
+    const parts = raw.split('/');
+    const mode = parts[0];
+    const subTab = parts[1];
+    if (mode === "demo" || mode === "live") {
+      enterSystemMode(mode);
+      if (mode === "demo" && subTab) {
+        setTimeout(() => switchTab(subTab), 120);
+      }
     }
   };
   if (document.readyState === "loading") {
