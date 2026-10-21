@@ -32,11 +32,18 @@ import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 
-from wearable_simulator import WearableSimulator
-from environment_simulator import EnvironmentSimulator
-from radar_simulator import RadarSimulator
-from vision_simulator import VisionSimulator
-from voice_simulator import VoiceSimulator
+try:
+    from demo.wearable_simulator import WearableSimulator
+    from demo.environment_simulator import EnvironmentSimulator
+    from demo.radar_simulator import RadarSimulator
+    from demo.vision_simulator import VisionSimulator
+    from demo.voice_simulator import VoiceSimulator
+except ImportError:
+    from wearable_simulator import WearableSimulator
+    from environment_simulator import EnvironmentSimulator
+    from radar_simulator import RadarSimulator
+    from vision_simulator import VisionSimulator
+    from voice_simulator import VoiceSimulator
 
 # Ensure UTF-8 output on Windows consoles
 if hasattr(sys.stdout, "reconfigure"):

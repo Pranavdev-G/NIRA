@@ -1194,8 +1194,22 @@ function initVoiceCountdownTicker() {
 // ---------------------------------------------------------------------------
 async function switchScenario(key) {
   currentScenario = key;
-  playChime(key === "false_alarm" ? "success" : (key === "responsive" ? "warning" : "alert"));
+  try {
+    playChime(key === "false_alarm" ? "success" : (key === "responsive" ? "warning" : "alert"));
+  } catch (e) {}
   showToast(`⚡ Ingesting scenario event: <strong>${key}</strong> to backend...`);
+
+  // Call demo system scenario runner in demo/
+  const scenarioMap = {
+    "false_alarm": "false_alarm",
+    "responsive": "responsive_emergency",
+    "silent": "silent_emergency"
+  };
+  const demoTarget = scenarioMap[key] || key;
+  fetch(`/api/v1/demo/scenario/${demoTarget}`, { method: "POST" })
+    .then(r => r.json())
+    .then(data => console.log("Demo scenario triggered:", data))
+    .catch(err => console.warn("Demo scenario error:", err));
 
   try {
     if (window.niraStore) {
@@ -1777,18 +1791,58 @@ function toggleMain3DMode() { _setViewMode(is3DModeActive ? "radar" : "3d"); }
 // ---------------------------------------------------------------------------
 
 function enterSystemMode(mode) {
-  const landingScreen = document.getElementById("landingGatewayScreen");
-  const appWorkspace = document.getElementById("appWorkspaceContainer");
+  try {
+    const landingScreen = document.getElementById("landingGatewayScreen");
+    const appWorkspace = document.getElementById("appWorkspaceContainer");
 
-  if (landingScreen) landingScreen.style.display = "none";
-  if (appWorkspace) appWorkspace.style.display = "block";
+    if (landingScreen) {
+      landingScreen.style.setProperty("display", "none", "important");
+      landingScreen.setAttribute("aria-hidden", "true");
+    }
+    if (appWorkspace) {
+      appWorkspace.style.setProperty("display", "block", "important");
+      appWorkspace.removeAttribute("aria-hidden");
+    }
 
-  switchSystemMode(mode, false);
-  playChime(mode === "live" ? "success" : "info");
-  showToast(`Entered <strong>${mode === 'live' ? 'Live Model Workspace' : 'Complete Demo System'}</strong>`);
+    // Call backend systems based on mode
+    if (mode === "demo") {
+      fetch("/api/v1/demo/launch", { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+          console.log("Demo system connected:", data);
+          if (typeof showToast === "function") {
+            showToast("🎮 <strong>Demo System Engaged</strong>: Calling Demo/ simulators");
+          }
+        })
+        .catch(err => console.warn("Demo launch ping error:", err));
+    } else if (mode === "live") {
+      fetch("/api/v1/live/launch", { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+          console.log("Live model system connected:", data);
+          if (typeof showToast === "function") {
+            showToast("⚡ <strong>Live Model System Engaged</strong>: Calling Live/ models");
+          }
+        })
+        .catch(err => console.warn("Live launch ping error:", err));
+    }
 
-  if (window.history && window.history.replaceState) {
-    window.history.replaceState(null, null, "#" + mode);
+    switchSystemMode(mode, false);
+    try {
+      playChime(mode === "live" ? "success" : "info");
+    } catch (audioErr) {
+      // AudioContext policy fallback
+    }
+
+    if (typeof showToast === "function") {
+      showToast(`Entered <strong>${mode === 'live' ? 'Live Model Workspace' : 'Complete Demo System'}</strong>`);
+    }
+
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, null, "#" + mode);
+    }
+  } catch (err) {
+    console.error("enterSystemMode error:", err);
   }
 }
 
@@ -1796,10 +1850,19 @@ function returnToLandingGateway() {
   const landingScreen = document.getElementById("landingGatewayScreen");
   const appWorkspace = document.getElementById("appWorkspaceContainer");
 
-  if (landingScreen) landingScreen.style.display = "flex";
-  if (appWorkspace) appWorkspace.style.display = "none";
+  if (landingScreen) {
+    landingScreen.style.setProperty("display", "flex", "important");
+    landingScreen.removeAttribute("aria-hidden");
+  }
+  if (appWorkspace) {
+    appWorkspace.style.setProperty("display", "none", "important");
+    appWorkspace.setAttribute("aria-hidden", "true");
+  }
 
-  playChime("info");
+  try {
+    playChime("info");
+  } catch (e) {}
+
   if (window.history && window.history.replaceState) {
     window.history.replaceState(null, null, window.location.pathname);
   }
@@ -1809,6 +1872,22 @@ function returnToLandingGateway() {
 window.enterSystemMode = enterSystemMode;
 window.returnToLandingGateway = returnToLandingGateway;
 window.switchSystemMode = switchSystemMode;
+
+// Check URL hash immediately on boot or navigation
+if (typeof window !== "undefined") {
+  const checkInitialHash = () => {
+    const hash = (window.location.hash || "").replace("#", "").toLowerCase();
+    if (hash === "demo" || hash === "live") {
+      enterSystemMode(hash);
+    }
+  };
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", checkInitialHash);
+  } else {
+    checkInitialHash();
+  }
+  window.addEventListener("hashchange", checkInitialHash);
+}
 
 // ---------------------------------------------------------------------------
 // Operating Environment Mode Switcher (Demo Mode vs Live Mode)

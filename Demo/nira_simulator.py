@@ -39,12 +39,20 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-from wearable_simulator import WearableSimulator
-from environment_simulator import EnvironmentSimulator
-from radar_simulator import RadarSimulator
-from vision_simulator import VisionSimulator
-from voice_simulator import VoiceSimulator
-from scenario_simulator import ScenarioSimulator
+try:
+    from demo.wearable_simulator import WearableSimulator
+    from demo.environment_simulator import EnvironmentSimulator
+    from demo.radar_simulator import RadarSimulator
+    from demo.vision_simulator import VisionSimulator
+    from demo.voice_simulator import VoiceSimulator
+    from demo.scenario_simulator import ScenarioSimulator
+except ImportError:
+    from wearable_simulator import WearableSimulator
+    from environment_simulator import EnvironmentSimulator
+    from radar_simulator import RadarSimulator
+    from vision_simulator import VisionSimulator
+    from voice_simulator import VoiceSimulator
+    from scenario_simulator import ScenarioSimulator
 
 logger = logging.getLogger("NIRA.SimulatorCLI")
 

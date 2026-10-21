@@ -218,47 +218,93 @@
   <!-- Immediate inline router for NIRA Landing Page (guarantees instant responsiveness even if external JS is delayed/cached) -->
   <script>
     function enterSystemMode(mode) {
-      var landingScreen = document.getElementById("landingGatewayScreen");
-      var appWorkspace = document.getElementById("appWorkspaceContainer");
-      if (landingScreen) landingScreen.style.display = "none";
-      if (appWorkspace) appWorkspace.style.display = "block";
-
-      if (typeof window.switchSystemMode === "function") {
-        window.switchSystemMode(mode, false);
-      } else {
-        var secDemo = document.getElementById("sectionDemoMode");
-        var secLive = document.getElementById("sectionLiveMode");
-        var btnDemo = document.getElementById("btnModeDemo");
-        var btnLive = document.getElementById("btnModeLive");
-        if (mode === "live") {
-          if (secLive) secLive.style.display = "block";
-          if (secDemo) secDemo.style.display = "none";
-          if (btnLive) { btnLive.classList.add("active"); btnLive.setAttribute("aria-checked", "true"); }
-          if (btnDemo) { btnDemo.classList.remove("active"); btnDemo.setAttribute("aria-checked", "false"); }
-        } else {
-          if (secDemo) secDemo.style.display = "block";
-          if (secLive) secLive.style.display = "none";
-          if (btnDemo) { btnDemo.classList.add("active"); btnDemo.setAttribute("aria-checked", "true"); }
-          if (btnLive) { btnLive.classList.remove("active"); btnLive.setAttribute("aria-checked", "false"); }
+      try {
+        var landingScreen = document.getElementById("landingGatewayScreen");
+        var appWorkspace = document.getElementById("appWorkspaceContainer");
+        if (landingScreen) {
+          landingScreen.style.setProperty("display", "none", "important");
+          landingScreen.setAttribute("aria-hidden", "true");
         }
-      }
+        if (appWorkspace) {
+          appWorkspace.style.setProperty("display", "block", "important");
+          appWorkspace.removeAttribute("aria-hidden");
+        }
 
-      if (window.history && window.history.replaceState) {
-        window.history.replaceState(null, null, "#" + mode);
+        if (mode === "demo") {
+          try {
+            fetch("/api/v1/demo/launch", { method: "POST" })
+              .then(function(r) { return r.json(); })
+              .then(function(d) {
+                console.log("NIRA Demo System activated:", d);
+              })
+              .catch(function(err) { console.warn("Demo launch ping:", err); });
+          } catch(e) {}
+        } else if (mode === "live") {
+          try {
+            fetch("/api/v1/live/launch", { method: "POST" })
+              .then(function(r) { return r.json(); })
+              .then(function(d) {
+                console.log("NIRA Live Model System activated:", d);
+              })
+              .catch(function(err) { console.warn("Live launch ping:", err); });
+          } catch(e) {}
+        }
+
+        if (typeof window.switchSystemMode === "function") {
+          window.switchSystemMode(mode, false);
+        } else {
+          var secDemo = document.getElementById("sectionDemoMode");
+          var secLive = document.getElementById("sectionLiveMode");
+          var btnDemo = document.getElementById("btnModeDemo");
+          var btnLive = document.getElementById("btnModeLive");
+          if (mode === "live") {
+            if (secLive) secLive.style.setProperty("display", "block", "important");
+            if (secDemo) secDemo.style.setProperty("display", "none", "important");
+            if (btnLive) { btnLive.classList.add("active"); btnLive.setAttribute("aria-checked", "true"); }
+            if (btnDemo) { btnDemo.classList.remove("active"); btnDemo.setAttribute("aria-checked", "false"); }
+          } else {
+            if (secDemo) secDemo.style.setProperty("display", "block", "important");
+            if (secLive) secLive.style.setProperty("display", "none", "important");
+            if (btnDemo) { btnDemo.classList.add("active"); btnDemo.setAttribute("aria-checked", "true"); }
+            if (btnLive) { btnLive.classList.remove("active"); btnLive.setAttribute("aria-checked", "false"); }
+          }
+        }
+
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState(null, null, "#" + mode);
+        }
+      } catch (err) {
+        console.error("enterSystemMode error:", err);
       }
     }
 
     function returnToLandingGateway() {
       var landingScreen = document.getElementById("landingGatewayScreen");
       var appWorkspace = document.getElementById("appWorkspaceContainer");
-      if (landingScreen) landingScreen.style.display = "flex";
-      if (appWorkspace) appWorkspace.style.display = "none";
+      if (landingScreen) {
+        landingScreen.style.setProperty("display", "flex", "important");
+        landingScreen.removeAttribute("aria-hidden");
+      }
+      if (appWorkspace) {
+        appWorkspace.style.setProperty("display", "none", "important");
+        appWorkspace.setAttribute("aria-hidden", "true");
+      }
 
       if (window.history && window.history.replaceState) {
         window.history.replaceState(null, null, window.location.pathname);
       }
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
+
+    // Auto-enter if hash is present (#demo or #live)
+    function checkInitialHashMode() {
+      var hash = (window.location.hash || "").replace("#", "").toLowerCase();
+      if (hash === "demo" || hash === "live") {
+        enterSystemMode(hash);
+      }
+    }
+    window.addEventListener("DOMContentLoaded", checkInitialHashMode);
+    window.addEventListener("hashchange", checkInitialHashMode);
 
     window.enterSystemMode = enterSystemMode;
     window.returnToLandingGateway = returnToLandingGateway;
@@ -291,7 +337,7 @@
       <!-- Base: DEMO on Left, LIVE MODEL on Right -->
       <div class="nira-base-row">
         <!-- DEMO -->
-        <div id="btnLandingDemo" class="nira-portal-card demo-portal" onclick="enterSystemMode('demo')" tabindex="0" role="button" aria-label="Open Demo Mode">
+        <div id="btnLandingDemo" class="nira-portal-card demo-portal" onclick="enterSystemMode('demo')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();enterSystemMode('demo');}" tabindex="0" role="button" aria-label="Open Demo Mode">
           <div class="portal-label">DEMO</div>
           <div class="portal-arrow" aria-hidden="true">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -299,7 +345,7 @@
         </div>
 
         <!-- LIVE MODEL -->
-        <div id="btnLandingLive" class="nira-portal-card live-portal" onclick="enterSystemMode('live')" tabindex="0" role="button" aria-label="Open Live Model Mode">
+        <div id="btnLandingLive" class="nira-portal-card live-portal" onclick="enterSystemMode('live')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();enterSystemMode('live');}" tabindex="0" role="button" aria-label="Open Live Model Mode">
           <div class="portal-label">LIVE MODEL</div>
           <div class="portal-arrow" aria-hidden="true">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>

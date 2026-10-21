@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.database.session import init_db
-from app.routers import health, tools_http, mcp_server, risk_api, incidents_api, events_api
+from app.routers import health, tools_http, mcp_server, risk_api, incidents_api, events_api, demo_api, live_api
 
 
 @asynccontextmanager
@@ -94,6 +94,12 @@ async def add_latency_timing_header(request: Request, call_next):
     response.headers["X-Process-Time-Ms"] = f"{process_time_ms:.2f}"
     response.headers["Server-Timing"] = f"total;dur={process_time_ms:.2f}"
 
+    # Prevent stale browser caching during development and hackathon testing
+    if request.url.path.startswith("/static/") or request.url.path == "/":
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+
     return response
 
 
@@ -106,6 +112,8 @@ app.include_router(incidents_api.router)
 app.include_router(risk_api.router)
 app.include_router(tools_http.router)
 app.include_router(mcp_server.router)
+app.include_router(demo_api.router)
+app.include_router(live_api.router)
 
 
 from fastapi.staticfiles import StaticFiles
