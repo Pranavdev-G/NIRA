@@ -7,11 +7,12 @@ Supports SQLite (default local) and PostgreSQL (via DATABASE_URL).
 import os
 from datetime import datetime, timezone
 from typing import Generator
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, Session
 
 from app.database.models import Base, UserModel
 from app.config import settings
+from app.database.mongo import sync_model_to_mongo, init_mongo_db
 
 # Database connection URL - default to lightweight local SQLite
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./aegis_care.db")
@@ -27,6 +28,16 @@ engine = create_engine(
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+@event.listens_for(SessionLocal, "after_flush")
+def sync_flushed_objects_to_mongo(session, flush_context):
+    """Syncs any inserted or modified objects into MongoDB Atlas in real time."""
+    for obj in list(session.new) + list(session.dirty):
+        try:
+            sync_model_to_mongo(obj)
+        except Exception:
+            pass
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -102,3 +113,9 @@ def init_db():
             )
             db.add(default_user)
             db.commit()
+
+    # Initialize MongoDB Atlas collections, indexes, and resident profile
+    try:
+        init_mongo_db()
+    except Exception:
+        pass

@@ -9,6 +9,7 @@ from fastapi import APIRouter
 from app.config import settings
 from app.models.schemas import Event, Context
 from app.services.risk_engine import RiskEngine
+from app.database.mongo import check_mongo_health
 
 router = APIRouter(tags=["Health & Telemetry"])
 
@@ -17,7 +18,7 @@ router = APIRouter(tags=["Health & Telemetry"])
 async def health_check():
     """
     Healthcheck endpoint that also runs an active latency self-test to verify
-    compliance with Amazon's sub-500ms voice latency budget.
+    compliance with Amazon's sub-500ms voice latency budget and database telemetry.
     """
     start_test = time.perf_counter()
     sample_event = Event(
@@ -46,6 +47,10 @@ async def health_check():
             "budget_ms": settings.LATENCY_BUDGET_MS,
             "engine_self_test_ms": round(self_test_latency_ms, 2),
             "compliant": self_test_latency_ms < settings.LATENCY_BUDGET_MS
+        },
+        "database": {
+            "sqlite": "active",
+            "mongodb": check_mongo_health()
         },
         "timestamp": datetime.now(timezone.utc).isoformat()
     }

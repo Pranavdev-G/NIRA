@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.database.session import init_db
-from app.routers import health, tools_http, mcp_server, risk_api, incidents_api, events_api, demo_api, live_api
+from app.routers import health, tools_http, mcp_server, risk_api, incidents_api, events_api, demo_api, live_api, mongo_api
 
 
 @asynccontextmanager
@@ -114,6 +114,7 @@ app.include_router(tools_http.router)
 app.include_router(mcp_server.router)
 app.include_router(demo_api.router)
 app.include_router(live_api.router)
+app.include_router(mongo_api.router)
 
 # Mount Live Voice Interaction Router
 try:
