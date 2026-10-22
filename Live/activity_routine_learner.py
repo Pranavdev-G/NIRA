@@ -26,18 +26,17 @@ logger = logging.getLogger("NIRA.ActivityRoutineLearner")
 
 DEFAULT_DATA_PATH = Path(__file__).resolve().parent / "data" / "activity_baseline.json"
 
-# Standard zone risk weights (lower multiplier = stricter inactivity limits)
+# Standard zone risk weights (3 to 5 minutes base inactivity limits as requested)
 ZONE_RISK_PROFILES = {
     "bathroom": {"base_inactivity_sec": 180.0, "max_cap_sec": 300.0, "risk_tier": "CRITICAL_ZONE"},
     "hallway": {"base_inactivity_sec": 180.0, "max_cap_sec": 300.0, "risk_tier": "TRANSIT_ZONE"},
-    "kitchen": {"base_inactivity_sec": 240.0, "max_cap_sec": 600.0, "risk_tier": "ACTIVE_ZONE"},
-    "living_room": {"base_inactivity_sec": 300.0, "max_cap_sec": 3600.0, "risk_tier": "REST_ZONE"},
-    "bedroom": {"base_inactivity_sec": 300.0, "max_cap_sec": 7200.0, "risk_tier": "SLEEP_ZONE"},
-    "general": {"base_inactivity_sec": 240.0, "max_cap_sec": 1800.0, "risk_tier": "DEFAULT_ZONE"}
+    "kitchen": {"base_inactivity_sec": 180.0, "max_cap_sec": 600.0, "risk_tier": "ACTIVE_ZONE"},
+    "living_room": {"base_inactivity_sec": 180.0, "max_cap_sec": 3600.0, "risk_tier": "REST_ZONE"},
+    "bedroom": {"base_inactivity_sec": 180.0, "max_cap_sec": 7200.0, "risk_tier": "SLEEP_ZONE"},
+    "general": {"base_inactivity_sec": 180.0, "max_cap_sec": 1800.0, "risk_tier": "DEFAULT_ZONE"}
 }
 
 # Known clinical circadian resting windows (24-hour format)
-# E.g., night sleep: 22:00 to 07:00, afternoon nap: 13:00 to 15:30
 NIGHT_HOURS = set([22, 23, 0, 1, 2, 3, 4, 5, 6])
 AFTERNOON_NAP_HOURS = set([13, 14, 15])
 
@@ -52,25 +51,6 @@ class DailyActivityRoutineLearner:
     def __init__(self, data_path: Optional[str] = None):
         self.data_path = Path(data_path) if data_path else DEFAULT_DATA_PATH
         self.data_path.parent.mkdir(parents=True, exist_ok=True)
-
-        # Baseline structure:
-        # {
-        #   "hourly_zones": {
-        #      "14": {
-        #         "living_room": {
-        #            "observations_count": 12,
-        #            "mean_inactivity_sec": 420.0,
-        #            "max_observed_safe_sec": 900.0,
-        #            "tolerated_threshold_sec": 960.0,
-        #            "dismissed_alarms_count": 2,
-        #            "last_updated": "..."
-        #         }
-        #      }
-        #   },
-        #   "total_learned_events": 0,
-        #   "suppressed_false_alarms": 0,
-        #   "version": "2.0.0"
-        # }
         self.profile: Dict[str, Any] = self._load_profile()
 
     def _default_profile(self) -> Dict[str, Any]:
@@ -80,13 +60,8 @@ class DailyActivityRoutineLearner:
             hourly[str(h)] = {}
             for zone, p in ZONE_RISK_PROFILES.items():
                 base_sec = p["base_inactivity_sec"]
-                # Adapt for circadian rhythms
-                if zone in ["bedroom", "living_room"]:
-                    if h in NIGHT_HOURS:
-                        base_sec = max(base_sec, 1800.0)  # 30 mins base at night
-                    elif h in AFTERNOON_NAP_HOURS:
-                        base_sec = max(base_sec, 600.0)   # 10 mins base afternoon nap
-
+                if zone == "bedroom" and h in NIGHT_HOURS:
+                    base_sec = 1800.0  # 30 mins sleep in bed at night
                 hourly[str(h)][zone] = {
                     "observations_count": 1,
                     "mean_inactivity_sec": base_sec,

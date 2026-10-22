@@ -2,11 +2,11 @@
 NIRA Live Model & Real-Time Sensor Processing Engine.
 Amazon Developer Hackathon 2026.
 
-Integrates real-time camera inference with trained YOLOv8 model on Kaggle dataset.
+Integrates real-time camera inference with YOLOv8 Pose + Kaggle Fall Detection.
 Evaluates:
-  1. NORMAL MOVEMENT (Walking / Sitting within daily circadian routine)
-  2. FALL DETECTED (Class 0: Sudden Fall / Collapse via biomechanics + YOLOv8)
-  3. PROLONGED INACTIVITY (Motionless without movement for 3-5 mins / learned routine limit)
+  1. FACE & PERSON TRACKING (Nose, eyes, ears, shoulders, and upper body)
+  2. FALL DETECTION (Acute drop, floor collapse, slump off chair, horizontal angle, and Kaggle fall model)
+  3. PROLONGED INACTIVITY (Real-time motionless tracking for 3-5 mins, robust to camera sensor noise)
   4. ALARM INQUIRY WAKE-UP & SPOKEN VOICE RESPONSE VERIFICATION (Microphone + Whisper STT)
   5. SELF-LEARNING DAILY ACTIVITY ROUTINE (Adapts baselines on safe feedback to eliminate false alarms)
 """
@@ -48,13 +48,6 @@ except ImportError:
 
 logger = logging.getLogger("NIRA.LiveVisionTracker")
 
-# Label mappings from Kaggle Fall Detection Dataset
-CLASS_NAMES = {
-    0: "Fall Detected",
-    1: "Walking",
-    2: "Sitting"
-}
-
 STATE_NORMAL = "NORMAL_MOVEMENT"
 STATE_FALL = "FALL_DETECTED"
 STATE_PROLONGED_INACTIVITY = "PROLONGED_INACTIVITY"
@@ -66,7 +59,7 @@ STATE_CONFIRMED_SAFE = "CONFIRMED_SAFE"
 class LiveVisionTracker:
     """
     Connects to live camera devices or edge video feeds and evaluates
-    real-time fall status, biomechanics, prolonged inactivity (3-5 mins),
+    real-time fall status, face tracking, prolonged inactivity (3-5 mins),
     and conversational voice check-in wake-ups.
     """
     def __init__(
@@ -78,11 +71,14 @@ class LiveVisionTracker:
         zone: str = "living_room"
     ):
         self.backend_url = backend_url.rstrip("/")
-        self.unresponsive_threshold_sec = unresponsive_threshold_sec
+        self.unresponsive_threshold_sec = max(10.0, float(unresponsive_threshold_sec))
         self.simulation_speedup_factor = max(1.0, float(simulation_speedup_factor))
         self.zone = zone
-        self.model = None
-        self.model_type = "yolov8"
+
+        # Vision models
+        self.pose_model = None
+        self.fall_model = None
+        self.resolved_model_path: Optional[str] = None
 
         # Adaptive daily activity routine learner
         if get_activity_learner is not None:
@@ -101,13 +97,15 @@ class LiveVisionTracker:
         self.last_frame_time = time.time()
         self.fall_start_time: Optional[float] = None
         self.accumulated_motionless_sec = 0.0
-        self.motionless_start_time: Optional[float] = None
         self.last_centroid: Optional[Tuple[float, float]] = None
+        self.last_head_pos: Optional[Tuple[float, float, float]] = None  # (x, y, timestamp)
         self.last_motion_rate = 0.0
         self.last_alert_sent_time = 0.0
         self.consecutive_fall_frames = 0
         self.consecutive_normal_frames = 0
         self.prev_gray: Optional[np.ndarray] = None
+        self.person_previously_seen = False
+        self.last_person_seen_time = time.time()
 
         # Voice Wake-Up & Interactive Alarm
         self.alarm_active = False
@@ -119,31 +117,18 @@ class LiveVisionTracker:
         # Centroid motion history for biomechanical fall velocity
         self.centroid_history: List[Tuple[float, float, float]] = []
 
-        # Model path resolution
-        live_dir = Path(__file__).resolve().parent
-        root_dir = live_dir.parent
-
-        candidate_paths = [
-            model_path,
-            str(live_dir / "nira_fall_model.pt"),
-            str(live_dir / "runs" / "fall_detection" / "weights" / "best.pt"),
-            str(live_dir / "runs" / "fall_detection" / "weights" / "last.pt"),
-            str(root_dir / "Demo" / "yolov8n-pose.pt"),
-            str(root_dir / "yolov8n.pt")
-        ]
-        self.resolved_model_path = next((p for p in candidate_paths if p and os.path.exists(p)), None)
-
     def reset(self):
         """Resets state machine, alarm, and counters when stream stops or starts."""
         self.current_state = STATE_NORMAL
         self.fall_start_time = None
         self.accumulated_motionless_sec = 0.0
-        self.motionless_start_time = None
         self.last_centroid = None
+        self.last_head_pos = None
         self.last_motion_rate = 0.0
         self.consecutive_fall_frames = 0
         self.consecutive_normal_frames = 0
         self.prev_gray = None
+        self.person_previously_seen = False
         self.alarm_active = False
         self.alarm_prompt = None
         self.alarm_reason = None
@@ -153,34 +138,90 @@ class LiveVisionTracker:
         self.last_frame_time = time.time()
 
     def initialize_model(self):
-        """Loads trained YOLOv8 model if ultralytics is installed."""
+        """Loads YOLOv8 Pose model and Kaggle Fall Detection model."""
         try:
             from ultralytics import YOLO
 
             live_dir = Path(__file__).resolve().parent
-            custom_model = live_dir / "nira_fall_model.pt"
-            if custom_model.exists():
-                self.resolved_model_path = str(custom_model)
+            root_dir = live_dir.parent
 
-            if self.resolved_model_path and os.path.exists(self.resolved_model_path):
-                self.model = YOLO(self.resolved_model_path)
-                logger.info(f"Loaded YOLOv8 model from {self.resolved_model_path}")
-            else:
-                logger.warning("No custom weights found; loading standard YOLOv8n")
-                self.model = YOLO("yolov8n.pt")
-                self.resolved_model_path = "yolov8n.pt"
+            # 1. Pose model for face keypoints and biomechanics
+            pose_candidates = [
+                str(live_dir / "yolov8n-pose.pt"),
+                str(root_dir / "Demo" / "yolov8n-pose.pt"),
+                "yolov8n-pose.pt"
+            ]
+            for p in pose_candidates:
+                if p and (os.path.exists(p) or not os.path.isabs(p)):
+                    try:
+                        self.pose_model = YOLO(p)
+                        self.resolved_model_path = p
+                        logger.info(f"Loaded Pose Model from: {p}")
+                        break
+                    except Exception:
+                        continue
+
+            # 2. Kaggle fall detector model
+            fall_candidates = [
+                str(live_dir / "nira_fall_model.pt"),
+                str(live_dir / "runs" / "fall_detection" / "weights" / "best.pt"),
+                "yolov8n.pt"
+            ]
+            for p in fall_candidates:
+                if p and (os.path.exists(p) or not os.path.isabs(p)):
+                    try:
+                        self.fall_model = YOLO(p)
+                        logger.info(f"Loaded Fall Detection Model from: {p}")
+                        break
+                    except Exception:
+                        continue
+
         except Exception as e:
             logger.warning(f"Ultralytics model initialization error: {e}. Running optical fallback mode.")
-            self.model = None
+
+    def _detect_face_fallback(self, frame: np.ndarray) -> Optional[List[int]]:
+        """
+        Fast, robust skin-chrominance face bounding box locator as secondary fallback
+        when camera is close-up or under extreme webcam lighting.
+        """
+        if cv2 is None or frame is None:
+            return None
+        try:
+            fh, fw = frame.shape[:2]
+            ycrcb = cv2.cvtColor(frame, cv2.COLOR_BGR2YCrCb)
+            # Standard human skin chrominance bounds
+            lower = np.array([0, 133, 77], dtype=np.uint8)
+            upper = np.array([255, 173, 127], dtype=np.uint8)
+            mask = cv2.inRange(ycrcb, lower, upper)
+
+            # Restrict to upper 70% of frame where head/face normally resides
+            mask[int(fh * 0.75):, :] = 0
+
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
+            mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=2)
+            mask = cv2.dilate(mask, kernel, iterations=2)
+
+            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            if contours:
+                c = max(contours, key=cv2.contourArea)
+                area = cv2.contourArea(c)
+                if area > (fh * fw * 0.02):  # Minimum face size
+                    x, y, w, h = cv2.boundingRect(c)
+                    aspect = w / max(1.0, float(h))
+                    if 0.5 <= aspect <= 1.5:
+                        return [int(x), int(y), int(x + w), int(y + h)]
+        except Exception:
+            pass
+        return None
 
     def evaluate_frame(self, frame: np.ndarray, location: Optional[str] = None) -> Dict[str, Any]:
         """
         Runs comprehensive real-time inference on a video/webcam frame:
-          1. Measures optical motion displacement (detects absence of movement).
-          2. Runs YOLOv8 object & posture proposal detection.
-          3. Evaluates biomechanical velocity and floor proximity.
-          4. Tracks prolonged inactivity against learned circadian baseline (3-5 mins).
-          5. Triggers alarm & speech inquiry prompt when threshold is exceeded.
+          1. Detects Face & Person pose keypoints (nose, eyes, shoulders, hips).
+          2. Measures noise-filtered physical motion displacement.
+          3. Evaluates fall kinematics (drop velocity, low head, horizontal tilt).
+          4. Tracks real prolonged inactivity (3-5 minutes, not demo-hardcoded).
+          5. Triggers voice wake-up alarm prompt when threshold is reached.
         """
         now = time.time()
         dt = max(0.01, min(1.0, now - self.last_frame_time))
@@ -194,6 +235,7 @@ class LiveVisionTracker:
                 "detected_class": "Normal Movement",
                 "confidence": 0.95,
                 "unresponsive_seconds": round(self.accumulated_motionless_sec, 1),
+                "inactivity_threshold_sec": round(self.unresponsive_threshold_sec, 1),
                 "is_unresponsive": (self.current_state in [STATE_UNRESPONSIVE, STATE_PROLONGED_INACTIVITY]),
                 "motion_displacement": 0.0,
                 "boxes": [],
@@ -205,143 +247,224 @@ class LiveVisionTracker:
         fh, fw = frame.shape[:2]
         frame_area = float(fh * fw)
 
-        # 1. Compute frame-to-frame pixel motion displacement
+        # -------------------------------------------------------------------
+        # 1. Noise-Filtered Optical Motion Measurement
+        # -------------------------------------------------------------------
+        # Sensor noise on webcams produces tiny pixel differences even in stillness.
+        # We apply Gaussian blur + binary thresholding to isolate genuine human motion!
         motion_rate = 0.0
+        motion_pixel_ratio = 0.0
         gray_curr = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) if cv2 is not None else None
         if gray_curr is not None:
             blurred_curr = cv2.GaussianBlur(gray_curr, (21, 21), 0)
             if self.prev_gray is not None and self.prev_gray.shape == blurred_curr.shape:
                 diff = cv2.absdiff(blurred_curr, self.prev_gray)
-                motion_rate = round(float(np.mean(diff)) * 4.0, 1)
+                # Ignore pixel fluctuations below 22 intensity
+                _, thresh = cv2.threshold(diff, 22, 255, cv2.THRESH_BINARY)
+                motion_pixels = int(np.count_nonzero(thresh))
+                motion_pixel_ratio = motion_pixels / max(1.0, frame_area)
+                motion_rate = round(motion_pixel_ratio * 300.0, 1)
             self.prev_gray = blurred_curr
         self.last_motion_rate = motion_rate
 
-        raw_candidates = []
-        yolo_normal = False
-        yolo_fall = False
-        current_centroid: Optional[Tuple[float, float]] = None
+        detected_boxes = []
+        is_person_detected = False
+        is_fall_candidate = False
+        primary_class = "Normal Movement"
+        primary_conf = 0.92
 
-        if self.model is not None:
+        current_centroid: Optional[Tuple[float, float]] = None
+        current_head_pos: Optional[Tuple[float, float]] = None
+        torso_angle: Optional[float] = None
+
+        # -------------------------------------------------------------------
+        # 2. YOLOv8 Pose: Face & Body Kinematics
+        # -------------------------------------------------------------------
+        if self.pose_model is not None:
             try:
-                results = self.model(frame, verbose=False, conf=0.35)
+                results = self.pose_model(frame, verbose=False, conf=0.22)
                 if results and len(results) > 0 and len(results[0].boxes) > 0:
-                    for box in results[0].boxes:
-                        cls_id = int(box.cls[0].item())
+                    for i, box in enumerate(results[0].boxes):
                         conf = float(box.conf[0].item())
                         xyxy = [int(v) for v in box.xyxy[0].tolist()]
-
                         bw = xyxy[2] - xyxy[0]
                         bh = xyxy[3] - xyxy[1]
-                        box_area = bw * bh
-                        area_ratio = box_area / frame_area
                         aspect_ratio = bw / max(1.0, float(bh))
 
-                        if area_ratio > 0.85 or area_ratio < 0.005 or bw < 20 or bh < 20:
-                            continue
-
-                        label = CLASS_NAMES.get(cls_id, f"Class {cls_id}")
                         cx = (xyxy[0] + xyxy[2]) / 2.0
                         cy = (xyxy[1] + xyxy[3]) / 2.0
                         current_centroid = (cx, cy)
+                        is_person_detected = True
 
-                        # Biomechanical posture check:
-                        if cls_id == 0 or "fall" in label.lower():
-                            if conf < 0.50:
-                                continue
+                        # Extract Facial & Pose Keypoints
+                        has_keypoints = (hasattr(results[0], "keypoints") and
+                                         results[0].keypoints is not None and
+                                         len(results[0].keypoints.data) > i)
 
-                            is_horizontal = aspect_ratio >= 0.70
-                            is_low_in_frame = xyxy[3] > 0.48 * fh
-                            if not (is_horizontal or is_low_in_frame):
-                                label = "Sitting" if aspect_ratio > 0.50 else "Walking"
-                                cls_id = 2 if label == "Sitting" else 1
-                                yolo_normal = True
-                            else:
-                                yolo_fall = True
-                        else:
-                            if conf < 0.45:
-                                continue
-                            yolo_normal = True
+                        face_box: Optional[List[int]] = None
+                        if has_keypoints:
+                            kpts = results[0].keypoints.data[i].cpu().numpy()
+                            # 0: nose, 1: left_eye, 2: right_eye, 3: left_ear, 4: right_ear
+                            face_kpts = [kpts[idx] for idx in range(min(5, len(kpts))) if kpts[idx][2] > 0.25]
+                            if len(face_kpts) >= 1:
+                                xs = [p[0] for p in face_kpts]
+                                ys = [p[1] for p in face_kpts]
+                                hx = float(np.mean(xs))
+                                hy = float(np.mean(ys))
+                                current_head_pos = (hx, hy)
 
-                        raw_candidates.append({
-                            "class_id": cls_id,
-                            "label": label,
+                                # Construct Face / Head Bounding Box
+                                span_x = max(25.0, (max(xs) - min(xs)) * 1.5 + 20.0)
+                                span_y = max(30.0, (max(ys) - min(ys)) * 1.8 + 25.0)
+                                fx1 = max(0, int(hx - span_x))
+                                fy1 = max(0, int(hy - span_y * 0.9))
+                                fx2 = min(fw, int(hx + span_x))
+                                fy2 = min(fh, int(hy + span_y * 1.1))
+                                face_box = [fx1, fy1, fx2, fy2]
+
+                            # Torso inclination angle
+                            if len(kpts) > 12:
+                                s_conf = (kpts[5][2] + kpts[6][2]) / 2.0
+                                h_conf = (kpts[11][2] + kpts[12][2]) / 2.0
+                                if s_conf > 0.30 and h_conf > 0.30:
+                                    s_mid = ((kpts[5][0] + kpts[6][0]) / 2.0, (kpts[5][1] + kpts[6][1]) / 2.0)
+                                    h_mid = ((kpts[11][0] + kpts[12][0]) / 2.0, (kpts[11][1] + kpts[12][1]) / 2.0)
+                                    dx = abs(s_mid[0] - h_mid[0])
+                                    dy = abs(h_mid[1] - s_mid[1])
+                                    torso_angle = math.degrees(math.atan2(dy, max(1.0, dx)))
+
+                        # Fallback face box if keypoints were partial
+                        if face_box is None and xyxy:
+                            # Upper 30% of detected person box is head
+                            head_h = int(bh * 0.35)
+                            face_box = [xyxy[0], xyxy[1], xyxy[2], min(fh, xyxy[1] + head_h)]
+                            current_head_pos = ((xyxy[0] + xyxy[2]) / 2.0, float(xyxy[1] + head_h / 2.0))
+
+                        # Evaluate posture & fall for this person
+                        person_is_fall = False
+                        person_label = "Person (Sitting / Upright)"
+
+                        # Kinematic Fall Rule 1: Torso horizontal (< 35 degrees)
+                        if torso_angle is not None and torso_angle < 35.0:
+                            person_is_fall = True
+                            person_label = "Fall / Collapse Detected (Horizontal Angle)"
+
+                        # Kinematic Fall Rule 2: Aspect ratio horizontal & near floor
+                        elif aspect_ratio >= 0.70 and xyxy[3] > (fh * 0.55):
+                            person_is_fall = True
+                            person_label = "Fall / Collapse Detected (Floor Position)"
+
+                        # Kinematic Fall Rule 3: Head altitude in lower 40% of screen (slump/floor)
+                        elif current_head_pos and current_head_pos[1] > (fh * 0.62):
+                            person_is_fall = True
+                            person_label = "Fall / Collapse Detected (Head Slump)"
+
+                        if person_is_fall:
+                            is_fall_candidate = True
+                            primary_class = person_label
+                            primary_conf = max(primary_conf, conf)
+
+                        # Add Person bounding box
+                        detected_boxes.append({
+                            "class_id": 0 if person_is_fall else 1,
+                            "label": person_label,
                             "confidence": round(conf, 2),
-                            "box": xyxy,
-                            "aspect_ratio": round(aspect_ratio, 2),
-                            "centroid": (cx, cy)
+                            "box": xyxy
                         })
 
+                        # Add Face / Head bounding box
+                        if face_box:
+                            face_status = "Face / Head (Down)" if person_is_fall else "Face / Head (Active)"
+                            detected_boxes.append({
+                                "class_id": 10,
+                                "label": face_status,
+                                "confidence": round(max(0.85, conf), 2),
+                                "box": face_box
+                            })
+
             except Exception as e:
-                logger.error(f"Inference error: {e}")
+                logger.debug(f"Pose inference exception: {e}")
 
-        # 2. Centroid velocity calculation (Biomechanics of sudden drop)
-        is_high_velocity_drop = False
-        if current_centroid:
-            self.centroid_history.append((now, current_centroid[0], current_centroid[1]))
-            # Keep only last 1.5 seconds of history
-            self.centroid_history = [p for p in self.centroid_history if (now - p[0]) <= 1.5]
-            if len(self.centroid_history) >= 2:
-                t_old, _, y_old = self.centroid_history[0]
-                t_new, _, y_new = self.centroid_history[-1]
-                time_span = max(0.05, t_new - t_old)
-                downward_speed = (y_new - y_old) / time_span
-                # Rapid downward drop exceeds 120 pixels/sec normalized
-                if downward_speed > 120.0 and y_new > (fh * 0.50):
-                    is_high_velocity_drop = True
+        # -------------------------------------------------------------------
+        # 3. Dedicated Kaggle Fall Detection Model (Cross-Verification)
+        # -------------------------------------------------------------------
+        if self.fall_model is not None and not is_fall_candidate:
+            try:
+                fall_results = self.fall_model(frame, verbose=False, conf=0.25)
+                if fall_results and len(fall_results) > 0 and len(fall_results[0].boxes) > 0:
+                    for box in fall_results[0].boxes:
+                        cid = int(box.cls[0].item())
+                        cconf = float(box.conf[0].item())
+                        cxyxy = [int(v) for v in box.xyxy[0].tolist()]
 
-        # 3. Cross-class Non-Maximum Suppression
-        def _compute_iou(b1, b2):
-            x1 = max(b1[0], b2[0])
-            y1 = max(b1[1], b2[1])
-            x2 = min(b1[2], b2[2])
-            y2 = min(b1[3], b2[3])
-            inter = max(0, x2 - x1) * max(0, y2 - y1)
-            a1 = (b1[2] - b1[0]) * (b1[3] - b1[1])
-            a2 = (b2[2] - b2[0]) * (b2[3] - b2[1])
-            union = a1 + a2 - inter
-            return inter / max(1.0, float(union))
+                        # Class 0 in Kaggle dataset = Fall Detected
+                        if cid == 0 or "fall" in str(self.fall_model.names.get(cid, "")).lower():
+                            is_fall_candidate = True
+                            primary_class = "Fall / Collapse Detected"
+                            primary_conf = max(primary_conf, cconf)
+                            detected_boxes.append({
+                                "class_id": 0,
+                                "label": "Fall / Collapse Detected",
+                                "confidence": round(cconf, 2),
+                                "box": cxyxy
+                            })
+                            break
+                        elif cid in [1, 2]:
+                            is_person_detected = True
+            except Exception as e:
+                logger.debug(f"Fall model exception: {e}")
 
-        filtered_boxes = []
-        for cand in sorted(raw_candidates, key=lambda c: c["confidence"], reverse=True):
-            if any(_compute_iou(cand["box"], kept["box"]) > 0.35 for kept in filtered_boxes):
-                continue
-            filtered_boxes.append(cand)
-
-        # 4. Primary detection determination
-        primary_class = "Normal Movement"
-        primary_conf = 0.95
-        is_fall_candidate = False
-
-        if filtered_boxes:
-            best = filtered_boxes[0]
-            primary_class = best["label"]
-            primary_conf = best["confidence"]
-            if best["class_id"] == 0 or "fall" in best["label"].lower() or is_high_velocity_drop:
-                is_fall_candidate = True
-
-        # Fallback optical slump inspection
-        if not yolo_normal and not is_fall_candidate and gray_curr is not None:
-            top_h = int(fh * 0.45)
-            dark_top = np.sum(gray_curr[:top_h, :] < 80)
-            dark_bottom = np.sum(gray_curr[top_h:, :] < 80)
-            total_dark = dark_top + dark_bottom
-
-            if total_dark > (fh * fw * 0.06):
-                bottom_ratio = dark_bottom / max(1, total_dark)
-                top_mean = np.mean(gray_curr[:top_h, :])
-                bottom_mean = np.mean(gray_curr[top_h:, :])
-                if bottom_ratio > 0.65 and bottom_mean < (top_mean - 25):
+        # -------------------------------------------------------------------
+        # 4. Fallback Face / Head Locator (If no person was detected by neural net)
+        # -------------------------------------------------------------------
+        if not detected_boxes:
+            fb_face = self._detect_face_fallback(frame)
+            if fb_face:
+                is_person_detected = True
+                current_centroid = ((fb_face[0] + fb_face[2]) / 2.0, (fb_face[1] + fb_face[3]) / 2.0)
+                current_head_pos = current_centroid
+                detected_boxes.append({
+                    "class_id": 10,
+                    "label": "Face / Head (Active)",
+                    "confidence": 0.88,
+                    "box": fb_face
+                })
+                # Check if head is slumped to bottom
+                if current_head_pos[1] > (fh * 0.65):
                     is_fall_candidate = True
-                    primary_class = "Fall / Collapse Detected"
-                    primary_conf = 0.88
-                    filtered_boxes = [{
-                        "class_id": 0,
-                        "label": "Fall / Collapse Detected",
-                        "confidence": 0.88,
-                        "box": [int(fw * 0.15), int(fh * 0.40), int(fw * 0.85), int(fh * 0.98)]
-                    }]
+                    primary_class = "Fall / Collapse Detected (Head Slump)"
 
-        # 5. Temporal debouncing
+        # -------------------------------------------------------------------
+        # 5. Dynamic Velocity & Disappearance Collapse Rules
+        # -------------------------------------------------------------------
+        # Sudden vertical drop in head altitude
+        if current_head_pos:
+            hx, hy = current_head_pos
+            if self.last_head_pos is not None:
+                prev_hx, prev_hy, prev_ht = self.last_head_pos
+                d_time = max(0.04, now - prev_ht)
+                if d_time <= 1.0:
+                    v_drop = (hy - prev_hy) / d_time
+                    # Head dropped rapidly (> 75 px/s) into lower half
+                    if v_drop > 75.0 and hy > (fh * 0.40):
+                        is_fall_candidate = True
+                        primary_class = "Fall / Collapse Detected (Rapid Drop)"
+            self.last_head_pos = (hx, hy, now)
+
+        # Vanishing drop: Person was visible, then sudden motion spike and disappeared
+        if not is_person_detected and self.person_previously_seen:
+            time_since_seen = now - self.last_person_seen_time
+            if time_since_seen < 2.0 and motion_rate > 15.0:
+                is_fall_candidate = True
+                primary_class = "Fall / Collapse Detected (Out of Frame Drop)"
+
+        if is_person_detected:
+            self.person_previously_seen = True
+            self.last_person_seen_time = now
+
+        # -------------------------------------------------------------------
+        # 6. Temporal Debouncing
+        # -------------------------------------------------------------------
         if is_fall_candidate:
             self.consecutive_fall_frames += 1
             self.consecutive_normal_frames = 0
@@ -351,16 +474,31 @@ class LiveVisionTracker:
 
         is_fall_confirmed = (self.consecutive_fall_frames >= 2)
 
-        # 6. Prolonged Inactivity Tracking (3-5 Minutes or Learned Routine Baseline)
+        # -------------------------------------------------------------------
+        # 7. Real Inactivity Tracking (3-5 Minutes, NOT Hardcoded Demo)
+        # -------------------------------------------------------------------
+        # Check actual person centroid displacement to filter camera sensor flicker
+        centroid_displacement = 0.0
+        if current_centroid and self.last_centroid:
+            centroid_displacement = math.hypot(
+                current_centroid[0] - self.last_centroid[0],
+                current_centroid[1] - self.last_centroid[1]
+            )
+        if current_centroid:
+            self.last_centroid = current_centroid
+
+        # Genuinely motionless: small centroid displacement and low filtered motion
+        is_motionless = (centroid_displacement < 9.0 and motion_pixel_ratio < 0.030)
+
         effective_thresh = self.unresponsive_threshold_sec
         anomaly_diag: Dict[str, Any] = {}
 
-        if motion_rate < 6.0:
-            # Person is motionless: accumulate stillness
+        if is_motionless:
+            # Accumulate real seconds of stillness
             step_motionless = dt * self.simulation_speedup_factor
             self.accumulated_motionless_sec += step_motionless
 
-            # Check with Adaptive Routine Learner
+            # Check with Adaptive Daily Routine Learner
             if self.activity_learner:
                 posture = "floor" if (is_fall_confirmed or is_fall_candidate) else ("sitting" if "sitting" in primary_class.lower() else "resting")
                 anomaly_diag = self.activity_learner.evaluate_inactivity_anomaly(
@@ -370,21 +508,21 @@ class LiveVisionTracker:
                 )
                 effective_thresh = anomaly_diag.get("threshold_sec", self.unresponsive_threshold_sec)
         else:
-            # Significant resident motion detected
-            if motion_rate >= 14.0:
-                # If resident was resting safely and stood up, record routine observation
+            # Significant active resident movement
+            if centroid_displacement >= 15.0 or motion_pixel_ratio >= 0.05:
                 if self.activity_learner and self.accumulated_motionless_sec > 30.0:
                     self.activity_learner.record_activity_observation(
                         zone=current_zone,
                         motion_rate=motion_rate,
                         duration_sec=self.accumulated_motionless_sec
                     )
-                # If not locked in confirmed emergency, reset stillness
                 if self.current_state != STATE_UNRESPONSIVE:
                     self.accumulated_motionless_sec = 0.0
                     self.alarm_active = False
 
-        # 7. State Machine Evaluation & Voice Alarm Trigger
+        # -------------------------------------------------------------------
+        # 8. State Machine & Voice Alarm Inquiry Trigger
+        # -------------------------------------------------------------------
         is_unresponsive = False
         inactivity_exceeded = (self.accumulated_motionless_sec >= effective_thresh)
 
@@ -392,7 +530,7 @@ class LiveVisionTracker:
             if self.fall_start_time is None:
                 self.fall_start_time = now
                 self.current_state = STATE_FALL
-                logger.warning(f"Fall Detected in {current_zone}! Initiating immediate voice check-in.")
+                logger.warning(f"Fall / Collapse Detected in {current_zone}! Waking up alarm inquiry.")
                 self.alarm_active = True
                 self.alarm_prompt = "NIRA safety alert: Are you okay? Please respond."
                 self.alarm_reason = "Sudden fall / collapse detected."
@@ -403,7 +541,7 @@ class LiveVisionTracker:
                     details={"alarm_prompt": self.alarm_prompt, "requires_voice_checkin": True}
                 )
 
-            # Check for prolonged floor immobility post-fall
+            # Check for prolonged floor unresponsiveness post-fall
             if self.accumulated_motionless_sec >= 15.0:
                 self.current_state = STATE_UNRESPONSIVE
                 is_unresponsive = True
@@ -417,7 +555,7 @@ class LiveVisionTracker:
                     )
 
         elif inactivity_exceeded:
-            # Person has stayed motionless without any movement for 3-5 mins (or exceeded learned limit)
+            # Motionless for 3-5 minutes (exceeding learned baseline)
             if self.current_state != STATE_UNRESPONSIVE:
                 self.current_state = STATE_PROLONGED_INACTIVITY
                 is_unresponsive = True
@@ -439,21 +577,11 @@ class LiveVisionTracker:
                         }
                     )
         else:
-            # Normal movement or within safe learned resting tolerance
+            # Active movement or within safe routine stillness
             if self.consecutive_normal_frames >= 2 and not self.alarm_active:
                 self.fall_start_time = None
                 if self.current_state not in [STATE_UNRESPONSIVE, STATE_ALARM_INQUIRY]:
                     self.current_state = STATE_NORMAL
-
-        clean_boxes = [
-            {
-                "class_id": b["class_id"],
-                "label": b["label"],
-                "confidence": b["confidence"],
-                "box": b["box"]
-            }
-            for b in filtered_boxes
-        ]
 
         return {
             "state": self.current_state,
@@ -463,7 +591,7 @@ class LiveVisionTracker:
             "inactivity_threshold_sec": round(effective_thresh, 1),
             "is_unresponsive": is_unresponsive,
             "motion_displacement": round(motion_rate, 1),
-            "boxes": clean_boxes,
+            "boxes": detected_boxes,
             "alarm_active": self.alarm_active,
             "alarm_prompt": self.alarm_prompt,
             "alarm_reason": self.alarm_reason,
@@ -661,8 +789,9 @@ if __name__ == "__main__":
         for b in res["boxes"]:
             xyxy = b["box"]
             lbl = f"{b['label']} {b['confidence']}"
-            cv2.rectangle(frame, (xyxy[0], xyxy[1]), (xyxy[2], xyxy[3]), color, 2)
-            cv2.putText(frame, lbl, (xyxy[0], max(xyxy[1] - 8, 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+            box_col = (0, 255, 255) if "face" in b["label"].lower() else color
+            cv2.rectangle(frame, (xyxy[0], xyxy[1]), (xyxy[2], xyxy[3]), box_col, 2)
+            cv2.putText(frame, lbl, (xyxy[0], max(xyxy[1] - 8, 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, box_col, 2)
 
         # Status HUD
         hud_text = f"STATE: {state} | {res['detected_class']} ({res['confidence']})"
