@@ -250,7 +250,6 @@ class WhisperSpeechToText(SpeechToText):
             result = self.manager.hf_pipeline(
                 audio_input,
                 generate_kwargs=gen_kwargs,
-                chunk_length_s=30,
                 batch_size=1
             )
             transcript_text = result.get("text", "").strip()
