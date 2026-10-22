@@ -8152,6 +8152,7 @@ a:hover {
 }
 
 
+/* ==========================================================================
    PERSON 2 — COMPLETE DEMO MODULE STYLING
    Apple Health & Tesla Command Center Aesthetic
    ========================================================================== */
@@ -10133,5 +10134,3 @@ a:hover {
   animation: cinematicPan 18s ease-in-out infinite;
 }
 
-/* Enforce pure Demo Model: hide Live Mode operating bar and live container */
-.system-mode-selector-bar,
