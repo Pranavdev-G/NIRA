@@ -464,45 +464,39 @@ function renderDashboard(state) {
   const cameraAvailable = currentRoom.cameraAvailable !== false;
   const isRadarRoom = !cameraAvailable;
 
-  // Auto-select radar when in privacy-protected rooms (bathroom/bedroom)
+  const camState = (risk === "CRITICAL" && state.incident.fallDetected)
+    ? "critical"
+    : (risk === "HIGH" || risk === "MODERATE" ? "warning" : "safe");
+  const postureCodeFromRoom = currentRoom.postureCode || (camState === "critical" ? "fallen" : camState === "warning" ? "sitting" : "upright");
+
   if (window.cameraSim && !is3DModeActive) {
-    if (isRadarRoom) {
-      window.cameraSim.setManualRadar(false); // auto-radar based on room
-    }
-    const camState = (risk === "CRITICAL" && state.incident.fallDetected)
-      ? "critical"
-      : (risk === "HIGH" || risk === "MODERATE" ? "warning" : "safe");
-    const postureCodeFromRoom = currentRoom.postureCode || (camState === "critical" ? "fallen" : camState === "warning" ? "sitting" : "upright");
     window.cameraSim.setRoomAndState(location, camState, postureCodeFromRoom);
   }
 
-  if (camTitle) {
-    const modeName = isRadarRoom ? "Privacy Radar" : "Optical Camera";
-    camTitle.textContent = `${modeName} Feed: ${capitalize(location)}`;
-  }
-
-  if (hudPill) {
-    hudPill.textContent = isRadarRoom
-      ? `RADAR-01 ${location.toUpperCase()} • 60GHz FMCW • PRIVACY SHIELD`
-      : `CAM-01 ${location.toUpperCase()} • 1080p • YOLOv8-Pose`;
-  }
-
-  if (privacyBadge) {
-    privacyBadge.style.display = isRadarRoom ? "inline-flex" : "none";
-  }
-
-  if (footerModality) {
-    footerModality.textContent = isRadarRoom
-      ? "60GHz mmWAVE RADAR • ZERO OPTICAL RECORDING • FMCW POINT CLOUD"
-      : "YOLOv8-POSE • 17 KEYPOINTS • 30 FPS OPTICAL INFERENCE [SIMULATED]";
+  // Update mode labels and headers based on active cinema mode
+  if (currentCinemaViewMode === "3d" || is3DModeActive) {
+    if (camTitle) camTitle.textContent = `3D Spatial Digital Twin: ${capitalize(location)}`;
+    if (hudPill) hudPill.textContent = `SPATIAL-3D ${location.toUpperCase()} • DIGITAL TWIN RIGID SKELETON`;
+    if (footerModality) footerModality.textContent = "3D WEBGL ENGINE • KINEMATIC FALL SIMULATOR • CONTINUOUS POSE";
+    if (privacyBadge) privacyBadge.style.display = "inline-flex";
+  } else if (currentCinemaViewMode === "camera") {
+    if (camTitle) camTitle.textContent = `Optical Camera Feed: ${capitalize(location)}`;
+    if (hudPill) hudPill.textContent = `CAM-01 ${location.toUpperCase()} • 1080p • YOLOv8-Pose`;
+    if (footerModality) footerModality.textContent = "OPTICAL CAMERA • YOLOv8 17-KEYPOINT SKELETON • EDGE INFERENCE";
+    if (privacyBadge) privacyBadge.style.display = "none";
+  } else {
+    // Default / Radar
+    if (camTitle) camTitle.textContent = `Privacy Radar Feed: ${capitalize(location)}`;
+    if (hudPill) hudPill.textContent = `RADAR-01 ${location.toUpperCase()} • 60GHz FMCW • PRIVACY SHIELD`;
+    if (footerModality) footerModality.textContent = "60GHz mmWAVE RADAR • ZERO OPTICAL RECORDING • FMCW POINT CLOUD";
+    if (privacyBadge) privacyBadge.style.display = "inline-flex";
   }
 
   if (hudTag) {
     if (state.incident.fallDetected) {
       hudTag.style.display = "block";
-      hudTag.textContent = isRadarRoom
-        ? `⚠ FALL DETECTED (RADAR) • CONF: ${(state.incident.confidence * 100).toFixed(0)}%`
-        : `FALL DETECTED • CONF: ${(state.incident.confidence * 100).toFixed(0)}% [SIMULATED]`;
+      const modeTag = (currentCinemaViewMode === "radar") ? "RADAR" : (currentCinemaViewMode === "3d" ? "3D TWIN" : "OPTICAL");
+      hudTag.textContent = `FALL DETECTED (${modeTag}) • CONF: ${(state.incident.confidence * 100).toFixed(0)}%`;
       hudTag.style.background = risk === "CRITICAL" ? "rgba(244, 63, 94, 0.9)" : "rgba(245, 158, 11, 0.9)";
     } else {
       hudTag.style.display = "none";
@@ -2483,10 +2477,15 @@ function switchTab(tabId) {
     }
   });
 
-  // If switched to vision tab, trigger camera canvas resize to fit viewport
-  if (tabId === 'vision' && window.cameraSim) {
+  // If switched to vision tab, trigger canvas resize to fit viewport
+  if (tabId === 'vision') {
     setTimeout(() => {
-      window.cameraSim.resizeCanvas();
+      if (window.cameraSim) {
+        window.cameraSim.resizeCanvas();
+      }
+      if (window.main3DTwin && is3DModeActive) {
+        window.main3DTwin.resize();
+      }
     }, 60);
   }
 }
@@ -2564,6 +2563,7 @@ window.addEventListener("click", (e) => {
 // Interactive 3D Digital Twin Apartment Model (Three.js WebGL)
 // ---------------------------------------------------------------------------
 let is3DModeActive = false;
+let currentCinemaViewMode = "radar"; // 'radar' | 'camera' | '3d'
 let main3DTwin = null;
 
 class Main3DDigitalTwin {
@@ -2846,27 +2846,38 @@ class Main3DDigitalTwin {
 // ---------------------------------------------------------------------------
 function _setViewMode(mode) {
   // mode: 'radar' | 'camera' | '3d'
+  currentCinemaViewMode = mode;
   const cam2D = document.getElementById("cameraCanvas");
   const cam3D = document.getElementById("threeDCanvas");
   const btnRadar = document.getElementById("btnToggleRadar");
   const btnCamera = document.getElementById("btnToggleCamera");
   const btn3D = document.getElementById("btnToggle3DMode");
+  const camTitle = document.getElementById("cinemaCameraTitle");
+  const hudPill = document.getElementById("camHudPill");
+  const footerModality = document.getElementById("footerModalityText");
+  const privacyBadge = document.getElementById("privacyShieldBadge");
 
   // Reset all button active classes
   [btnRadar, btnCamera, btn3D].forEach(b => { if (b) b.classList.remove("active"); });
+
+  const loc = (window.niraStore && window.niraStore.state && window.niraStore.state.incident && window.niraStore.state.incident.location) || "bathroom";
+  const locUpper = loc.toUpperCase();
 
   if (mode === "3d") {
     if (cam2D) cam2D.style.display = "none";
     if (cam3D) cam3D.style.display = "block";
     if (btn3D) btn3D.classList.add("active");
     is3DModeActive = true;
+    if (camTitle) camTitle.textContent = `3D Spatial Digital Twin: ${capitalize(loc)}`;
+    if (hudPill) hudPill.textContent = `SPATIAL-3D ${locUpper} • DIGITAL TWIN RIGID SKELETON`;
+    if (footerModality) footerModality.textContent = "3D WEBGL ENGINE • KINEMATIC FALL SIMULATOR • CONTINUOUS POSE";
+    if (privacyBadge) privacyBadge.style.display = "inline-flex";
+
     if (!main3DTwin) main3DTwin = new Main3DDigitalTwin("threeDCanvas");
     if (main3DTwin) {
       main3DTwin.resize();
-      // Drive from current authoritative state
       if (window.niraStore) {
         const st = window.niraStore.state;
-        const loc = st.incident.location || "bathroom";
         const rm = (st.rooms || {})[loc] || {};
         const rsk = st.incident.currentRiskLevel || "LOW";
         main3DTwin.updatePhysicalState(loc, rm.postureCode || "upright", rsk);
@@ -2879,16 +2890,41 @@ function _setViewMode(mode) {
     is3DModeActive = false;
 
     if (mode === "radar") {
-      if (window.cameraSim) window.cameraSim.setManualRadar(true);
       if (btnRadar) btnRadar.classList.add("active");
+      if (window.cameraSim) {
+        window.cameraSim.setViewMode("radar");
+        window.cameraSim.resizeCanvas();
+      }
+      if (camTitle) camTitle.textContent = `Privacy Radar Feed: ${capitalize(loc)}`;
+      if (hudPill) hudPill.textContent = `RADAR-01 ${locUpper} • 60GHz FMCW • PRIVACY SHIELD`;
+      if (footerModality) footerModality.textContent = "60GHz mmWAVE RADAR • ZERO OPTICAL RECORDING • FMCW POINT CLOUD";
+      if (privacyBadge) privacyBadge.style.display = "inline-flex";
       showToast("📡 <strong>60GHz Privacy Radar View Active</strong> — no optical data collected.");
     } else {
-      if (window.cameraSim) window.cameraSim.setManualRadar(false);
       if (btnCamera) btnCamera.classList.add("active");
+      if (window.cameraSim) {
+        window.cameraSim.setViewMode("camera");
+        window.cameraSim.resizeCanvas();
+      }
+      if (camTitle) camTitle.textContent = `Optical Camera Feed: ${capitalize(loc)}`;
+      if (hudPill) hudPill.textContent = `CAM-01 ${locUpper} • 1080p • YOLOv8-Pose`;
+      if (footerModality) footerModality.textContent = "OPTICAL CAMERA • YOLOv8 17-KEYPOINT SKELETON • EDGE INFERENCE";
+      if (privacyBadge) privacyBadge.style.display = "none";
       showToast("📹 <strong>Optical Camera View Active</strong> — YOLOv8-Pose skeleton rendering.");
     }
-    // Re-sync camera simulator from latest store state
-    if (window.niraStore) renderDashboard(window.niraStore.state);
+
+    if (window.niraStore) {
+      const st = window.niraStore.state;
+      const rsk = st.incident.currentRiskLevel || "LOW";
+      const camState = (rsk === "CRITICAL" && st.incident.fallDetected)
+        ? "critical"
+        : (rsk === "HIGH" || rsk === "MODERATE" ? "warning" : "safe");
+      const posture = (st.rooms && st.rooms[loc] && st.rooms[loc].postureCode) || (camState === "critical" ? "fallen" : camState === "warning" ? "sitting" : "upright");
+      if (window.cameraSim) {
+        window.cameraSim.setRoomAndState(loc, camState, posture);
+        window.cameraSim.resizeCanvas();
+      }
+    }
   }
 }
 

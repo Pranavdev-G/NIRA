@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/dashboard.css?v=11.0">
+  <link rel="stylesheet" href="/static/dashboard.css?v=12.0">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <style>
@@ -742,8 +742,8 @@
         <!-- 2. Large Readable Bayesian Risk Gauge Meter Arc -->
         <section class="risk-gauge-card" role="region" aria-label="Aegis CARE Senior Risk Gauge">
           <div class="risk-gauge-top-row">
-            <div class="risk-gauge-visual">
-              <svg class="risk-gauge-svg" viewBox="0 0 220 130" aria-label="Risk Meter Arc">
+            <div class="risk-gauge-visual" style="max-width: 180px; width: 100%; flex-shrink: 0; position: relative;">
+              <svg class="risk-gauge-svg" viewBox="0 0 220 130" width="180" height="110" style="max-width: 180px; width: 100%; height: auto; display: block;" aria-label="Risk Meter Arc">
                 <defs>
                   <linearGradient id="riskArcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                     <stop offset="0%" stop-color="#0D9488"/>
@@ -2980,8 +2980,8 @@
   <script src="/static/i18n.js?v=6.0"></script>
   <script src="/static/voice_audio.js?v=6.0"></script>
   <script src="/static/nira_store.js?v=1.0"></script>
-  <script src="/static/camera_sim.js?v=6.0"></script>
+  <script src="/static/camera_sim.js?v=7.0"></script>
   <script src="/static/video_reel.js?v=6.0"></script>
-  <script src="/static/dashboard.js?v=12.0"></script>
+  <script src="/static/dashboard.js?v=13.0"></script>
 </body>
 </html>

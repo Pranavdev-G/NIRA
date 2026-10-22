@@ -6194,6 +6194,17 @@ a:hover {
 }
 
 .badge-sim {
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
 /* ==========================================================================
    AREA 2: ACTIVE INCIDENT CARD
    Prominent, urgent, actionable card for active emergency states
@@ -6796,8 +6807,11 @@ a:hover {
 }
 
 .risk-gauge-svg {
-  width: 220px;
-  height: 140px;
+  width: 100%;
+  max-width: 220px !important;
+  height: auto;
+  max-height: 140px;
+  display: block;
   overflow: visible;
 }
 
@@ -7699,8 +7713,11 @@ a:hover {
 }
 
 .guardian-telemetry-grid .risk-gauge-svg {
-  width: 160px;
-  height: 100px;
+  width: 100%;
+  max-width: 160px !important;
+  height: auto;
+  max-height: 105px;
+  display: block;
 }
 
 .guardian-telemetry-grid .risk-gauge-score-display {
