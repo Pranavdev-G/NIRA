@@ -445,3 +445,117 @@ def test_20_empty_incident_history():
     admin_js = client.get("/static/admin.js").text
     assert "No Safety Events Recorded" in admin_js
     assert "No Incidents Match Your Filters" in admin_js
+
+
+# ---------------------------------------------------------------------------
+# Test 21: Dynamic Map Geospatial Markers (Default Boston Base)
+# ---------------------------------------------------------------------------
+def test_21_dynamic_map_services_default():
+    """Verify /api/v1/live/map/services returns Resident, Caretaker, and Emergency Services."""
+    resp = client.get("/api/v1/live/map/services")
+    assert resp.status_code == 200
+    data = resp.json()
+
+    assert data["status"] == "success"
+    assert "resident" in data
+    assert "caretaker" in data
+    assert "services" in data
+    assert "city_presets" in data
+
+    # Verify Resident data
+    res = data["resident"]
+    assert "lat" in res and "lon" in res
+    assert res["lat"] == pytest.approx(42.3601, abs=0.01)
+
+    # Verify Caretaker data
+    ct = data["caretaker"]
+    assert "lat" in ct and "lon" in ct
+    assert ct["distance_km"] > 0
+    assert ct["eta_mins"] > 0
+    assert "phone" in ct
+
+    # Verify Emergency Services (Hospitals, EMS, Fire, Police)
+    services = data["services"]
+    assert len(services) >= 4
+    service_types = {s["type"] for s in services}
+    assert "hospital" in service_types
+    assert "ems" in service_types
+    assert "fire" in service_types
+    assert "police" in service_types
+
+    # Verify nearest service is populated
+    nearest = data["nearest_service"]
+    assert nearest is not None
+    assert nearest["distance_km"] <= services[-1]["distance_km"]
+
+
+# ---------------------------------------------------------------------------
+# Test 22: Dynamic Map City Presets (Non-Static Adaptation)
+# ---------------------------------------------------------------------------
+def test_22_dynamic_map_city_presets():
+    """Verify map re-anchors to different cities and changes facility data accordingly."""
+    cities = ["seattle", "san_francisco", "new_york", "london", "bengaluru", "tokyo"]
+    for c in cities:
+        resp = client.get(f"/api/v1/live/map/services?city={c}")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["status"] == "success"
+        assert len(data["services"]) >= 4
+        assert data["caretaker"]["distance_km"] > 0
+        assert data["caretaker"]["eta_mins"] > 0
+
+
+# ---------------------------------------------------------------------------
+# Test 23: Dynamic Map Custom GPS Coordinates (Anywhere on Earth)
+# ---------------------------------------------------------------------------
+def test_23_dynamic_map_custom_gps():
+    """Verify arbitrary lat/lon generates localized emergency facilities with valid Haversine math."""
+    # Test arbitrary GPS (e.g., Paris, France coordinates: 48.8566, 2.3522)
+    resp = client.get("/api/v1/live/map/services?lat=48.8566&lon=2.3522")
+    assert resp.status_code == 200
+    data = resp.json()
+
+    assert data["resident"]["lat"] == pytest.approx(48.8566, abs=0.001)
+    assert data["resident"]["lon"] == pytest.approx(2.3522, abs=0.001)
+
+    # Caretaker should be positioned relative to this custom coordinate
+    ct = data["caretaker"]
+    assert ct["lat"] == pytest.approx(48.8566 + 0.0075, abs=0.001)
+    assert ct["distance_km"] > 0.5
+    assert ct["eta_mins"] >= 2.0
+
+    # Services should all have positive distance and ETA
+    for s in data["services"]:
+        assert s["distance_km"] > 0
+        assert s["eta_mins"] > 0
+
+
+# ---------------------------------------------------------------------------
+# Test 24: Map Locate and Recompute POST Endpoint
+# ---------------------------------------------------------------------------
+def test_24_map_locate_post():
+    """Verify POST /api/v1/live/map/locate relocates resident and updates profile."""
+    payload = {"query": "Seattle, WA", "lat": 47.6062, "lon": -122.3321}
+    resp = client.post("/api/v1/live/map/locate", json=payload)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "success"
+    assert "Seattle" in data["location_name"]
+    assert data["resident"]["lat"] == pytest.approx(47.6062, abs=0.01)
+
+
+# ---------------------------------------------------------------------------
+# Test 25: MapTiler OpenStreetMap API Key Integration
+# ---------------------------------------------------------------------------
+def test_25_maptiler_integration():
+    """Verify MapTiler key XtY4Bvc3fXWmf1tU3H3S and openstreetmap style are configured in dashboard assets."""
+    js = client.get("/static/dashboard.js").text
+    assert "XtY4Bvc3fXWmf1tU3H3S" in js
+    assert "api.maptiler.com/maps/openstreetmap" in js
+    assert "setMapTilerStyle" in js
+
+    html = client.get("/").text
+    assert "btnStyleOsm" in html
+    assert "setMapTilerStyle" in html
+
+

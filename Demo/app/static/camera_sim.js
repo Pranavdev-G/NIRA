@@ -21,10 +21,12 @@ class CameraSimulator {
     this.fallProgress = 1.0; // 0.0 (upright) -> 1.0 (fallen on floor)
     this.isFalling = false;
     this.isManualRadar = false; // User toggle override
+    this.viewMode = "radar"; // 'radar' | 'camera' | 'auto'
     this.radarRipples = [];
     this.pointCloud = [];
     this.respWaveform = [];
 
+    window.cameraSim = this;
     this.resizeCanvas();
     window.addEventListener("resize", () => this.resizeCanvas());
 
@@ -35,22 +37,50 @@ class CameraSimulator {
 
   resizeCanvas() {
     if (!this.canvas) return;
-    this.canvas.width = this.canvas.parentElement.clientWidth;
-    this.canvas.height = this.canvas.parentElement.clientHeight || 380;
+    const parent = this.canvas.parentElement;
+    let w = parent ? parent.clientWidth : 0;
+    let h = parent ? parent.clientHeight : 0;
+
+    // Never collapse to 0 if container is hidden or initializing
+    if (w < 80) {
+      w = this.canvas.clientWidth > 80 ? this.canvas.clientWidth : 580;
+    }
+    if (h < 80) {
+      h = this.canvas.clientHeight > 80 ? this.canvas.clientHeight : 380;
+    }
+
+    this.canvas.width = w;
+    this.canvas.height = h;
   }
 
   isRadarActive() {
-    // Bathroom and bedroom have NO optical cameras for resident dignity/privacy
+    if (this.viewMode === "radar") return true;
+    if (this.viewMode === "camera") return false;
+    // Auto fallback: bathroom and bedroom protect privacy with mmWave radar
     return this.isManualRadar || this.currentRoom === "bathroom" || this.currentRoom === "bedroom";
   }
 
   toggleRadarMode() {
-    this.isManualRadar = !this.isManualRadar;
+    if (this.isRadarActive()) {
+      this.setViewMode("camera");
+    } else {
+      this.setViewMode("radar");
+    }
     return this.isRadarActive();
   }
 
   setManualRadar(active) {
     this.isManualRadar = !!active;
+    this.viewMode = active ? "radar" : "camera";
+  }
+
+  setViewMode(mode) {
+    this.viewMode = mode;
+    if (mode === "radar") {
+      this.isManualRadar = true;
+    } else if (mode === "camera") {
+      this.isManualRadar = false;
+    }
   }
 
   setRoomAndState(room, state, postureCode) {
@@ -115,9 +145,15 @@ class CameraSimulator {
   }
 
   render() {
+    if (!this.canvas || !this.ctx) return;
+    const parent = this.canvas.parentElement;
+    if (parent && parent.clientWidth > 50 && Math.abs(this.canvas.width - parent.clientWidth) > 4) {
+      this.resizeCanvas();
+    }
     const ctx = this.ctx;
-    const w = this.canvas.width;
-    const h = this.canvas.height;
+    const w = this.canvas.width || 640;
+    const h = this.canvas.height || 380;
+    if (w < 10 || h < 10) return;
 
     if (this.isRadarActive()) {
       this.drawRadarPresence(ctx, w, h);
@@ -147,7 +183,7 @@ class CameraSimulator {
     const t = this.animTime;
 
     // 1. Deep Space Radar Background with subtle radial glow
-    const bgGrad = ctx.createRadialGradient(w * 0.5, 40, 10, w * 0.5, h * 0.5, w * 0.8);
+    const bgGrad = ctx.createRadialGradient(w * 0.5, 40, 10, w * 0.5, h * 0.5, Math.max(20, w * 0.8));
     bgGrad.addColorStop(0, "#081326");
     bgGrad.addColorStop(0.6, "#040814");
     bgGrad.addColorStop(1, "#020409");
@@ -157,7 +193,7 @@ class CameraSimulator {
     // 2. Polar mmWave Radar Grid (Ceiling-Mounted Pod Perspective)
     const originX = w * 0.5;
     const originY = 32; // Ceiling pod position
-    const maxR = h * 0.88;
+    const maxR = Math.max(20, h * 0.88);
 
     // Range Arcs (1m, 2m, 3m, 4m)
     const ranges = [0.25, 0.5, 0.75, 1.0];
@@ -165,7 +201,7 @@ class CameraSimulator {
     ctx.lineWidth = 1;
 
     ranges.forEach((frac, idx) => {
-      const r = maxR * frac;
+      const r = Math.max(5, maxR * frac);
       ctx.strokeStyle = idx === 3 ? "rgba(56, 189, 248, 0.25)" : "rgba(56, 189, 248, 0.12)";
       ctx.beginPath();
       ctx.arc(originX, originY, r, 0.15 * Math.PI, 0.85 * Math.PI);
@@ -195,7 +231,7 @@ class CameraSimulator {
     const sweepX = originX + Math.cos(sweepAngle) * maxR;
     const sweepY = originY + Math.sin(sweepAngle) * maxR;
 
-    const sweepGrad = ctx.createRadialGradient(originX, originY, 5, originX, originY, maxR);
+    const sweepGrad = ctx.createRadialGradient(originX, originY, 5, originX, originY, Math.max(10, maxR));
     sweepGrad.addColorStop(0, "rgba(56, 189, 248, 0.35)");
     sweepGrad.addColorStop(1, "rgba(56, 189, 248, 0.0)");
     ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
@@ -257,21 +293,23 @@ class CameraSimulator {
     }
 
     // Draw Target Body Cluster Bounding Ellipse
+    const safeSpreadX = Math.max(10, spreadX);
+    const safeSpreadY = Math.max(10, spreadY);
     ctx.strokeStyle = statusColor;
     ctx.lineWidth = 1.5;
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
-    ctx.ellipse(targetX, targetY, spreadX, spreadY, 0, 0, Math.PI * 2);
+    ctx.ellipse(targetX, targetY, safeSpreadX, safeSpreadY, 0, 0, Math.PI * 2);
     ctx.stroke();
     ctx.setLineDash([]);
 
     // Fill semi-transparent heat zone
-    const heatGrad = ctx.createRadialGradient(targetX, targetY, 5, targetX, targetY, spreadX);
+    const heatGrad = ctx.createRadialGradient(targetX, targetY, 5, targetX, targetY, safeSpreadX);
     heatGrad.addColorStop(0, this.state === "critical" ? "rgba(239, 68, 68, 0.25)" : (this.state === "warning" ? "rgba(245, 158, 11, 0.2)" : "rgba(16, 185, 129, 0.2)"));
     heatGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
     ctx.fillStyle = heatGrad;
     ctx.beginPath();
-    ctx.ellipse(targetX, targetY, spreadX, spreadY, 0, 0, Math.PI * 2);
+    ctx.ellipse(targetX, targetY, safeSpreadX, safeSpreadY, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Draw Individual Radar Reflection Point Cloud (Doppler points)
@@ -415,6 +453,30 @@ class CameraSimulator {
       ctx.fillStyle = "#94a3b8";
       ctx.font = "10px monospace";
       ctx.fillText("PREP ISLAND / STOVE", w * 0.7, horizon + 50);
+    } else if (this.currentRoom === "bathroom") {
+      ctx.fillStyle = "rgba(30, 41, 59, 0.7)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+      ctx.fillRect(w * 0.08, horizon + 20, 120, 80);
+      ctx.strokeRect(w * 0.08, horizon + 20, 120, 80);
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "10px monospace";
+      ctx.fillText("VANITY / SINK", w * 0.1, horizon + 45);
+      // Shower partition
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.25)";
+      ctx.fillStyle = "rgba(56, 189, 248, 0.06)";
+      ctx.fillRect(w * 0.75, horizon - 20, 100, 140);
+      ctx.strokeRect(w * 0.75, horizon - 20, 100, 140);
+      ctx.fillStyle = "rgba(56, 189, 248, 0.6)";
+      ctx.font = "9px monospace";
+      ctx.fillText("SHOWER (WET FLOOR)", w * 0.76, horizon + 20);
+    } else if (this.currentRoom === "bedroom") {
+      ctx.fillStyle = "rgba(30, 41, 59, 0.7)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+      ctx.fillRect(w * 0.08, horizon + 25, 150, 90);
+      ctx.strokeRect(w * 0.08, horizon + 25, 150, 90);
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "10px monospace";
+      ctx.fillText("BED / NIGHTSTAND", w * 0.1, horizon + 50);
     }
   }
 
@@ -579,11 +641,11 @@ class CameraSimulator {
     ctx.font = "bold 11px monospace";
 
     if (this.state === "critical") {
-      ctx.fillText("⚠️ FALL DETECTED (CONF: 94%)", minX + 6, minY - 8);
+      ctx.fillText("[FALL DETECTED • CONF: 94%]", minX + 6, minY - 8);
     } else if (this.state === "warning") {
-      ctx.fillText("⚠️ DISTRESS / SITTING (CONF: 89%)", minX + 6, minY - 8);
+      ctx.fillText("[DISTRESS / SITTING • CONF: 89%]", minX + 6, minY - 8);
     } else {
-      ctx.fillText("✅ NORMAL POSTURE (CONF: 96%)", minX + 6, minY - 8);
+      ctx.fillText("[NORMAL POSTURE • CONF: 96%]", minX + 6, minY - 8);
     }
   }
 
@@ -606,8 +668,20 @@ class CameraSimulator {
 }
 
 // Global Camera Simulation Instance
-let cameraSim = null;
+window.CameraSimulator = CameraSimulator;
+window.cameraSim = null;
 
-document.addEventListener("DOMContentLoaded", () => {
-  cameraSim = new CameraSimulator("cameraCanvas");
-});
+function initCameraSim() {
+  if (!window.cameraSim) {
+    const el = document.getElementById("cameraCanvas");
+    if (el) {
+      window.cameraSim = new CameraSimulator("cameraCanvas");
+    }
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initCameraSim);
+} else {
+  initCameraSim();
+}

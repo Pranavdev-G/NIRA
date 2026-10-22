@@ -86,11 +86,11 @@ function riskColor(risk) {
 }
 
 function riskLabel(risk, status) {
-  if (status === "ESCALATED_CAD" || risk === "CRITICAL") return "🚨 CRITICAL (Tier 3)";
-  if (status === "ESCALATED_CAREGIVER" || risk === "HIGH") return "⚠️ HIGH (Tier 2)";
-  if (risk === "MODERATE") return "ℹ️ MODERATE (Caution)";
-  if (status === "RESOLVED") return "✓ RESOLVED";
-  if (risk === "LOW") return "🛡️ LOW / NORMAL";
+  if (status === "ESCALATED_CAD" || risk === "CRITICAL") return "CRITICAL (Tier 3)";
+  if (status === "ESCALATED_CAREGIVER" || risk === "HIGH") return "HIGH (Tier 2)";
+  if (risk === "MODERATE") return "MODERATE (Caution)";
+  if (status === "RESOLVED") return "RESOLVED";
+  if (risk === "LOW") return "LOW / NORMAL";
   return risk || "UNKNOWN";
 }
 
@@ -223,34 +223,34 @@ function renderTrustHero(state) {
   const isUnlocked = (emg.doorLockState || "UNLOCKED") === "UNLOCKED";
 
   // Compute state-derived hero content
-  let statusText = "🛡️ ALL CLEAR • PROTECTED & SECURE";
+  let statusText = "ALL CLEAR • PROTECTED & SECURE";
   let headline = `Eleanor is currently safe and calm.`;
   let subtext = "All ambient safety sensors are online. No unanswered wellness checks or critical deviations detected.";
   let isEmergency = false;
 
   if (status === "ESCALATED_CAD" || risk === "CRITICAL") {
     isEmergency = true;
-    statusText = "🚨 EMERGENCY ACTIVE • FIRST RESPONDERS EN ROUTE";
-    headline = `⚠️ Critical Emergency: Fall Detected in ${location}.`;
+    statusText = "EMERGENCY ACTIVE • FIRST RESPONDERS EN ROUTE";
+    headline = `Critical Emergency: Fall Detected in ${location}.`;
     subtext = "Boston EMS 911 (Medic-14) has been dispatched. Smart entrance deadbolt is UNLOCKED. Two-way audio channel is open with your Echo Show 15.";
   } else if (status === "ESCALATED_CAREGIVER" || risk === "HIGH") {
     isEmergency = true;
-    statusText = "⚠️ ALERT • CAREGIVER NOTIFIED";
+    statusText = "ALERT • CAREGIVER NOTIFIED";
     headline = `Eleanor needs assistance in the ${location}.`;
     subtext = "You've been alerted via Echo Show Drop-In, push notification, and SMS. Eleanor called for help. Please respond.";
   } else if (status === "ACTIVE") {
     isEmergency = false;
-    statusText = "ℹ️ WELLNESS CHECK IN PROGRESS";
+    statusText = "WELLNESS CHECK IN PROGRESS";
     headline = `Wellness check initiated — monitoring Eleanor's response.`;
     subtext = "A safety anomaly was detected. NIRA is waiting for Eleanor's verbal confirmation. You will be alerted if escalation is required.";
   } else if (status === "RESOLVED" || risk === "LOW") {
     isEmergency = false;
-    statusText = "🛡️ ALL CLEAR • RESOLVED";
+    statusText = "ALL CLEAR • RESOLVED";
     headline = `Eleanor is safe. Most recent alert was resolved.`;
     subtext = "The last wellness check was confirmed safe. Passive ambient monitoring has resumed normally.";
   } else {
     isEmergency = false;
-    statusText = "🛡️ ALL CLEAR • PROTECTED & SECURE";
+    statusText = "ALL CLEAR • PROTECTED & SECURE";
     headline = `Eleanor is comfortable and secure at home.`;
     subtext = "All 5 ambient safety sensors are online. No anomalies, no unanswered wellness checks, no deviations detected.";
   }
@@ -481,8 +481,8 @@ function renderIncidentHistory(state) {
         <div class="incident-header-row">
           <div class="incident-meta-left">
             <span class="incident-datetime">${dateStr} at ${timeStr}</span>
-            <span class="incident-loc-pill">📍 ${locationLabel}</span>
-            ${isActive ? `<span class="vtl-sim-badge" style="background: rgba(244, 63, 94, 0.2); border-color: var(--accent-red); color: #fda4af; font-size: 0.68rem;">⚡ ACTIVE</span>` : ""}
+            <span class="incident-loc-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline-block;vertical-align:-1px;margin-right:4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${locationLabel}</span>
+            ${isActive ? `<span class="vtl-sim-badge" style="background: rgba(244, 63, 94, 0.2); border-color: var(--accent-red); color: #fda4af; font-size: 0.68rem;"><span class="rec-pulse-dot" style="background:#f43f5e;width:6px;height:6px;display:inline-block;border-radius:50%;margin-right:4px;"></span>ACTIVE</span>` : ""}
           </div>
 
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -632,17 +632,17 @@ function renderConnectionBadge(state) {
     badge.style.background = "rgba(16, 185, 129, 0.15)";
     badge.style.borderColor = "rgba(16, 185, 129, 0.35)";
     badge.style.color = "#34d399";
-    badge.innerHTML = "🟢 Connected &bull; Real-Time DB Sync";
+    badge.innerHTML = `<span class="rec-pulse-dot" style="background:#10b981;box-shadow:0 0 8px #10b981;width:7px;height:7px;display:inline-block;border-radius:50%;margin-right:6px;"></span>Connected &bull; Real-Time DB Sync`;
   } else if (conn === "reconnecting") {
     badge.style.background = "rgba(245, 158, 11, 0.15)";
     badge.style.borderColor = "rgba(245, 158, 11, 0.35)";
     badge.style.color = "#fbbf24";
-    badge.innerHTML = "🟡 Reconnecting…";
+    badge.innerHTML = `<span class="rec-pulse-dot" style="background:#f59e0b;box-shadow:0 0 8px #f59e0b;width:7px;height:7px;display:inline-block;border-radius:50%;margin-right:6px;"></span>Reconnecting…`;
   } else {
     badge.style.background = "rgba(244, 63, 94, 0.15)";
     badge.style.borderColor = "rgba(244, 63, 94, 0.35)";
     badge.style.color = "#fda4af";
-    badge.innerHTML = "🔴 Offline Mode";
+    badge.innerHTML = `<span class="rec-pulse-dot" style="background:#f43f5e;box-shadow:0 0 8px #f43f5e;width:7px;height:7px;display:inline-block;border-radius:50%;margin-right:6px;"></span>Offline Mode`;
   }
 }
 

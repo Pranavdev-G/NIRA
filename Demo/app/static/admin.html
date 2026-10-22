@@ -8,28 +8,29 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/dashboard.css">
+  <link rel="stylesheet" href="/static/dashboard.css?v=12.0">
   <style>
     :root {
-      --admin-bg-base: #060911;
-      --admin-surface: rgba(15, 23, 42, 0.72);
-      --admin-surface-elevated: rgba(30, 41, 59, 0.78);
-      --admin-border: rgba(255, 255, 255, 0.08);
-      --admin-border-hover: rgba(56, 189, 248, 0.35);
-      --admin-green: #10b981;
-      --admin-green-glow: rgba(16, 185, 129, 0.2);
-      --admin-blue: #38bdf8;
-      --admin-amber: #f59e0b;
-      --admin-red: #f43f5e;
-      --admin-purple: #a855f7;
+      --portal-bg-base: #030712;
+      --portal-surface: rgba(11, 19, 41, 0.78);
+      --portal-surface-elevated: rgba(17, 28, 58, 0.88);
+      --portal-surface-subtle: rgba(15, 23, 42, 0.55);
+      --portal-border: rgba(255, 255, 255, 0.08);
+      --portal-border-hover: rgba(56, 189, 248, 0.35);
+      --portal-cyan: #00cae0;
+      --portal-teal: #0D9488;
+      --portal-green: #10b981;
+      --portal-amber: #f59e0b;
+      --portal-red: #f43f5e;
+      --portal-purple: #8b5cf6;
     }
 
     body {
-      background-color: var(--admin-bg-base);
+      background-color: var(--portal-bg-base);
       background-image: 
-        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.06) 0px, transparent 50%),
-        radial-gradient(at 50% 100%, rgba(244, 63, 94, 0.05) 0px, transparent 50%);
+        radial-gradient(at 15% 10%, rgba(0, 202, 224, 0.08) 0px, transparent 45%),
+        radial-gradient(at 85% 15%, rgba(13, 148, 136, 0.07) 0px, transparent 40%),
+        radial-gradient(at 50% 90%, rgba(244, 63, 94, 0.05) 0px, transparent 50%);
       background-attachment: fixed;
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       color: #e2e8f0;
@@ -38,11 +39,90 @@
       padding: 0;
     }
 
-    /* Trust Hero Banner */
+    .wrap {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 18px 24px 60px;
+    }
+
+    /* Top Navigation Bar */
+    .top-nav {
+      background: rgba(11, 19, 41, 0.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--portal-border);
+      border-radius: 14px;
+      padding: 12px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(0, 202, 224, 0.2) 0%, rgba(13, 148, 136, 0.3) 100%);
+      border: 1px solid rgba(0, 202, 224, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--portal-cyan);
+      box-shadow: 0 0 16px rgba(0, 202, 224, 0.2);
+    }
+
+    .brand-title-wrap h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-title-wrap p {
+      margin: 2px 0 0;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--portal-green);
+      box-shadow: 0 0 8px var(--portal-green);
+      display: inline-block;
+    }
+
+    .portal-tag-badge {
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(0, 202, 224, 0.12);
+      border: 1px solid rgba(0, 202, 224, 0.3);
+      color: var(--portal-cyan);
+    }
+
+    /* Peace of Mind Hero Trust Banner */
     .portal-hero-card {
-      background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(2, 6, 23, 0.94) 100%);
-      border: 1px solid var(--admin-border);
-      border-radius: var(--radius-card);
+      background: linear-gradient(135deg, rgba(11, 19, 41, 0.92) 0%, rgba(4, 9, 23, 0.96) 100%);
+      border: 1px solid var(--portal-border);
+      border-radius: 16px;
       padding: 24px 28px;
       margin-bottom: 24px;
       display: flex;
@@ -50,9 +130,10 @@
       justify-content: space-between;
       gap: 24px;
       flex-wrap: wrap;
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
       position: relative;
       overflow: hidden;
+      transition: all 0.35s ease;
     }
 
     .portal-hero-card::before {
@@ -62,27 +143,35 @@
       left: 0;
       width: 4px;
       height: 100%;
-      background: var(--admin-green);
-      transition: background 0.3s ease;
+      background: var(--portal-green);
+      box-shadow: 0 0 12px var(--portal-green);
+      transition: all 0.35s ease;
+    }
+
+    .portal-hero-card.emergency-active {
+      border-color: rgba(244, 63, 94, 0.45);
+      background: linear-gradient(135deg, rgba(35, 12, 22, 0.94) 0%, rgba(12, 5, 15, 0.98) 100%);
+      box-shadow: 0 16px 48px rgba(244, 63, 94, 0.22);
     }
 
     .portal-hero-card.emergency-active::before {
-      background: var(--admin-red);
+      background: var(--portal-red);
+      box-shadow: 0 0 16px var(--portal-red);
     }
 
     .hero-status-pill {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 14px;
-      border-radius: var(--radius-pill);
-      font-size: 0.74rem;
+      padding: 5px 13px;
+      border-radius: 20px;
+      font-size: 0.72rem;
       font-weight: 800;
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      background: rgba(16, 185, 129, 0.15);
+      background: rgba(16, 185, 129, 0.12);
       color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.35);
+      border: 1px solid rgba(16, 185, 129, 0.3);
       margin-bottom: 10px;
     }
 
@@ -106,37 +195,41 @@
       font-weight: 800;
       color: #fff;
       margin: 0 0 6px 0;
-      letter-spacing: -0.01em;
+      letter-spacing: -0.015em;
+      line-height: 1.3;
     }
 
     .hero-subtext {
       font-size: 0.86rem;
       color: #94a3b8;
-      line-height: 1.5;
-      margin: 0 0 10px 0;
-      max-width: 620px;
+      line-height: 1.55;
+      margin: 0 0 12px 0;
+      max-width: 680px;
     }
 
     .hero-timestamp {
       font-size: 0.74rem;
-      font-family: var(--font-mono);
-      color: var(--accent-cyan);
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--portal-cyan);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    /* Quick Action Buttons Strip */
+    /* Action Buttons Strip */
     .hero-actions-strip {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       flex-wrap: wrap;
       align-items: center;
     }
 
     .btn-hero-action {
       background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--admin-border);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       color: #fff;
       padding: 10px 18px;
-      border-radius: var(--radius-sm);
+      border-radius: 8px;
       font-size: 0.82rem;
       font-weight: 700;
       cursor: pointer;
@@ -145,291 +238,250 @@
       gap: 8px;
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       text-decoration: none;
+      backdrop-filter: blur(10px);
     }
 
     .btn-hero-action:hover {
       background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.25);
       transform: translateY(-2px);
     }
 
     .btn-hero-action.btn-drop-in {
       background: linear-gradient(135deg, rgba(2, 132, 199, 0.85) 0%, rgba(14, 165, 233, 0.95) 100%);
-      border-color: rgba(56, 189, 248, 0.5);
-      box-shadow: 0 4px 14px rgba(14, 165, 233, 0.3);
+      border-color: rgba(56, 189, 248, 0.4);
+      box-shadow: 0 4px 16px rgba(14, 165, 233, 0.25);
     }
 
     .btn-hero-action.btn-drop-in:hover {
-      box-shadow: 0 6px 20px rgba(14, 165, 233, 0.5);
+      box-shadow: 0 6px 22px rgba(14, 165, 233, 0.45);
     }
 
     .btn-hero-action.btn-door-unlocked {
       background: linear-gradient(135deg, rgba(220, 38, 38, 0.8) 0%, rgba(244, 63, 94, 0.9) 100%);
-      border-color: rgba(244, 63, 94, 0.5);
-      box-shadow: 0 4px 14px rgba(244, 63, 94, 0.3);
+      border-color: rgba(244, 63, 94, 0.45);
+      box-shadow: 0 4px 16px rgba(244, 63, 94, 0.25);
     }
 
     .btn-hero-action.btn-door-locked {
-      background: rgba(16, 185, 129, 0.15);
-      border-color: rgba(16, 185, 129, 0.4);
+      background: rgba(16, 185, 129, 0.14);
+      border-color: rgba(16, 185, 129, 0.35);
       color: #34d399;
     }
 
-    /* 4 High-Level Overview Grid */
-    .portal-overview-grid {
+    /* ==========================================================================
+       CONNECTED 2-COLUMN WORKSPACE
+       ========================================================================== */
+    .portal-main-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 24px;
+      grid-template-columns: 1.62fr 1fr;
+      gap: 24px;
+      align-items: start;
     }
 
-    @media (max-width: 1100px) {
-      .portal-overview-grid {
-        grid-template-columns: repeat(2, 1fr);
+    @media (max-width: 1120px) {
+      .portal-main-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
       }
     }
 
+    .portal-main-col {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .portal-sidebar-col {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Card Shells */
+    .portal-card {
+      background: var(--portal-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--portal-border);
+      border-radius: 16px;
+      padding: 22px 24px;
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
+      transition: border-color 0.25s ease;
+    }
+
+    .portal-card:hover {
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+
+    .portal-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .portal-card-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .portal-card-title svg {
+      color: var(--portal-cyan);
+    }
+
+    .portal-card-meta {
+      font-size: 0.72rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: #94a3b8;
+    }
+
+    /* 4-Quadrant Telemetry Hub */
+    .telemetry-quad-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
     @media (max-width: 640px) {
-      .portal-overview-grid {
+      .telemetry-quad-grid {
         grid-template-columns: 1fr;
       }
     }
 
-    .overview-card {
-      background: var(--admin-surface);
-      backdrop-filter: blur(14px);
-      border: 1px solid var(--admin-border);
-      border-radius: var(--radius-sm);
-      padding: 18px 20px;
+    .telemetry-quad-box {
+      background: var(--portal-surface-subtle);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 16px 18px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       transition: all 0.25s ease;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     }
 
-    .overview-card:hover {
-      border-color: var(--admin-border-hover);
-      background: var(--admin-surface-elevated);
+    .telemetry-quad-box:hover {
+      background: var(--portal-surface-elevated);
+      border-color: var(--portal-border-hover);
       transform: translateY(-2px);
     }
 
-    .overview-card-header {
+    .quad-label-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
-    .overview-card-label {
-      font-size: 0.72rem;
+    .quad-label {
+      font-size: 0.70rem;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: #94a3b8;
-    }
-
-    .overview-card-val {
-      font-size: 1.35rem;
-      font-weight: 800;
-      color: #fff;
-      margin: 4px 0 8px 0;
       display: flex;
-      align-items: baseline;
+      align-items: center;
       gap: 6px;
     }
 
-    .overview-card-sub {
+    .quad-val {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+      margin: 2px 0 6px 0;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      letter-spacing: -0.01em;
+    }
+
+    .quad-sub {
       font-size: 0.76rem;
       color: #94a3b8;
-      line-height: 1.45;
+      line-height: 1.5;
     }
 
-    /* Summary Metrics Strip */
-    .portal-stats-row {
+    /* Telemetry Hub Footer Ribbon */
+    .hub-telemetry-ribbon {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      margin-bottom: 24px;
+      gap: 12px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
     }
 
-    @media (max-width: 860px) {
-      .portal-stats-row {
+    @media (max-width: 780px) {
+      .hub-telemetry-ribbon {
         grid-template-columns: repeat(2, 1fr);
       }
     }
 
-    .stat-pill-box {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--admin-border);
-      border-radius: var(--radius-sm);
-      padding: 14px 18px;
+    .ribbon-metric-cell {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 12px 14px;
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
 
-    .stat-icon-wrap {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
+    .ribbon-icon-circle {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      font-size: 1.15rem;
     }
 
-    .stat-meta-title {
-      font-size: 0.70rem;
+    .ribbon-cell-title {
+      font-size: 0.68rem;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: #94a3b8;
     }
 
-    .stat-meta-number {
-      font-size: 1.25rem;
+    .ribbon-cell-num {
+      font-size: 1.15rem;
       font-weight: 800;
       color: #fff;
-      margin-top: 2px;
+      margin-top: 1px;
     }
 
-    /* Caregivers Network Section */
-    .caregiver-network-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      margin-bottom: 24px;
-    }
-
-    @media (max-width: 1080px) {
-      .caregiver-network-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 580px) {
-      .caregiver-network-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .caregiver-card {
-      background: var(--admin-surface);
-      border: 1px solid var(--admin-border);
-      border-radius: var(--radius-sm);
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .caregiver-header {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-    }
-
-    .caregiver-avatar {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.06);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      font-size: 1.1rem;
-    }
-
-    .caregiver-name {
-      font-size: 0.88rem;
-      font-weight: 800;
-      color: #fff;
-      margin-bottom: 2px;
-    }
-
-    .caregiver-relation {
-      font-size: 0.72rem;
-      color: #94a3b8;
-    }
-
-    .caregiver-channels {
-      font-size: 0.72rem;
-      color: #cbd5e1;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      background: rgba(0, 0, 0, 0.25);
-      padding: 8px 10px;
-      border-radius: 6px;
-    }
-
-    .caregiver-status-tag {
-      font-size: 0.68rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      padding: 3px 8px;
-      border-radius: 4px;
-      align-self: flex-start;
-    }
-
-    .tag-online {
-      background: rgba(16, 185, 129, 0.15);
-      color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.35);
-    }
-
-    .tag-standby {
-      background: rgba(56, 189, 248, 0.15);
-      color: #38bdf8;
-      border: 1px solid rgba(56, 189, 248, 0.35);
-    }
-
-    .tag-cad {
-      background: rgba(244, 63, 94, 0.15);
-      color: #fda4af;
-      border: 1px solid rgba(244, 63, 94, 0.35);
-    }
-
-    .tag-doctor {
-      background: rgba(168, 85, 247, 0.15);
-      color: #c084fc;
-      border: 1px solid rgba(168, 85, 247, 0.35);
-    }
-
-    /* Clean Incident History Section */
-    .history-card-box {
-      background: var(--admin-surface);
-      border: 1px solid var(--admin-border);
-      border-radius: var(--radius-card);
-      padding: 24px;
-      margin-bottom: 28px;
-      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
-    }
-
+    /* Incident History Box */
     .history-filter-bar {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
       background: rgba(0, 0, 0, 0.28);
-      padding: 14px 16px;
-      border-radius: var(--radius-sm);
-      margin-bottom: 20px;
-      border: 1px solid var(--admin-border);
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
     }
 
     .filter-group {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .filter-label {
-      font-size: 0.72rem;
+      font-size: 0.70rem;
       font-weight: 800;
       text-transform: uppercase;
       color: #94a3b8;
@@ -438,12 +490,12 @@
 
     .filter-select {
       background: rgba(15, 23, 42, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       color: #fff;
       font-family: inherit;
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       font-weight: 600;
-      padding: 6px 12px;
+      padding: 6px 10px;
       border-radius: 6px;
       outline: none;
       cursor: pointer;
@@ -451,16 +503,16 @@
     }
 
     .filter-select:hover, .filter-select:focus {
-      border-color: var(--admin-blue);
+      border-color: var(--portal-cyan);
     }
 
     .btn-filter-reset {
       background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.14);
       color: #94a3b8;
       font-size: 0.74rem;
       font-weight: 700;
-      padding: 6px 14px;
+      padding: 6px 12px;
       border-radius: 6px;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -470,31 +522,31 @@
     .btn-filter-reset:hover {
       background: rgba(255, 255, 255, 0.08);
       color: #fff;
-      border-color: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.25);
     }
 
     /* Incident Item Card */
     .incident-entry-card {
       background: rgba(255, 255, 255, 0.025);
-      border: 1px solid var(--admin-border);
-      border-radius: var(--radius-sm);
-      padding: 18px 20px;
-      margin-bottom: 14px;
+      border: 1px solid var(--portal-border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 12px;
       transition: all 0.2s ease;
     }
 
     .incident-entry-card:hover {
       background: rgba(255, 255, 255, 0.045);
-      border-color: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.16);
     }
 
     .incident-entry-card.active-emergency {
-      border-left: 4px solid var(--admin-red);
-      background: rgba(244, 63, 94, 0.05);
+      border-left: 4px solid var(--portal-red);
+      background: rgba(244, 63, 94, 0.06);
     }
 
     .incident-entry-card.resolved-entry {
-      border-left: 4px solid var(--admin-green);
+      border-left: 4px solid var(--portal-green);
     }
 
     .incident-header-row {
@@ -517,19 +569,21 @@
 
     .incident-datetime {
       font-size: 0.78rem;
-      font-family: var(--font-mono);
+      font-family: 'JetBrains Mono', monospace;
       font-weight: 700;
       color: #fff;
     }
 
     .incident-loc-pill {
-      font-size: 0.72rem;
+      font-size: 0.70rem;
       font-weight: 700;
       padding: 2px 8px;
       border-radius: 4px;
-      background: rgba(56, 189, 248, 0.12);
-      color: #38bdf8;
-      border: 1px solid rgba(56, 189, 248, 0.25);
+      background: rgba(0, 202, 224, 0.12);
+      color: var(--portal-cyan);
+      border: 1px solid rgba(0, 202, 224, 0.25);
+      display: inline-flex;
+      align-items: center;
     }
 
     .incident-triage-grid {
@@ -558,7 +612,7 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: #94a3b8;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     .triage-col-text {
@@ -566,11 +620,10 @@
       line-height: 1.45;
     }
 
-    /* Expandable Audit Log */
     .btn-expand-timeline {
       background: transparent;
       border: none;
-      color: var(--accent-cyan);
+      color: var(--portal-cyan);
       font-size: 0.74rem;
       font-weight: 700;
       cursor: pointer;
@@ -589,7 +642,7 @@
       margin-top: 12px;
       padding: 12px 14px;
       background: rgba(0, 0, 0, 0.35);
-      border-radius: 6px;
+      border-radius: 8px;
       border: 1px solid rgba(255, 255, 255, 0.06);
       display: flex;
       flex-direction: column;
@@ -599,16 +652,16 @@
     /* Meaningful Empty State */
     .meaningful-empty-card {
       text-align: center;
-      padding: 56px 24px;
+      padding: 50px 24px;
       background: rgba(0, 0, 0, 0.2);
-      border-radius: var(--radius-sm);
+      border-radius: 12px;
       border: 1px dashed rgba(255, 255, 255, 0.12);
     }
 
     .empty-icon-shield {
-      width: 60px;
-      height: 60px;
-      margin: 0 auto 16px auto;
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 14px auto;
       border-radius: 50%;
       background: rgba(16, 185, 129, 0.12);
       border: 1px solid rgba(16, 185, 129, 0.35);
@@ -616,71 +669,322 @@
       align-items: center;
       justify-content: center;
       color: #34d399;
-      font-size: 26px;
     }
 
     .empty-title {
-      font-size: 1.15rem;
+      font-size: 1.10rem;
       font-weight: 800;
       color: #fff;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .empty-desc {
-      font-size: 0.84rem;
+      font-size: 0.82rem;
       color: #94a3b8;
       max-width: 480px;
-      margin: 0 auto 18px auto;
+      margin: 0 auto 16px auto;
       line-height: 1.5;
     }
 
-    /* Simulation Control Strip */
-    .sim-strip-drawer {
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid var(--admin-border);
-      border-radius: var(--radius-sm);
-      padding: 14px 18px;
+    /* Caregiver Cards in Sidebar */
+    .caregiver-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .caregiver-card {
+      background: var(--portal-surface-subtle);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .caregiver-card:hover {
+      background: var(--portal-surface-elevated);
+      border-color: var(--portal-border-hover);
+    }
+
+    .caregiver-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .caregiver-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: #cbd5e1;
+    }
+
+    .caregiver-name {
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 1px;
+    }
+
+    .caregiver-relation {
+      font-size: 0.72rem;
+      color: #94a3b8;
+    }
+
+    .caregiver-channels {
+      font-size: 0.72rem;
+      color: #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 8px 10px;
+      border-radius: 6px;
+    }
+
+    .caregiver-status-tag {
+      font-size: 0.66rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      align-self: flex-start;
+      letter-spacing: 0.04em;
+    }
+
+    .tag-online {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+
+    .tag-standby {
+      background: rgba(0, 202, 224, 0.15);
+      color: var(--portal-cyan);
+      border: 1px solid rgba(0, 202, 224, 0.35);
+    }
+
+    .tag-cad {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fda4af;
+      border: 1px solid rgba(244, 63, 94, 0.35);
+    }
+
+    .tag-doctor {
+      background: rgba(139, 92, 246, 0.15);
+      color: #c4b5fd;
+      border: 1px solid rgba(139, 92, 246, 0.35);
+    }
+
+    /* Privacy Sensor List */
+    .sensor-item-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      margin-bottom: 8px;
       font-size: 0.76rem;
+    }
+
+    .sensor-item-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .sensor-item-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sensor-item-left svg {
+      color: var(--portal-cyan);
+    }
+
+    /* Simulation Strip Drawer inside Sidebar */
+    .sim-strip-drawer {
+      background: var(--portal-surface-subtle);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sim-buttons-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    /* Video Reel Modal */
+    .video-demo-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.88);
+      backdrop-filter: blur(14px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+
+    .video-demo-window {
+      background: #090e1a;
+      border: 1px solid var(--portal-border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 820px;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+    }
+
+    .video-demo-header {
+      padding: 14px 20px;
+      background: rgba(15, 23, 42, 0.8);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .video-demo-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: #fff;
+    }
+
+    .btn-close-modal {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .btn-close-modal:hover {
+      color: #fff;
+    }
+
+    .video-screen-container {
+      width: 100%;
+      height: 380px;
+      background: #020408;
+      position: relative;
+    }
+
+    .video-screen-container canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .video-controls-bar {
+      padding: 14px 20px;
+      background: rgba(11, 19, 41, 0.95);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .video-scrub-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .video-progress-slider {
+      flex: 1;
+      accent-color: var(--portal-cyan);
+      cursor: pointer;
+    }
+
+    .video-time-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.74rem;
+      color: #94a3b8;
+    }
+
+    .video-action-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .chapter-btn-strip {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .btn-chapter {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-chapter:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .video-subtitles-bar {
+      padding: 12px 20px;
+      background: rgba(4, 9, 23, 0.95);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .subtitles-text strong {
+      font-size: 0.82rem;
+      color: var(--portal-cyan);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .subtitles-text p {
+      margin: 0;
+      font-size: 0.76rem;
+      color: #cbd5e1;
     }
   </style>
 </head>
 <body>
-  <a href="#guardianMain" class="skip-link">Skip to Guardian Content</a>
-
-  <!-- Authenticated Profile Ribbon -->
-  <div style="background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%); border-bottom: 1px solid rgba(255,255,255,0.12); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; font-size: 0.84rem; color: #ffffff; flex-wrap: wrap; gap: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
-    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-      <span style="font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.74rem;">Select Authenticated Profile:</span>
-      <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1.5px solid rgba(245, 158, 11, 0.45); padding: 5px 14px; border-radius: 9999px; font-weight: 800; font-size: 0.82rem;">
-        👨‍💼 David Vance (Son • Family Admin) [ACTIVE]
-      </span>
-      <span style="color: #94a3b8; font-size: 0.78rem;">• Full Admin Console • Live Telemetry &amp; Door Overrides</span>
-    </div>
-    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-      <a href="/#demo/demovideo" style="background: rgba(56, 189, 248, 0.18); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.45); padding: 6px 14px; border-radius: 9999px; text-decoration: none; font-weight: 800; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
-        🎬 Demo Video &amp; Guide &rarr;
-      </a>
-      <a href="/#demo" style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); padding: 6px 14px; border-radius: 9999px; text-decoration: none; font-weight: 800; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
-        👵 Eleanor &amp; Family (Home View) &rarr;
-      </a>
-      <a href="/#demo/emergencyalert" style="background: rgba(244, 63, 94, 0.18); color: #fda4af; border: 1px solid rgba(244, 63, 94, 0.45); padding: 6px 14px; border-radius: 9999px; text-decoration: none; font-weight: 800; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
-        🚑 Medic 14 (Ambulance CAD) &rarr;
-      </a>
-    </div>
-  </div>
-
   <div class="wrap">
 
     <!-- Top Navigation Header -->
     <header class="top-nav" role="banner">
       <div class="brand">
-        <div class="brand-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             <path d="M9 12l2 2 4-4"/>
           </svg>
@@ -688,42 +992,41 @@
         <div class="brand-title-wrap">
           <div style="display: flex; align-items: center; gap: 10px;">
             <h1>NIRA Family Portal</h1>
-            <span class="vtl-confidence-tag" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.35); color: #38bdf8;">
-              GUARDIAN HUB
-            </span>
+            <span class="portal-tag-badge">GUARDIAN HUB</span>
           </div>
           <p>
             <span class="brand-live-dot"></span> 
-            <span>Eleanor Vance &bull; Beacon Hill Unit 4B &bull; Ambient Safety Intelligence</span>
+            <span>Eleanor Vance (Age 79) &bull; Beacon Hill Unit 4B &bull; Ambient Safety Intelligence</span>
           </p>
         </div>
       </div>
 
       <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
         <!-- Live SSE Stream Connection Badge -->
-        <span class="vtl-confidence-tag" id="portalConnectionBadge" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.35); color: #34d399;">
-          🟢 Connected &bull; Real-Time DB Sync
+        <span class="portal-tag-badge" id="portalConnectionBadge" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.35); color: #34d399; display: inline-flex; align-items: center;">
+          <span class="rec-pulse-dot" style="background:#10b981;box-shadow:0 0 8px #10b981;width:7px;height:7px;display:inline-block;border-radius:50%;margin-right:6px;"></span>
+          Connected &bull; Real-Time DB Sync
         </span>
 
-        <!-- Switch to Resident / Demo View -->
-        <a href="/#demo" class="btn-luxury-secondary" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; font-weight: 800;">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="5 3 19 12 5 21 5 3"/>
+        <!-- Switch to Resident View -->
+        <a href="/" class="btn-hero-action" style="padding: 7px 14px; font-size: 0.78rem;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
           </svg>
-          <span>Open NIRA Demo Module &rarr;</span>
+          <span>Resident &amp; Live View &rarr;</span>
         </a>
 
-        <!-- Guardian Avatar -->
-        <div class="senior-badge" style="border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.08);">
-          <div class="senior-avatar" style="color: #fbbf24;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <!-- Guardian Avatar Pill -->
+        <div style="display: flex; align-items: center; gap: 10px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 8px; padding: 5px 12px;">
+          <div style="color: #fbbf24;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
               <circle cx="12" cy="7" r="4"/>
             </svg>
           </div>
-          <div class="senior-details">
-            <div class="name">David Vance</div>
-            <div class="sub">Son &bull; Primary Guardian</div>
+          <div>
+            <div style="font-size: 0.78rem; font-weight: 800; color: #fff;">David Vance</div>
+            <div style="font-size: 0.68rem; color: #94a3b8;">Son &bull; Primary Guardian</div>
           </div>
         </div>
       </div>
@@ -732,363 +1035,490 @@
     <!-- Main Content Region -->
     <main id="guardianMain">
 
-    <!-- Peace of Mind Hero Trust Banner -->
-    <div class="portal-hero-card" id="portalTrustHero" role="status" aria-live="polite">
-      <div>
-        <div class="hero-status-pill" id="heroStatusPill">
-          <span class="hero-pulse-dot"></span>
-          <span id="heroStatusText">ALL CLEAR &bull; PROTECTED &amp; SECURE</span>
-        </div>
-        <h2 class="hero-headline" id="heroHeadline">
-          Eleanor is currently resting safely in the Living Room.
-        </h2>
-        <p class="hero-subtext" id="heroSubtext">
-          All 5 ambient safety sensors are online and functioning normally. No unanswered wellness checks or critical deviations detected.
-        </p>
-        <div class="hero-timestamp" id="heroTimestamp">
-          Last Verified: Just now &bull; 100% Sensor Array Operational
-        </div>
-      </div>
-
-      <!-- Quick Guardian Action Strip -->
-      <div class="hero-actions-strip">
-        <button class="btn-hero-action btn-drop-in" onclick="triggerEchoDropIn()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-          </svg>
-          <span>Echo Drop-In Call</span>
-        </button>
-
-        <button class="btn-hero-action btn-door-unlocked" id="btnHeroDoorLock" onclick="toggleDoorOverride()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
-          </svg>
-          <span id="btnHeroDoorText">Deadbolt: UNLOCKED (PIN: 8492)</span>
-        </button>
-
-        <a href="tel:+15550192834" class="btn-hero-action">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-          </svg>
-          <span>Call Contact</span>
-        </a>
-      </div>
-    </div>
-
-    <!-- 4 High-Level Overview Cards -->
-    <div class="portal-overview-grid">
-      <!-- 1. Resident Profile -->
-      <div class="overview-card" id="cardResidentProfile">
-        <div class="overview-card-header">
-          <span class="overview-card-label">Resident Profile</span>
-          <span style="font-size: 1.1rem;">👤</span>
-        </div>
+      <!-- Peace of Mind Hero Trust Banner -->
+      <section class="portal-hero-card" id="portalTrustHero" role="status" aria-live="polite">
         <div>
-          <div class="overview-card-val" id="profName">Eleanor Vance</div>
-          <div class="overview-card-sub" id="profDetails">
-            Age 79 &bull; Unit 4B Beacon Hill, Boston MA<br>
-            Baseline HR: 72 BPM &bull; Sleep: 11 PM–7 AM<br>
-            Emergency Contact: David Vance (Son)
+          <div class="hero-status-pill" id="heroStatusPill">
+            <span class="hero-pulse-dot"></span>
+            <span id="heroStatusText">ALL CLEAR &bull; PROTECTED &amp; SECURE</span>
+          </div>
+          <h2 class="hero-headline" id="heroHeadline">
+            Eleanor is currently resting safely in the Living Room.
+          </h2>
+          <p class="hero-subtext" id="heroSubtext">
+            All 5 ambient safety sensors are online and functioning normally. Multi-modal Bayesian sensor fusion indicates stable resting baseline with zero critical deviations.
+          </p>
+          <div class="hero-timestamp" id="heroTimestamp">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Last Verified: Just now &bull; 100% Sensor Array Operational</span>
           </div>
         </div>
-      </div>
 
-      <!-- 2. Current Safety Status -->
-      <div class="overview-card" id="cardSafetyStatus">
-        <div class="overview-card-header">
-          <span class="overview-card-label">Current Status &amp; Vitals</span>
-          <span id="overviewRiskBadge" class="vtl-sim-badge" style="background: rgba(244, 63, 94, 0.2); border-color: var(--accent-red); color: #fda4af;">
-            CRITICAL
-          </span>
-        </div>
-        <div>
-          <div class="overview-card-val" id="overviewHrVal" style="color: #f43f5e;">
-            138 BPM <span style="font-size: 0.74rem; font-weight: 600; color: #fda4af;">(Surge)</span>
-          </div>
-          <div class="overview-card-sub" id="overviewStatusDesc">
-            Movement: 0.05 / 1.0 (Motionless on floor)<br>
-            Alert: Wet ceramic tile hazard &bull; Inactivity triage
-          </div>
-        </div>
-      </div>
+        <!-- Quick Guardian Action Strip -->
+        <div class="hero-actions-strip">
+          <button class="btn-hero-action btn-drop-in" onclick="triggerEchoDropIn()" title="Initiate two-way audio drop-in through living room Echo Show">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            </svg>
+            <span>Echo Drop-In Call</span>
+          </button>
 
-      <!-- 3. Current Location & Activity -->
-      <div class="overview-card" id="cardLocationActivity">
-        <div class="overview-card-header">
-          <span class="overview-card-label">Location &amp; Recent Activity</span>
-          <span style="font-size: 1.1rem;">📍</span>
-        </div>
-        <div>
-          <div class="overview-card-val" id="overviewLocationVal">
-            Bathroom
-          </div>
-          <div class="overview-card-sub" id="overviewActivityDesc">
-            Activity: Fallen posture detected<br>
-            Sensors: 60GHz Ceiling Radar &amp; Moisture Sensor<br>
-            Ambient: Wet Substrate &bull; 15 Lux (Low Light)
-          </div>
-        </div>
-      </div>
+          <button class="btn-hero-action btn-door-locked" id="btnHeroDoorLock" onclick="toggleDoorOverride()" title="Toggle smart deadbolt entrance override for emergency access">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <span id="btnHeroDoorText">Deadbolt: SECURED / LOCKED</span>
+          </button>
 
-      <!-- 4. Device Status -->
-      <div class="overview-card" id="cardDeviceStatus">
-        <div class="overview-card-header">
-          <span class="overview-card-label">Ambient Device Health</span>
-          <span style="font-size: 1.1rem;">📡</span>
+          <a href="tel:+15550192834" class="btn-hero-action" title="Call Eleanor or primary family contact">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
+            <span>Call Contact</span>
+          </a>
         </div>
-        <div>
-          <div class="overview-card-val" id="overviewDeviceCount" style="color: #34d399;">
-            5 / 5 Online
-          </div>
-          <div class="overview-card-sub" id="overviewDeviceList">
-            Apple Watch Series 9: 88% Battery (BLE)<br>
-            Amazon Echo Show 15: Online (Wi-Fi 6)<br>
-            60GHz Radar Pods: Active (20Hz FMCW)
-          </div>
-        </div>
-      </div>
-    </div>
+      </section>
 
-    <!-- Summary Metrics Strip -->
-    <div class="portal-stats-row">
-      <div class="stat-pill-box">
-        <div class="stat-icon-wrap" style="background: rgba(244, 63, 94, 0.15); color: #f43f5e;">🚨</div>
-        <div>
-          <div class="stat-meta-title">Active Incidents</div>
-          <div class="stat-meta-number" id="statActiveIncidents" style="color: #f43f5e;">1 Active</div>
-        </div>
-      </div>
+      <!-- CONNECTED 2-COLUMN DASHBOARD WORKSPACE -->
+      <div class="portal-main-grid">
 
-      <div class="stat-pill-box">
-        <div class="stat-icon-wrap" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">✅</div>
-        <div>
-          <div class="stat-meta-title">Resolved Incidents</div>
-          <div class="stat-meta-number" id="statResolvedIncidents" style="color: #34d399;">2 Resolved</div>
-        </div>
-      </div>
+        <!-- ===================================================================
+             LEFT COLUMN: RESIDENT HEALTH, TELEMETRY HUB & INCIDENT AUDIT LOG
+             =================================================================== -->
+        <div class="portal-main-col">
 
-      <div class="stat-pill-box">
-        <div class="stat-icon-wrap" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">👥</div>
-        <div>
-          <div class="stat-meta-title">Caregivers Connected</div>
-          <div class="stat-meta-number" id="statCaregiversCount">3 Guardians</div>
-        </div>
-      </div>
+          <!-- 1. Real-Time Resident Health & Living Status Hub -->
+          <section class="portal-card" id="telemetryHubCard" aria-label="Resident Health & Living Telemetry Hub">
+            <div class="portal-card-header">
+              <div class="portal-card-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                <span>Resident Real-Time Health &amp; Ambient Telemetry Hub</span>
+              </div>
+              <span class="portal-card-meta">20Hz Edge Inference &bull; Zero Camera In Bathroom</span>
+            </div>
 
-      <div class="stat-pill-box">
-        <div class="stat-icon-wrap" style="background: rgba(168, 85, 247, 0.15); color: #c084fc;">📈</div>
-        <div>
-          <div class="stat-meta-title">24h Stability Score</div>
-          <div class="stat-meta-number" id="statStabilityScore">98% Normal</div>
-        </div>
-      </div>
-    </div>
+            <!-- 4 Connected Telemetry Quadrants -->
+            <div class="telemetry-quad-grid">
 
-    <!-- Caregivers Network Section -->
-    <div style="margin-bottom: 24px;">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-        <div style="font-size: 0.88rem; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.05em;">
-          Caregiver Connections &amp; Emergency Escalation Network
-        </div>
-        <span style="font-size: 0.74rem; color: #94a3b8; font-family: var(--font-mono);">
-          Multi-Channel Matrix &bull; High Reliability
-        </span>
-      </div>
+              <!-- Quadrant 1: Resident Profile -->
+              <div class="telemetry-quad-box" id="cardResidentProfile">
+                <div class="quad-label-row">
+                  <span class="quad-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>Resident Profile</span>
+                  </span>
+                  <span class="portal-tag-badge" style="background: rgba(139, 92, 246, 0.12); color: #c4b5fd; border-color: rgba(139, 92, 246, 0.3);">SENIOR</span>
+                </div>
+                <div>
+                  <div class="quad-val" id="profName">Eleanor Vance</div>
+                  <div class="quad-sub" id="profDetails">
+                    Age 79 &bull; Unit 4B Beacon Hill, Boston MA<br>
+                    Baseline HR: 72 BPM &bull; Sleep: 11 PM–7 AM<br>
+                    Emergency Contact: David Vance (Son)
+                  </div>
+                </div>
+              </div>
 
-      <div class="caregiver-network-grid" id="caregiverNetworkGrid">
-        <!-- Caregiver 1: Son David -->
-        <div class="caregiver-card">
-          <div>
-            <div class="caregiver-header">
-              <div class="caregiver-avatar">📱</div>
-              <div>
-                <div class="caregiver-name">David Vance</div>
-                <div class="caregiver-relation">Son &bull; Primary Guardian</div>
+              <!-- Quadrant 2: Current Status & Vitals -->
+              <div class="telemetry-quad-box" id="cardSafetyStatus">
+                <div class="quad-label-row">
+                  <span class="quad-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    <span>Current Status &amp; Vitals</span>
+                  </span>
+                  <span id="overviewRiskBadge" class="portal-tag-badge" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.35); color: #34d399;">
+                    LOW
+                  </span>
+                </div>
+                <div>
+                  <div class="quad-val" id="overviewHrVal" style="color: #10b981;">
+                    72 BPM <span style="font-size: 0.74rem; font-weight: 600; color: #34d399;">(Normal)</span>
+                  </div>
+                  <div class="quad-sub" id="overviewStatusDesc">
+                    Movement: 0.95 / 1.0 (Active &amp; ambulatory)<br>
+                    Status: NORMAL &bull; Updated: Just now
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quadrant 3: Location & Substrate -->
+              <div class="telemetry-quad-box" id="cardLocationActivity">
+                <div class="quad-label-row">
+                  <span class="quad-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <span>Location &amp; Activity</span>
+                  </span>
+                  <span class="portal-tag-badge" style="background: rgba(0, 202, 224, 0.12); color: var(--portal-cyan); border-color: rgba(0, 202, 224, 0.3);">RADAR 20Hz</span>
+                </div>
+                <div>
+                  <div class="quad-val" id="overviewLocationVal">
+                    Living Room
+                  </div>
+                  <div class="quad-sub" id="overviewActivityDesc">
+                    Activity: Resting comfortably (Armchair)<br>
+                    Sensors: 60GHz Ceiling Radar &bull; Doppler Vitals<br>
+                    Conditions: Floor Dry &bull; 22.4&deg;C &bull; Clear Substrate
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quadrant 4: Ambient Device Array -->
+              <div class="telemetry-quad-box" id="cardDeviceStatus">
+                <div class="quad-label-row">
+                  <span class="quad-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+                    <span>Ambient Device Health</span>
+                  </span>
+                  <span class="portal-tag-badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.35);">ALL ONLINE</span>
+                </div>
+                <div>
+                  <div class="quad-val" id="overviewDeviceCount" style="color: #34d399;">
+                    5 / 5 Online
+                  </div>
+                  <div class="quad-sub" id="overviewDeviceList">
+                    Apple Watch Series 9: <strong style="color: #34d399;">Connected</strong> (88% Battery)<br>
+                    Amazon Echo Show 15: <strong style="color: #34d399;">Online</strong> (Hardwired 15V DC)<br>
+                    60GHz FMCW mmWave Radar: <strong style="color: #34d399;">Online</strong> (Zero Optical)
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Integrated Telemetry Ribbon (Directly connected to resident health) -->
+            <div class="hub-telemetry-ribbon">
+              <div class="ribbon-metric-cell">
+                <div class="ribbon-icon-circle" style="background: rgba(244, 63, 94, 0.12); color: var(--portal-red);">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <div>
+                  <div class="ribbon-cell-title">Active Alerts</div>
+                  <div class="ribbon-cell-num" id="statActiveIncidents" style="color: #34d399;">0 Active</div>
+                </div>
+              </div>
+
+              <div class="ribbon-metric-cell">
+                <div class="ribbon-icon-circle" style="background: rgba(16, 185, 129, 0.12); color: #34d399;">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <div>
+                  <div class="ribbon-cell-title">Resolved Safe</div>
+                  <div class="ribbon-cell-num" id="statResolvedIncidents" style="color: #34d399;">2 Resolved</div>
+                </div>
+              </div>
+
+              <div class="ribbon-metric-cell">
+                <div class="ribbon-icon-circle" style="background: rgba(0, 202, 224, 0.12); color: var(--portal-cyan);">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div>
+                  <div class="ribbon-cell-title">Caregivers</div>
+                  <div class="ribbon-cell-num" id="statCaregiversCount">3 Guardians</div>
+                </div>
+              </div>
+
+              <div class="ribbon-metric-cell">
+                <div class="ribbon-icon-circle" style="background: rgba(139, 92, 246, 0.12); color: #c4b5fd;">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <div>
+                  <div class="ribbon-cell-title">24h Stability</div>
+                  <div class="ribbon-cell-num" id="statStabilityScore" style="color: #c4b5fd;">98% Normal</div>
+                </div>
               </div>
             </div>
-            <div style="font-size: 0.74rem; font-family: var(--font-mono); color: #94a3b8; margin: 8px 0 10px 0;">
-              +1-555-019-2834
+          </section>
+
+          <!-- 2. Clean Incident History View with Interactive Filters -->
+          <section class="portal-card history-card-box" aria-label="Incident History and Safety Audit Log">
+            <div class="portal-card-header">
+              <div>
+                <div class="portal-card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+                  <span>Incident History &amp; Emergency Safety Log</span>
+                </div>
+                <div style="font-size: 0.76rem; color: #94a3b8; margin-top: 3px;">
+                  Filterable historical records of all detected events, voice wellness checks, and emergency resolutions.
+                </div>
+              </div>
+              <span class="portal-tag-badge" id="historyMatchCountTag" style="background: rgba(0, 202, 224, 0.12); color: var(--portal-cyan); border-color: rgba(0, 202, 224, 0.3);">
+                3 Incidents Total
+              </span>
             </div>
-            <div class="caregiver-channels">
-              <span>&bull; Echo Show 15 Drop-In Call</span>
-              <span>&bull; Priority Mobile App Push</span>
-              <span>&bull; Automated SMS Alert with Door PIN</span>
+
+            <!-- Interactive Filter Controls Bar -->
+            <div class="history-filter-bar" role="search" aria-label="Incident History Filters">
+              <div class="filter-group">
+                <label class="filter-label" for="filterDate">Date:</label>
+                <select id="filterDate" class="filter-select" onchange="applyHistoryFilters()" aria-label="Filter incidents by date range">
+                  <option value="all">All Dates</option>
+                  <option value="today">Today</option>
+                  <option value="7d">Past 7 Days</option>
+                  <option value="30d">Past 30 Days</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label class="filter-label" for="filterSeverity">Severity:</label>
+                <select id="filterSeverity" class="filter-select" onchange="applyHistoryFilters()" aria-label="Filter incidents by severity tier">
+                  <option value="all">All Severities</option>
+                  <option value="CRITICAL">Critical (Tier 3)</option>
+                  <option value="HIGH">High / Alert (Tier 2)</option>
+                  <option value="MODERATE">Moderate (Caution)</option>
+                  <option value="LOW">Low / Routine (Tier 1)</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label class="filter-label" for="filterRoom">Room:</label>
+                <select id="filterRoom" class="filter-select" onchange="applyHistoryFilters()" aria-label="Filter incidents by apartment room">
+                  <option value="all">All Rooms</option>
+                  <option value="bathroom">Bathroom</option>
+                  <option value="living">Living Room</option>
+                  <option value="kitchen">Kitchen</option>
+                  <option value="bedroom">Bedroom</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label class="filter-label" for="filterStatus">Status:</label>
+                <select id="filterStatus" class="filter-select" onchange="applyHistoryFilters()" aria-label="Filter incidents by operational status">
+                  <option value="all">All Statuses</option>
+                  <option value="ACTIVE">Active / Escalated</option>
+                  <option value="RESOLVED">Resolved Safe</option>
+                </select>
+              </div>
+
+              <button class="btn-filter-reset" onclick="resetHistoryFilters()" aria-label="Reset all history filters to defaults">
+                Reset Filters
+              </button>
             </div>
-          </div>
-          <span class="caregiver-status-tag tag-online">ONLINE &bull; PRIMARY</span>
+
+            <!-- Feed Container: Rendered dynamically by admin.js -->
+            <div id="incidentHistoryFeed"></div>
+
+            <!-- Meaningful Empty State Container -->
+            <div class="meaningful-empty-card" id="emptyHistoryState" style="display: none;">
+              <div class="empty-icon-shield">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div class="empty-title" id="emptyTitleText">No Incidents Found</div>
+              <div class="empty-desc" id="emptyDescText">
+                Eleanor has experienced no recorded safety incidents matching your selected filters. All ambient safety sensors and radar pods are operating normally.
+              </div>
+              <button class="btn-hero-action" onclick="resetHistoryFilters()">
+                Clear All Filters
+              </button>
+            </div>
+          </section>
+
         </div>
 
-        <!-- Caregiver 2: Daughter Sarah -->
-        <div class="caregiver-card">
-          <div>
-            <div class="caregiver-header">
-              <div class="caregiver-avatar">💬</div>
-              <div>
-                <div class="caregiver-name">Sarah Vance</div>
-                <div class="caregiver-relation">Daughter &bull; Family Backup</div>
+        <!-- ===================================================================
+             RIGHT COLUMN: CAREGIVERS NETWORK, PRIVACY PODS & TEST SIMULATION
+             =================================================================== -->
+        <div class="portal-sidebar-col">
+
+          <!-- 1. Caregiver Connections & Emergency Escalation Network -->
+          <section class="portal-card" aria-label="Caregiver Escalation Network">
+            <div class="portal-card-header">
+              <div class="portal-card-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Caregiver Escalation Network</span>
+              </div>
+              <span class="portal-card-meta">Multi-Channel Matrix</span>
+            </div>
+
+            <div class="caregiver-stack" id="caregiverNetworkGrid">
+              <!-- Caregiver 1: Son David -->
+              <div class="caregiver-card">
+                <div>
+                  <div class="caregiver-header">
+                    <div class="caregiver-avatar">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                    </div>
+                    <div>
+                      <div class="caregiver-name">David Vance</div>
+                      <div class="caregiver-relation">Son &bull; Primary Guardian</div>
+                    </div>
+                  </div>
+                  <div style="font-size: 0.74rem; font-family: 'JetBrains Mono', monospace; color: #94a3b8; margin: 8px 0 10px 0;">
+                    +1-555-019-2834
+                  </div>
+                  <div class="caregiver-channels">
+                    <span>&bull; Echo Show 15 Drop-In Call</span>
+                    <span>&bull; Priority Mobile App Push</span>
+                    <span>&bull; Automated SMS Alert with Door PIN</span>
+                  </div>
+                </div>
+                <span class="caregiver-status-tag tag-online">ONLINE &bull; PRIMARY</span>
+              </div>
+
+              <!-- Caregiver 2: Daughter Sarah -->
+              <div class="caregiver-card">
+                <div>
+                  <div class="caregiver-header">
+                    <div class="caregiver-avatar">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <div>
+                      <div class="caregiver-name">Sarah Vance</div>
+                      <div class="caregiver-relation">Daughter &bull; Family Backup</div>
+                    </div>
+                  </div>
+                  <div style="font-size: 0.74rem; font-family: 'JetBrains Mono', monospace; color: #94a3b8; margin: 8px 0 10px 0;">
+                    +1-555-019-4821
+                  </div>
+                  <div class="caregiver-channels">
+                    <span>&bull; Automated SMS Alerts</span>
+                    <span>&bull; Secondary Mobile Push</span>
+                    <span>&bull; Escalation Fallback</span>
+                  </div>
+                </div>
+                <span class="caregiver-status-tag tag-standby">STANDBY &bull; BACKUP</span>
+              </div>
+
+              <!-- Caregiver 3: Boston EMS 911 CAD -->
+              <div class="caregiver-card">
+                <div>
+                  <div class="caregiver-header">
+                    <div class="caregiver-avatar" style="color: var(--portal-red); background: rgba(244, 63, 94, 0.1);">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1 .4-1 1v9c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+                    </div>
+                    <div>
+                      <div class="caregiver-name">Boston EMS 911 CAD</div>
+                      <div class="caregiver-relation">District 02108 Emergency Services</div>
+                    </div>
+                  </div>
+                  <div style="font-size: 0.74rem; font-family: 'JetBrains Mono', monospace; color: var(--portal-red); margin: 8px 0 10px 0;">
+                    Direct CAD API (Medic-14)
+                  </div>
+                  <div class="caregiver-channels">
+                    <span>&bull; Digital CAD Packet (EPK-84920)</span>
+                    <span>&bull; Smart Deadbolt PIN: 8492</span>
+                    <span>&bull; Medical History &amp; Allergy Data</span>
+                  </div>
+                </div>
+                <span class="caregiver-status-tag tag-cad">CAD LINK ACTIVE</span>
+              </div>
+
+              <!-- Caregiver 4: Geriatrician Dr. Chen -->
+              <div class="caregiver-card">
+                <div>
+                  <div class="caregiver-header">
+                    <div class="caregiver-avatar" style="color: #c4b5fd; background: rgba(139, 92, 246, 0.1);">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg>
+                    </div>
+                    <div>
+                      <div class="caregiver-name">Dr. Marcus Chen</div>
+                      <div class="caregiver-relation">Geriatrician &bull; Mass General</div>
+                    </div>
+                  </div>
+                  <div style="font-size: 0.74rem; font-family: 'JetBrains Mono', monospace; color: #94a3b8; margin: 8px 0 10px 0;">
+                    +1-555-019-9920
+                  </div>
+                  <div class="caregiver-channels">
+                    <span>&bull; Weekly Safety Digest</span>
+                    <span>&bull; Gait &amp; Cardiac Anomaly Report</span>
+                    <span>&bull; EHR Clinical Sync</span>
+                  </div>
+                </div>
+                <span class="caregiver-status-tag tag-doctor">CONNECTED &bull; CLINICAL</span>
               </div>
             </div>
-            <div style="font-size: 0.74rem; font-family: var(--font-mono); color: #94a3b8; margin: 8px 0 10px 0;">
-              +1-555-019-4821
-            </div>
-            <div class="caregiver-channels">
-              <span>&bull; Automated SMS Alerts</span>
-              <span>&bull; Secondary Mobile Push</span>
-              <span>&bull; Escalation Fallback</span>
-            </div>
-          </div>
-          <span class="caregiver-status-tag tag-standby">STANDBY &bull; BACKUP</span>
-        </div>
+          </section>
 
-        <!-- Caregiver 3: Boston EMS 911 CAD -->
-        <div class="caregiver-card">
-          <div>
-            <div class="caregiver-header">
-              <div class="caregiver-avatar">🚑</div>
-              <div>
-                <div class="caregiver-name">Boston EMS 911 CAD</div>
-                <div class="caregiver-relation">District 02108 Emergency Services</div>
+          <!-- 2. Ambient Sensing Array & Dignity Shield -->
+          <section class="portal-card" aria-label="Ambient Privacy Shield and Hardware Sensors">
+            <div class="portal-card-header">
+              <div class="portal-card-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Dignity-First Privacy Array</span>
               </div>
+              <span class="portal-tag-badge" style="background: rgba(16, 185, 129, 0.12); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">ZERO OPTICAL</span>
             </div>
-            <div style="font-size: 0.74rem; font-family: var(--font-mono); color: #f43f5e; margin: 8px 0 10px 0;">
-              Direct CAD API (Medic-14)
-            </div>
-            <div class="caregiver-channels">
-              <span>&bull; Digital CAD Packet (EPK-84920)</span>
-              <span>&bull; Smart Deadbolt PIN: 8492</span>
-              <span>&bull; Medical History &amp; Allergy Data</span>
-            </div>
-          </div>
-          <span class="caregiver-status-tag tag-cad">CAD LINK ACTIVE</span>
-        </div>
 
-        <!-- Caregiver 4: Geriatrician Dr. Chen -->
-        <div class="caregiver-card">
-          <div>
-            <div class="caregiver-header">
-              <div class="caregiver-avatar">🩺</div>
-              <div>
-                <div class="caregiver-name">Dr. Marcus Chen</div>
-                <div class="caregiver-relation">Geriatrician &bull; Mass General</div>
+            <div style="font-size: 0.78rem; color: #94a3b8; line-height: 1.5; margin-bottom: 12px;">
+              Bathroom and bedroom monitoring operate exclusively via 60GHz mmWave radar point-clouds, eliminating video recording for resident dignity.
+            </div>
+
+            <div class="sensor-item-row">
+              <div class="sensor-item-left">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+                <div>
+                  <div style="font-weight: 700; color: #fff;">60GHz mmWave Ceiling Radar</div>
+                  <div style="color: #94a3b8; font-size: 0.70rem;">Bathroom &bull; Zero Camera Recording</div>
+                </div>
               </div>
+              <span style="color: #34d399; font-weight: 700; font-size: 0.72rem;">ACTIVE</span>
             </div>
-            <div style="font-size: 0.74rem; font-family: var(--font-mono); color: #94a3b8; margin: 8px 0 10px 0;">
-              +1-555-019-9920
+
+            <div class="sensor-item-row">
+              <div class="sensor-item-left">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="4"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                <div>
+                  <div style="font-weight: 700; color: #fff;">Apple Watch Series 9</div>
+                  <div style="color: #94a3b8; font-size: 0.70rem;">Wrist PPG Cardiac &bull; Fall Gyro</div>
+                </div>
+              </div>
+              <span style="color: #34d399; font-weight: 700; font-size: 0.72rem;">88% BLE</span>
             </div>
-            <div class="caregiver-channels">
-              <span>&bull; Weekly Safety Digest</span>
-              <span>&bull; Gait &amp; Cardiac Anomaly Report</span>
-              <span>&bull; EHR Clinical Sync</span>
+
+            <div class="sensor-item-row">
+              <div class="sensor-item-left">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                <div>
+                  <div style="font-weight: 700; color: #fff;">Amazon Echo Show 15</div>
+                  <div style="color: #94a3b8; font-size: 0.70rem;">Kitchen &bull; Two-Way Audio Drop-In</div>
+                </div>
+              </div>
+              <span style="color: #34d399; font-weight: 700; font-size: 0.72rem;">ONLINE</span>
             </div>
-          </div>
-          <span class="caregiver-status-tag tag-doctor">CONNECTED &bull; CLINICAL</span>
+
+            <div class="sensor-item-row">
+              <div class="sensor-item-left">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <div>
+                  <div style="font-weight: 700; color: #fff;">August Smart Deadbolt</div>
+                  <div style="color: #94a3b8; font-size: 0.70rem;">Entrance &bull; Auto Medic PIN Access</div>
+                </div>
+              </div>
+              <span style="color: #38bdf8; font-weight: 700; font-size: 0.72rem;">ARMED</span>
+            </div>
+          </section>
+
+          <!-- 3. Interactive Test Simulation Sandbox -->
+          <section class="portal-card sim-strip-drawer" aria-label="Interactive Demo Scenarios">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div style="font-weight: 800; color: #fff; font-size: 0.84rem; display: flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <span>Interactive Scenario Engine</span>
+              </div>
+              <span class="portal-card-meta">SQLite Ingestion</span>
+            </div>
+
+            <div class="sim-buttons-grid">
+              <button class="btn-hero-action" style="padding: 8px 10px; font-size: 0.74rem; justify-content: center;" onclick="triggerTestSimulation('false_alarm')">
+                <span>False Alarm</span>
+              </button>
+              <button class="btn-hero-action" style="padding: 8px 10px; font-size: 0.74rem; justify-content: center;" onclick="triggerTestSimulation('responsive')">
+                <span>Responsive</span>
+              </button>
+              <button class="btn-hero-action btn-door-unlocked" style="padding: 8px 10px; font-size: 0.74rem; justify-content: center;" onclick="triggerTestSimulation('silent')">
+                <span>CAD 911 Dispatch</span>
+              </button>
+              <button class="btn-hero-action" style="padding: 8px 10px; font-size: 0.74rem; justify-content: center;" onclick="openVideoDemoModal()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span>Watch Reel</span>
+              </button>
+            </div>
+          </section>
+
         </div>
+
       </div>
-    </div>
-
-    <!-- Clean Incident History View with Interactive Filters -->
-    <div class="history-card-box">
-      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
-        <div>
-          <div style="font-size: 1.05rem; font-weight: 800; color: #fff;">
-            Incident History &amp; Emergency Safety Log
-          </div>
-          <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">
-            Filterable historical records of all detected events, voice wellness checks, and emergency resolutions.
-          </div>
-        </div>
-        <span class="vtl-confidence-tag" id="historyMatchCountTag" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">
-          3 Incidents Total
-        </span>
-      </div>
-
-      <!-- Interactive Filter Controls Bar -->
-      <div class="history-filter-bar" role="search" aria-label="Incident History Filters">
-        <div class="filter-group">
-          <label class="filter-label" for="filterDate">Date:</label>
-          <select id="filterDate" class="filter-select" onchange="applyHistoryFilters()" aria-label="Filter incidents by date range">
-            <option value="all">All Dates</option>
-            <option value="today">Today</option>
-            <option value="7d">Past 7 Days</option>
-            <option value="30d">Past 30 Days</option>
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label class="filter-label" for="filterSeverity">Severity:</label>
-          <select id="filterSeverity" class="filter-select" onchange="applyHistoryFilters()" aria-label="Filter incidents by severity tier">
-            <option value="all">All Severities</option>
-            <option value="CRITICAL">🚨 Critical (Tier 3)</option>
-            <option value="HIGH">⚠️ High / Alert (Tier 2)</option>
-            <option value="MODERATE">ℹ️ Moderate (Caution)</option>
-            <option value="LOW">🛡️ Low / Routine (Tier 1)</option>
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label class="filter-label" for="filterRoom">Room:</label>
-          <select id="filterRoom" class="filter-select" onchange="applyHistoryFilters()" aria-label="Filter incidents by apartment room">
-            <option value="all">All Rooms</option>
-            <option value="bathroom">Bathroom</option>
-            <option value="living">Living Room</option>
-            <option value="kitchen">Kitchen</option>
-            <option value="bedroom">Bedroom</option>
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label class="filter-label" for="filterStatus">Status:</label>
-          <select id="filterStatus" class="filter-select" onchange="applyHistoryFilters()" aria-label="Filter incidents by operational status">
-            <option value="all">All Statuses</option>
-            <option value="ACTIVE">⚡ Active / Escalated</option>
-            <option value="RESOLVED">✓ Resolved Safe</option>
-          </select>
-        </div>
-
-        <button class="btn-filter-reset" onclick="resetHistoryFilters()" aria-label="Reset all history filters to defaults">
-          Reset Filters
-        </button>
-      </div>
-
-      <!-- Feed Container: Rendered dynamically by admin.js -->
-      <div id="incidentHistoryFeed"></div>
-
-      <!-- Meaningful Empty State Container -->
-      <div class="meaningful-empty-card" id="emptyHistoryState" style="display: none;">
-        <div class="empty-icon-shield">🛡️</div>
-        <div class="empty-title" id="emptyTitleText">No Incidents Found</div>
-        <div class="empty-desc" id="emptyDescText">
-          Eleanor has experienced no recorded safety incidents matching your selected filters. All ambient safety sensors and radar pods are operating normally.
-        </div>
-        <button class="btn-hero-action" onclick="resetHistoryFilters()">
-          Clear All Filters
-        </button>
-      </div>
-    </div>
-
-    <!-- Quick Scenario Ingestion Drawer (For Demo & Testing) -->
-    <div class="sim-strip-drawer">
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span style="font-weight: 800; color: #fff; text-transform: uppercase;">Simulation Engine:</span>
-        <span style="color: #94a3b8;">Ingest actual events to backend SQLite DB:</span>
-      </div>
-      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <button class="btn-hero-action" style="padding: 6px 12px; font-size: 0.74rem;" onclick="triggerTestSimulation('false_alarm')">
-          ⚡ False Alarm ("I'm okay")
-        </button>
-        <button class="btn-hero-action" style="padding: 6px 12px; font-size: 0.74rem;" onclick="triggerTestSimulation('responsive')">
-          ⚡ Responsive ("Help me")
-        </button>
-        <button class="btn-hero-action btn-door-unlocked" style="padding: 6px 12px; font-size: 0.74rem;" onclick="triggerTestSimulation('silent')">
-          ⚡ Silent Emergency (CAD 911)
-        </button>
-        <button class="btn-hero-action" style="padding: 6px 12px; font-size: 0.74rem;" onclick="openVideoDemoModal()">
-          ▶️ Watch Video Demo
-        </button>
-      </div>
-    </div>
 
     </main>
   </div>
@@ -1098,7 +1528,7 @@
     <div class="video-demo-window">
       <div class="video-demo-header">
         <div class="video-demo-title">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--portal-cyan)" stroke-width="2">
             <polygon points="23 7 16 12 23 17 23 7"/>
             <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
           </svg>
@@ -1136,7 +1566,7 @@
       </div>
 
       <div class="video-subtitles-bar">
-        <div class="subtitles-icon" style="color: var(--accent-blue);">
+        <div style="color: var(--portal-cyan);">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
@@ -1152,10 +1582,10 @@
   <div class="toast-area" id="toastContainer"></div>
 
   <script src="/static/three.min.js"></script>
-  <script src="/static/i18n.js?v=4.0"></script>
-  <script src="/static/voice_audio.js?v=4.0"></script>
-  <script src="/static/video_reel.js?v=4.0"></script>
+  <script src="/static/i18n.js?v=6.0"></script>
+  <script src="/static/voice_audio.js?v=6.0"></script>
+  <script src="/static/video_reel.js?v=6.0"></script>
   <script src="/static/nira_store.js?v=1.0"></script>
-  <script src="/static/admin.js?v=5.0"></script>
+  <script src="/static/admin.js?v=6.0"></script>
 </body>
 </html>

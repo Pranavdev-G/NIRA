@@ -1,0 +1,8 @@
+path: C:/Users/leela/.cache/kagglehub/datasets/uttejkumarkandagatla/fall-detection-dataset/versions/1/fall_dataset
+train: images/train
+val: images/val
+
+names:
+  0: Fall Detected
+  1: Walking
+  2: Sitting
