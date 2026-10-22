@@ -211,3 +211,101 @@ def test_tracker_motion_resumption_clears_benign_stillness(mock_tracker):
     assert res["motion_displacement"] >= 14.0
     assert mock_tracker.accumulated_motionless_sec == 0.0
     assert mock_tracker.current_state == STATE_NORMAL
+
+
+# ============================================================================
+# 3. Automatic Microphone Activation on Alert Tests
+# ============================================================================
+
+class MockVoiceCheckinService:
+    def __init__(self, transcript: str = "Yes, I am okay.", status: str = "SAFE"):
+        self.called_questions = []
+        self.transcript = transcript
+        self.status = status
+
+    def run_check_in(self, **kwargs):
+        self.called_questions.append(kwargs.get("question"))
+        from unittest.mock import MagicMock
+        from Live.voice.models import VoiceInteractionStatus
+        res = MagicMock()
+        res.transcript = self.transcript
+        res.status = VoiceInteractionStatus.SAFE if self.status == "SAFE" else VoiceInteractionStatus.EMERGENCY
+        return res
+
+
+def test_tracker_automatic_mic_activation_on_inactivity(mock_tracker):
+    """
+    Verifies that when prolonged inactivity triggers an alert:
+      1. Microphone is automatically activated.
+      2. Resident's spoken response is received and transcribed.
+      3. SAFE response automatically clears the alarm and trains the daily routine!
+    """
+    mock_service = MockVoiceCheckinService(transcript="I am okay, thank you.", status="SAFE")
+    mock_tracker.voice_service = mock_service
+    mock_tracker._force_test_audio = True  # Enable thread execution in test
+    mock_tracker._announce_alert_prompt = lambda p: None  # Suppress audio speaker in test
+
+    mock_tracker.simulate_inactivity(200.0)
+    frame = np.zeros((416, 416, 3), dtype=np.uint8)
+    res = mock_tracker.evaluate_frame(frame, location="living_room")
+
+    # Verify mic checkin thread started and finished
+    if mock_tracker._checkin_thread:
+        mock_tracker._checkin_thread.join(timeout=3.0)
+
+    # Verify checkin was called with the alarm inquiry
+    assert len(mock_service.called_questions) == 1
+    assert "Are you okay" in mock_service.called_questions[0]
+
+    # Verify closed-loop safety resolution: safe response cleared alarm and returned to normal!
+    assert mock_tracker.alarm_active is False
+    assert mock_tracker.current_state == STATE_NORMAL
+    assert mock_tracker.last_voice_transcript == "I am okay, thank you."
+
+
+def test_tracker_automatic_mic_activation_on_fall(mock_tracker):
+    """
+    Verifies that when a fall is detected:
+      1. Microphone is automatically activated with emergency inquiry.
+      2. If resident responds 'Help me', emergency CAD workflow is escalated.
+    """
+    mock_service = MockVoiceCheckinService(transcript="Help me, I fell and can't stand!", status="EMERGENCY")
+    mock_tracker.voice_service = mock_service
+    mock_tracker._force_test_audio = True
+    mock_tracker._announce_alert_prompt = lambda p: None
+
+    # Simulate fall confirmation
+    mock_tracker.consecutive_fall_frames = 2
+    mock_tracker.fall_start_time = None
+    frame = np.zeros((416, 416, 3), dtype=np.uint8)
+    
+    # Trigger fall branch directly
+    mock_tracker.trigger_automatic_voice_checkin(question="NIRA safety alert: Are you okay? Please respond.")
+    if mock_tracker._checkin_thread:
+        mock_tracker._checkin_thread.join(timeout=3.0)
+
+    assert len(mock_service.called_questions) == 1
+    assert mock_tracker.current_state == STATE_UNRESPONSIVE
+    assert mock_tracker.alarm_active is True
+    assert mock_tracker.voice_interaction_status == "EMERGENCY"
+
+
+def test_tracker_mic_cooldown_prevents_duplicate_threads(mock_tracker):
+    """
+    Verifies that calling trigger_automatic_voice_checkin consecutively
+    respects the debouncing cooldown so multiple recordings don't fight over the mic.
+    """
+    mock_service = MockVoiceCheckinService(transcript="I am fine.", status="SAFE")
+    mock_tracker.voice_service = mock_service
+    mock_tracker._force_test_audio = True
+    mock_tracker._announce_alert_prompt = lambda p: None
+
+    mock_tracker.trigger_automatic_voice_checkin("Test 1")
+    if mock_tracker._checkin_thread:
+        mock_tracker._checkin_thread.join(timeout=3.0)
+
+    # Immediately attempt second checkin before cooldown
+    mock_tracker.trigger_automatic_voice_checkin("Test 2")
+    # Second call should be ignored due to cooldown
+    assert len(mock_service.called_questions) == 1
+

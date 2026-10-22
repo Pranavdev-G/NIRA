@@ -16,6 +16,7 @@ import sys
 import time
 import math
 import logging
+import threading
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Tuple
 import numpy as np
@@ -35,16 +36,19 @@ try:
     from Live.activity_routine_learner import DailyActivityRoutineLearner, get_activity_learner
     from Live.voice.response_analyzer import ResponseAnalyzer
     from Live.voice.models import VoiceInteractionStatus
+    from Live.voice.service import VoiceService
 except ImportError:
     try:
         from activity_routine_learner import DailyActivityRoutineLearner, get_activity_learner
         from voice.response_analyzer import ResponseAnalyzer
         from voice.models import VoiceInteractionStatus
+        from voice.service import VoiceService
     except ImportError:
         DailyActivityRoutineLearner = None
         get_activity_learner = None
         ResponseAnalyzer = None
         VoiceInteractionStatus = None
+        VoiceService = None
 
 logger = logging.getLogger("NIRA.LiveVisionTracker")
 
@@ -68,12 +72,17 @@ class LiveVisionTracker:
         backend_url: str = "http://localhost:8000",
         unresponsive_threshold_sec: float = 180.0,  # 3 minutes default (180s - 300s clinical range)
         simulation_speedup_factor: float = 1.0,     # Accelerates immobility timer for test runs
-        zone: str = "living_room"
+        zone: str = "living_room",
+        auto_mic_on_alarm: bool = True,
+        voice_service: Optional[Any] = None
     ):
         self.backend_url = backend_url.rstrip("/")
         self.unresponsive_threshold_sec = max(10.0, float(unresponsive_threshold_sec))
         self.simulation_speedup_factor = max(1.0, float(simulation_speedup_factor))
         self.zone = zone
+        self.auto_mic_on_alarm = auto_mic_on_alarm
+        self.voice_service = voice_service
+        self._voice_service_initialized = False
 
         # Vision models
         self.pose_model = None
@@ -107,12 +116,16 @@ class LiveVisionTracker:
         self.person_previously_seen = False
         self.last_person_seen_time = time.time()
 
-        # Voice Wake-Up & Interactive Alarm
+        # Voice Wake-Up & Automatic Microphone Integration
         self.alarm_active = False
         self.alarm_prompt: Optional[str] = None
         self.alarm_reason: Optional[str] = None
         self.voice_interaction_status: Optional[str] = None
         self.last_voice_transcript: Optional[str] = None
+        self.mic_active = False
+        self.last_voice_checkin_time = 0.0
+        self._checkin_lock = threading.Lock()
+        self._checkin_thread: Optional[threading.Thread] = None
 
         # Centroid motion history for biomechanical fall velocity
         self.centroid_history: List[Tuple[float, float, float]] = []
@@ -134,8 +147,126 @@ class LiveVisionTracker:
         self.alarm_reason = None
         self.voice_interaction_status = None
         self.last_voice_transcript = None
+        self.mic_active = False
+        self.last_voice_checkin_time = 0.0
         self.centroid_history.clear()
         self.last_frame_time = time.time()
+
+    def _get_voice_service(self):
+        """Lazily binds the Live VoiceService singleton coordinator."""
+        if self.voice_service is not None:
+            return self.voice_service
+        if not self._voice_service_initialized:
+            self._voice_service_initialized = True
+            try:
+                if VoiceService is not None:
+                    self.voice_service = VoiceService(backend_url=self.backend_url, auto_load_model=False)
+                    logger.info("Bound Live VoiceService to LiveVisionTracker successfully.")
+            except Exception as e:
+                logger.warning(f"Could not initialize Live VoiceService: {e}")
+        return self.voice_service
+
+    def _announce_alert_prompt(self, prompt: str):
+        """Voiced inquiry to the senior resident via Windows SAPI or audio chime."""
+        try:
+            import win32com.client
+            import pythoncom
+            pythoncom.CoInitialize()
+            speaker = win32com.client.Dispatch("SAPI.SpVoice")
+            speaker.Rate = 1
+            # Speak synchronously in this background worker thread so it completes before mic starts
+            speaker.Speak(prompt)
+        except Exception:
+            try:
+                import winsound
+                winsound.Beep(880, 250)
+                time.sleep(0.05)
+                winsound.Beep(1100, 300)
+            except Exception:
+                pass
+
+    def trigger_automatic_voice_checkin(self, question: Optional[str] = None):
+        """
+        Automatically turns on the microphone when an alert triggers (fall or prolonged inactivity).
+        Voiced inquiry is spoken, microphone records the resident's reply, Whisper transcribes,
+        and response analyzer confirms SAFE / RISK / EMERGENCY.
+        Runs asynchronously in a background worker thread so the camera feed remains at full FPS!
+        """
+        if not self.auto_mic_on_alarm:
+            return
+
+        # Do not block or record physical mic in automated pytest runs unless forced
+        if "PYTEST_CURRENT_TEST" in os.environ and not getattr(self, "_force_test_audio", False):
+            self.mic_active = True
+            self.voice_interaction_status = "LISTENING_PYTEST"
+            return
+
+        now = time.time()
+        with self._checkin_lock:
+            # Prevent overlapping microphone recordings:
+            # Cooldown of at least 8.0 seconds between check-in sessions
+            if self.mic_active or (now - self.last_voice_checkin_time < 8.0):
+                return
+            self.mic_active = True
+            self.voice_interaction_status = "LISTENING"
+            self.last_voice_checkin_time = now
+
+        prompt = question or self.alarm_prompt or "NIRA safety alert: Are you okay? Please respond."
+
+        self._checkin_thread = threading.Thread(
+            target=self._run_voice_checkin_thread,
+            args=(prompt,),
+            daemon=True,
+            name="NIRA-AutoVoiceCheckin"
+        )
+        self._checkin_thread.start()
+
+    def _run_voice_checkin_thread(self, prompt: str):
+        """Background worker thread for automated, non-blocking microphone capture."""
+        try:
+            logger.info(f"🎙️ [AUTO-MIC] Alert active: Voicing inquiry '{prompt}' and activating microphone...")
+
+            # 1. Announce prompt out loud to resident
+            self._announce_alert_prompt(prompt)
+
+            # 2. Open physical microphone and capture resident's spoken response
+            vs = self._get_voice_service()
+            transcript = ""
+            status_val = "UNCERTAIN"
+
+            if vs is not None:
+                logger.info("🎙️ [AUTO-MIC] Microphone is LIVE! Listening for resident speech...")
+                check_result = vs.run_check_in(
+                    elderly_id="resident_live",
+                    question=prompt,
+                    max_duration_sec=7.0,
+                    silence_timeout_sec=2.2,
+                    initial_timeout_sec=4.5,
+                    room_id=self.zone
+                )
+                transcript = check_result.transcript or ""
+                status_val = check_result.status.value if hasattr(check_result.status, "value") else str(check_result.status)
+                logger.info(f"🎙️ [AUTO-MIC] Captured transcript: '{transcript}' -> Evaluated status: {status_val}")
+            else:
+                logger.warning("VoiceService unavailable for auto-mic recording.")
+
+            # 3. Process resident spoken response through safety state machine
+            if transcript.strip():
+                self.handle_voice_response(
+                    transcript=transcript,
+                    location=self.zone,
+                    status_override=status_val
+                )
+            else:
+                logger.info("🎙️ [AUTO-MIC] Resident remained silent following alert inquiry.")
+                self.voice_interaction_status = "SILENCE_TIMEOUT"
+                self.last_voice_transcript = "<Silence / No Speech Detected>"
+
+        except Exception as e:
+            logger.error(f"Error during automatic voice check-in: {e}")
+            self.voice_interaction_status = "MIC_ERROR"
+        finally:
+            self.mic_active = False
 
     def initialize_model(self):
         """Loads YOLOv8 Pose model and Kaggle Fall Detection model."""
@@ -241,6 +372,10 @@ class LiveVisionTracker:
                 "boxes": [],
                 "alarm_active": self.alarm_active,
                 "alarm_prompt": self.alarm_prompt,
+                "alarm_reason": self.alarm_reason,
+                "voice_status": self.voice_interaction_status,
+                "mic_active": self.mic_active,
+                "last_transcript": self.last_voice_transcript,
                 "timestamp": now
             }
 
@@ -540,6 +675,8 @@ class LiveVisionTracker:
                     location=current_zone,
                     details={"alarm_prompt": self.alarm_prompt, "requires_voice_checkin": True}
                 )
+                # Automatically turn on microphone to capture resident's spoken response!
+                self.trigger_automatic_voice_checkin(question=self.alarm_prompt)
 
             # Check for prolonged floor unresponsiveness post-fall
             if self.accumulated_motionless_sec >= 15.0:
@@ -576,12 +713,18 @@ class LiveVisionTracker:
                             "requires_voice_checkin": True
                         }
                     )
+                # Automatically turn on microphone to capture resident's spoken response!
+                self.trigger_automatic_voice_checkin(question=self.alarm_prompt)
         else:
             # Active movement or within safe routine stillness
             if self.consecutive_normal_frames >= 2 and not self.alarm_active:
                 self.fall_start_time = None
                 if self.current_state not in [STATE_UNRESPONSIVE, STATE_ALARM_INQUIRY]:
                     self.current_state = STATE_NORMAL
+
+        # Periodic check-in retry if alert remains unresolved and senior hasn't answered
+        if self.alarm_active and not self.mic_active and (now - self.last_voice_checkin_time >= 15.0):
+            self.trigger_automatic_voice_checkin(question=self.alarm_prompt)
 
         return {
             "state": self.current_state,
@@ -596,6 +739,8 @@ class LiveVisionTracker:
             "alarm_prompt": self.alarm_prompt,
             "alarm_reason": self.alarm_reason,
             "voice_status": self.voice_interaction_status,
+            "mic_active": self.mic_active,
+            "last_transcript": self.last_voice_transcript,
             "zone": current_zone,
             "learned_routine": {
                 "suppressed_false_alarms": self.activity_learner.profile.get("suppressed_false_alarms", 0) if self.activity_learner else 0,
@@ -608,7 +753,9 @@ class LiveVisionTracker:
         self,
         transcript: str,
         elderly_id: str = "resident_live",
-        location: Optional[str] = None
+        location: Optional[str] = None,
+        status_override: Optional[str] = None,
+        reason_override: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Receives and notes resident spoken response (e.g., 'Yes, I'm okay', 'Help me'):
@@ -620,7 +767,11 @@ class LiveVisionTracker:
         current_zone = location or self.zone
         self.last_voice_transcript = transcript
 
-        if not self.response_analyzer:
+        if status_override:
+            status_val = status_override.upper()
+            urgency = "LOW" if status_val == "SAFE" else ("CRITICAL" if status_val == "EMERGENCY" else "MEDIUM")
+            reason = reason_override or f"Voice interaction evaluated as {status_val}."
+        elif not self.response_analyzer:
             logger.warning("Response analyzer not available; using basic keyword match.")
             is_safe = any(w in transcript.lower() for w in ["okay", "fine", "good", "alright"])
             status_val = "SAFE" if is_safe else "EMERGENCY"
@@ -802,10 +953,22 @@ if __name__ == "__main__":
         if res["alarm_active"]:
             cv2.putText(frame, f"ALARM: {res['alarm_prompt']}", (20, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
 
+        # Microphone & Voice status indicators
+        if res.get("mic_active"):
+            cv2.rectangle(frame, (15, 95), (630, 135), (0, 140, 255), -1)
+            cv2.putText(frame, "MIC LISTENING: Speak 'I am okay' or 'Help me'...", (25, 122), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
+        elif res.get("last_transcript"):
+            t_txt = f"VOICE: \"{res['last_transcript']}\" [{res.get('voice_status', '')}]"
+            cv2.putText(frame, t_txt, (20, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 255, 255), 2)
+
         cv2.imshow("NIRA Live Vision - Fall & Inactivity Guardian", frame)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('q'):
             break
+        elif key == ord('m'):
+            print("\n[MANUAL TEST] Triggering live microphone check-in inquiry...")
+            tracker.trigger_automatic_voice_checkin("Manual test: Are you okay? Please respond.")
 
     cap.release()
     cv2.destroyAllWindows()
