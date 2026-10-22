@@ -400,17 +400,11 @@
 
         <!-- Dark / Light / System Theme Selector -->
         <div class="theme-selector-pill" role="radiogroup" aria-label="Theme Selection">
-          <button class="theme-toggle-btn active" id="themeBtnDark" onclick="setNiraTheme('dark')" role="radio" aria-checked="true" title="Dark Theme">
-            <span>🌙</span>
-            <span>Dark</span>
+          <button class="theme-toggle-btn active" id="themeBtnDark" onclick="setNiraTheme('dark')" role="radio" aria-checked="true" title="Dark Theme"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="ui-icon" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> <span>Dark</span>
           </button>
-          <button class="theme-toggle-btn" id="themeBtnLight" onclick="setNiraTheme('light')" role="radio" aria-checked="false" title="Light Theme">
-            <span>☀️</span>
-            <span>Light</span>
+          <button class="theme-toggle-btn" id="themeBtnLight" onclick="setNiraTheme('light')" role="radio" aria-checked="false" title="Light Theme"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="ui-icon" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg> <span>Light</span>
           </button>
-          <button class="theme-toggle-btn" id="themeBtnSystem" onclick="setNiraTheme('system')" role="radio" aria-checked="false" title="System Preference">
-            <span>💻</span>
-            <span>Auto</span>
+          <button class="theme-toggle-btn" id="themeBtnSystem" onclick="setNiraTheme('system')" role="radio" aria-checked="false" title="System Preference"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="ui-icon" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> <span>Auto</span>
           </button>
         </div>
 
@@ -474,7 +468,7 @@
     <!-- System Status & Disconnected Warning Banner -->
     <div id="systemStateBanner" class="system-state-banner" style="display: none;" role="alert" aria-live="assertive">
       <div class="banner-content">
-        <span class="banner-icon" id="bannerIcon">⚠️</span>
+        <span class="banner-icon" id="bannerIcon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="ui-icon" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
         <div class="banner-text">
           <strong id="bannerTitle">STREAM DISCONNECTED</strong>
           <span id="bannerSubtitle">Live sensor stream interrupted. Showing cached telemetry baseline.</span>
@@ -505,7 +499,7 @@
             <span class="mode-pill demo-pill" data-i18n="demoBadge">HACKATHON SHOWCASE</span>
           </div>
           <div class="mode-card-main">
-            <div class="mode-card-icon">🎮</div>
+            <div class="mode-card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="ui-icon" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="3"/><path d="M6 12h4m-2-2v4"/><circle cx="17" cy="10" r="1"/><circle cx="15" cy="13" r="1"/></svg></div>
             <div class="mode-card-text">
               <div class="mode-card-title" data-i18n="demoModeTitle">1. DEMO MODE</div>
               <div class="mode-card-desc" data-i18n="demoModeDesc">Simulated Eleanor Vance (Unit 4B), 3 emergency scenarios, 3D digital twin &amp; radar feeds.</div>
@@ -520,7 +514,7 @@
             <span class="mode-pill live-pill" data-i18n="liveBadge">REAL-TIME INGESTION</span>
           </div>
           <div class="mode-card-main">
-            <div class="mode-card-icon">⚡</div>
+            <div class="mode-card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="ui-icon" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
             <div class="mode-card-text">
               <div class="mode-card-title" data-i18n="liveModeTitle">2. LIVE MODE</div>
               <div class="mode-card-desc" data-i18n="liveModeDesc">Live IoT sensor pipeline, browser webcam fall detector, real microphone listener &amp; TextBee SMS.</div>
@@ -545,16 +539,13 @@
         <span data-i18n="testScenarioModes">Test Scenario Modes:</span>
       </div>
       <div class="scenario-buttons-strip" role="group" aria-label="Safety Simulation Scenarios">
-        <button class="pill-scenario-btn btn-green" id="tabScenario1" onclick="switchScenario('false_alarm')" aria-pressed="false" aria-label="Scenario 1: Normal Safe, False Alarm">
-          <span style="font-size: 0.88rem;" aria-hidden="true">🛡️</span>
+        <button class="pill-scenario-btn btn-green" id="tabScenario1" onclick="switchScenario('false_alarm')" aria-pressed="false" aria-label="Scenario 1: Normal Safe, False Alarm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="ui-icon" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
           <span data-i18n="tabScenario1Btn">Normal / Safe (False Alarm)</span>
         </button>
-        <button class="pill-scenario-btn btn-amber" id="tabScenario2" onclick="switchScenario('responsive')" aria-pressed="false" aria-label="Scenario 2: Assisted, Caregiver Alert">
-          <span style="font-size: 0.88rem;" aria-hidden="true">⚠️</span>
+        <button class="pill-scenario-btn btn-amber" id="tabScenario2" onclick="switchScenario('responsive')" aria-pressed="false" aria-label="Scenario 2: Assisted, Caregiver Alert"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="ui-icon" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           <span data-i18n="tabScenario2Btn">Assisted (Caregiver Alert)</span>
         </button>
-        <button class="pill-scenario-btn btn-red active" id="tabScenario3" onclick="switchScenario('silent')" aria-pressed="true" aria-label="Scenario 3: Emergency, 911 CAD Dispatch">
-          <span style="font-size: 0.88rem;" aria-hidden="true">🚨</span>
+        <button class="pill-scenario-btn btn-red active" id="tabScenario3" onclick="switchScenario('silent')" aria-pressed="true" aria-label="Scenario 3: Emergency, 911 CAD Dispatch"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="ui-icon" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <span data-i18n="tabScenario3Btn">Emergency (911 CAD Dispatch)</span>
         </button>
       </div>
@@ -629,8 +620,7 @@
             <span>Consent Active (Full Multimodal)</span>
           </span>
           <span class="privacy-badge-radar" title="Zero Camera Monitoring">
-            <span>🛡️</span>
-            <span>Camera-Free FMCW Radar</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="ui-icon" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg> <span>Camera-Free FMCW Radar</span>
           </span>
           <span class="consent-badge-active" style="background: rgba(37, 99, 235, 0.12); color: var(--accent-secondary); border-color: rgba(37,99,235,0.3);">
             <span>●</span>
@@ -639,43 +629,158 @@
         </div>
       </section>
 
-      <!-- LARGE READABLE RISK GAUGE WITH LOW, MODERATE, HIGH, CRITICAL STATES -->
-      <section class="risk-gauge-card" role="region" aria-label="Aegis CARE Senior Risk Gauge">
-        <div class="risk-gauge-visual">
-          <svg class="risk-gauge-svg" viewBox="0 0 220 130" aria-label="Risk Meter Arc">
-            <defs>
-              <linearGradient id="riskArcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#0D9488"/>
-                <stop offset="35%" stop-color="#14B8A6"/>
-                <stop offset="70%" stop-color="#D97706"/>
-                <stop offset="100%" stop-color="#DC2626"/>
-              </linearGradient>
-            </defs>
-            <!-- Background Arc -->
-            <path d="M 25 105 A 85 85 0 0 1 195 105" fill="none" stroke="var(--border-subtle)" stroke-width="16" stroke-linecap="round"/>
-            <!-- Active Risk Arc -->
-            <path id="riskGaugeArc" d="M 25 105 A 85 85 0 0 1 195 105" fill="none" stroke="url(#riskArcGradient)" stroke-width="16" stroke-linecap="round" stroke-dasharray="267" stroke-dashoffset="240" style="transition: stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.4s ease;"/>
-          </svg>
-          <div class="risk-gauge-score-display">
-            <div class="risk-gauge-numeric" id="riskGaugeNumeric">0.04</div>
-            <div class="risk-gauge-tier-label" id="riskGaugeTierLabel" style="color: var(--accent-primary);">LOW RISK</div>
-          </div>
-          <div class="risk-gauge-legend">
-            <div class="legend-tier"><span class="legend-dot" style="background: #0D9488;"></span>Low</div>
-            <div class="legend-tier"><span class="legend-dot" style="background: #D97706;"></span>Mod</div>
-            <div class="legend-tier"><span class="legend-dot" style="background: #F97316;"></span>High</div>
-            <div class="legend-tier"><span class="legend-dot" style="background: #DC2626;"></span>Crit</div>
-          </div>
-        </div>
+      <!-- PROPORTIONAL TELEMETRY DECK: LIVING GUARDIAN (ORB) + BAYESIAN RISK GAUGE (METER) -->
+      <div class="guardian-telemetry-grid">
+        <!-- 1. The Living Guardian Signature Visualizer -->
+        <section class="guardian-hero-card state-normal" id="guardianHeroCard" role="status" aria-live="polite">
+          <div class="guardian-hero-top">
+            <!-- Living Guardian Custom SVG Visualizer with Concentric Ambient Rings & Sensor Nodes -->
+            <div class="guardian-visual-wrap" aria-hidden="true">
+              <svg class="guardian-svg" viewBox="0 0 240 240" aria-label="Living Guardian Sensing Visualization">
+                <defs>
+                  <radialGradient id="guardianGlowNormal" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="var(--accent-primary)" stop-opacity="0.35"/>
+                    <stop offset="100%" stop-color="var(--accent-primary)" stop-opacity="0"/>
+                  </radialGradient>
+                  <radialGradient id="guardianGlowCritical" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="var(--status-critical)" stop-opacity="0.45"/>
+                    <stop offset="100%" stop-color="var(--status-critical)" stop-opacity="0"/>
+                  </radialGradient>
+                </defs>
 
-        <div class="risk-gauge-info-col">
-          <div class="risk-gauge-title" id="riskGaugeHeadline">
-            Eleanor is resting comfortably in the living room
+                <!-- Radial Ambient Aura -->
+                <circle cx="120" cy="120" r="115" fill="url(#guardianGlowNormal)" id="guardianAuraBg" />
+
+                <!-- Concentric Ambient Rings -->
+                <circle class="guardian-ring ring-outer" cx="120" cy="120" r="105" />
+                <circle class="guardian-ring ring-mid" cx="120" cy="120" r="78" />
+                <circle class="guardian-ring ring-inner" cx="120" cy="120" r="52" />
+
+                <!-- Central Protective Emblem -->
+                <circle class="guardian-center-emblem" cx="120" cy="120" r="32" id="guardianCenterEmblem" />
+                <g id="guardianIconSymbolWrap">
+                  <path class="guardian-icon-symbol" id="guardianIconSymbol" d="M120 102 L132 108 L132 120 C132 129 126 136 120 138 C114 136 108 129 108 120 L108 108 Z" />
+                </g>
+
+                <!-- 5 Orbital Sensing Nodes (Live Connected Sensing Systems) -->
+                <!-- 1. 60GHz FMCW Radar (Top, 12 o'clock) -->
+                <g class="guardian-sensor-node" id="nodeRadar" transform="translate(120, 15)">
+                  <circle cx="0" cy="0" r="9" />
+                  <text x="0" y="3" text-anchor="middle" font-size="7" fill="var(--text-primary)" font-weight="700">R</text>
+                </g>
+                <!-- 2. YOLOv8 Pose Vision (Top Right, 2 o'clock) -->
+                <g class="guardian-sensor-node" id="nodeVision" transform="translate(205, 70)">
+                  <circle cx="0" cy="0" r="9" />
+                  <text x="0" y="3" text-anchor="middle" font-size="7" fill="var(--text-primary)" font-weight="700">V</text>
+                </g>
+                <!-- 3. Apple Watch PPG Vitals (Bottom Right, 5 o'clock) -->
+                <g class="guardian-sensor-node" id="nodeVitals" transform="translate(195, 175)">
+                  <circle cx="0" cy="0" r="9" />
+                  <text x="0" y="3" text-anchor="middle" font-size="7" fill="var(--text-primary)" font-weight="700">H</text>
+                </g>
+                <!-- 4. Echo Show Far-Field Mic (Bottom Left, 7 o'clock) -->
+                <g class="guardian-sensor-node" id="nodeAudio" transform="translate(45, 175)">
+                  <circle cx="0" cy="0" r="9" />
+                  <text x="0" y="3" text-anchor="middle" font-size="7" fill="var(--text-primary)" font-weight="700">A</text>
+                </g>
+                <!-- 5. Smart Deadbolt & Door Sensor (Top Left, 10 o'clock) -->
+                <g class="guardian-sensor-node" id="nodeLock" transform="translate(35, 70)">
+                  <circle cx="0" cy="0" r="9" />
+                  <text x="0" y="3" text-anchor="middle" font-size="7" fill="var(--text-primary)" font-weight="700">D</text>
+                </g>
+              </svg>
+            </div>
+
+            <!-- Guardian Information Content -->
+            <div class="guardian-content-wrap">
+              <div class="guardian-state-badge" id="guardianStateBadge">
+                <span class="guardian-pulse-pip" id="guardianPulsePip"></span>
+                <span id="guardianStateText">NORMAL MONITORING</span>
+              </div>
+
+              <h2 class="guardian-headline" id="guardianHeadline">
+                Eleanor is Safe &amp; Resting Comfortably
+              </h2>
+
+              <p class="guardian-subtext" id="guardianSubtext">
+                Beacon Hill Unit 4B &bull; Ambient multi-modal sensor fusion active &bull; Living room resting baseline verified &bull; Zero camera recording for 100% resident privacy.
+              </p>
+            </div>
           </div>
-          <p class="risk-gauge-narrative" id="riskGaugeNarrative">
-            Ambient FMCW radar and environmental multi-factor fusion confirm expected baseline restful state. Movement, acoustic presence, and Apple Watch cardiac vitals indicate zero distress.
-          </p>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 4px;">
+
+          <!-- Guardian Telemetry Metadata & Quick Demonstrations -->
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="guardian-meta-strip">
+              <span class="guardian-meta-item">
+                <span style="color: var(--accent-primary);">●</span>
+                <span>Telemetry: <strong id="guardianLastCheck">Continuous (20Hz)</strong></span>
+              </span>
+              <span class="guardian-meta-item">
+                <span>Risk Score: <strong id="guardianRiskScore" style="color: var(--accent-primary);">0.04 / 1.0 (LOW)</strong></span>
+              </span>
+              <span class="guardian-meta-item">
+                <span>Resident Zone: <strong id="guardianZone">Living Room (Armchair)</strong></span>
+              </span>
+              <span class="guardian-meta-item">
+                <span>Verification: <strong id="guardianVerifyStatus" style="color: var(--accent-primary);">Passive Aware</strong></span>
+              </span>
+            </div>
+
+            <div class="user-hero-actions">
+              <button class="btn-luxury-primary" onclick="openVideoDemoModal()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span>Watch Video Reel</span>
+              </button>
+              <button class="btn-luxury-secondary" onclick="window.voiceAudio ? window.voiceAudio.testAudio() : null">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                <span>Test Audio</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. Large Readable Bayesian Risk Gauge Meter Arc -->
+        <section class="risk-gauge-card" role="region" aria-label="Aegis CARE Senior Risk Gauge">
+          <div class="risk-gauge-top-row">
+            <div class="risk-gauge-visual">
+              <svg class="risk-gauge-svg" viewBox="0 0 220 130" aria-label="Risk Meter Arc">
+                <defs>
+                  <linearGradient id="riskArcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#0D9488"/>
+                    <stop offset="35%" stop-color="#14B8A6"/>
+                    <stop offset="70%" stop-color="#D97706"/>
+                    <stop offset="100%" stop-color="#DC2626"/>
+                  </linearGradient>
+                </defs>
+                <!-- Background Arc -->
+                <path d="M 25 105 A 85 85 0 0 1 195 105" fill="none" stroke="var(--border-subtle)" stroke-width="16" stroke-linecap="round"/>
+                <!-- Active Risk Arc -->
+                <path id="riskGaugeArc" d="M 25 105 A 85 85 0 0 1 195 105" fill="none" stroke="url(#riskArcGradient)" stroke-width="16" stroke-linecap="round" stroke-dasharray="267" stroke-dashoffset="240" style="transition: stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.4s ease;"/>
+              </svg>
+              <div class="risk-gauge-score-display">
+                <div class="risk-gauge-numeric" id="riskGaugeNumeric">0.04</div>
+                <div class="risk-gauge-tier-label" id="riskGaugeTierLabel" style="color: var(--accent-primary);">LOW RISK</div>
+              </div>
+              <div class="risk-gauge-legend">
+                <div class="legend-tier"><span class="legend-dot" style="background: #0D9488;"></span>Low</div>
+                <div class="legend-tier"><span class="legend-dot" style="background: #D97706;"></span>Mod</div>
+                <div class="legend-tier"><span class="legend-dot" style="background: #F97316;"></span>High</div>
+                <div class="legend-tier"><span class="legend-dot" style="background: #DC2626;"></span>Crit</div>
+              </div>
+            </div>
+
+            <div class="risk-gauge-headline-wrap">
+              <div class="risk-gauge-title" id="riskGaugeHeadline">
+                Eleanor is resting comfortably in the living room
+              </div>
+              <p class="risk-gauge-narrative" id="riskGaugeNarrative">
+                Ambient FMCW radar and environmental multi-factor fusion confirm expected baseline restful state. Movement, acoustic presence, and Apple Watch cardiac vitals indicate zero distress.
+              </p>
+            </div>
+          </div>
+
+          <!-- Sensor Corroboration Metrics 2x2 Grid -->
+          <div class="risk-gauge-corroboration-grid">
             <div class="packet-data-box">
               <span class="device-spec-label">Movement Radar:</span><br>
               <strong id="gaugeMotionStatus" style="color: var(--accent-primary);">Armchair Rest (0.02G)</strong>
@@ -693,120 +798,14 @@
               <strong id="gaugeVoiceStatus" style="color: var(--accent-primary);">Passive Aware</strong>
             </div>
           </div>
+
           <div class="risk-gauge-disclaimer">
-            <span>ℹ️ Real-time Bayesian safety inference. Sensor signals corroborate continuously with privacy-first edge compute.</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>Real-time Bayesian safety inference corroborating continuously with edge compute.</span>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      <!-- SIGNATURE CENTRAL HERO: THE LIVING GUARDIAN -->
-      <section class="guardian-hero-card state-normal" id="guardianHeroCard" role="status" aria-live="polite">
-        <!-- Living Guardian Custom SVG Visualizer with Concentric Ambient Rings & Sensor Nodes -->
-        <div class="guardian-visual-wrap" aria-hidden="true">
-          <svg class="guardian-svg" viewBox="0 0 240 240" aria-label="Living Guardian Sensing Visualization">
-            <defs>
-              <radialGradient id="guardianGlowNormal" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="var(--accent-primary)" stop-opacity="0.35"/>
-                <stop offset="100%" stop-color="var(--accent-primary)" stop-opacity="0"/>
-              </radialGradient>
-              <radialGradient id="guardianGlowCritical" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="var(--status-critical)" stop-opacity="0.45"/>
-                <stop offset="100%" stop-color="var(--status-critical)" stop-opacity="0"/>
-              </radialGradient>
-            </defs>
-
-            <!-- Radial Ambient Aura -->
-            <circle cx="120" cy="120" r="115" fill="url(#guardianGlowNormal)" id="guardianAuraBg" />
-
-            <!-- Concentric Ambient Rings -->
-            <circle class="guardian-ring ring-outer" cx="120" cy="120" r="105" />
-            <circle class="guardian-ring ring-mid" cx="120" cy="120" r="78" />
-            <circle class="guardian-ring ring-inner" cx="120" cy="120" r="52" />
-
-            <!-- Central Protective Emblem -->
-            <circle class="guardian-center-emblem" cx="120" cy="120" r="32" id="guardianCenterEmblem" />
-            <g id="guardianIconSymbolWrap">
-              <path class="guardian-icon-symbol" id="guardianIconSymbol" d="M120 102 L132 108 L132 120 C132 129 126 136 120 138 C114 136 108 129 108 120 L108 108 Z" />
-            </g>
-
-            <!-- 5 Orbital Sensing Nodes (Live Connected Sensing Systems) -->
-            <!-- 1. 60GHz FMCW Radar (Top, 12 o'clock) -->
-            <g class="guardian-sensor-node" id="nodeRadar" transform="translate(120, 15)">
-              <circle cx="0" cy="0" r="9" />
-              <text x="0" y="3" text-anchor="middle" font-size="7" fill="var(--text-primary)" font-weight="700">R</text>
-            </g>
-            <!-- 2. YOLOv8 Pose Vision (Top Right, 2 o'clock) -->
-            <g class="guardian-sensor-node" id="nodeVision" transform="translate(205, 70)">
-              <circle cx="0" cy="0" r="9" />
-              <text x="0" y="3" text-anchor="middle" font-size="7" fill="var(--text-primary)" font-weight="700">V</text>
-            </g>
-            <!-- 3. Apple Watch PPG Vitals (Bottom Right, 5 o'clock) -->
-            <g class="guardian-sensor-node" id="nodeVitals" transform="translate(195, 175)">
-              <circle cx="0" cy="0" r="9" />
-              <text x="0" y="3" text-anchor="middle" font-size="7" fill="var(--text-primary)" font-weight="700">H</text>
-            </g>
-            <!-- 4. Echo Show Far-Field Mic (Bottom Left, 7 o'clock) -->
-            <g class="guardian-sensor-node" id="nodeAudio" transform="translate(45, 175)">
-              <circle cx="0" cy="0" r="9" />
-              <text x="0" y="3" text-anchor="middle" font-size="7" fill="var(--text-primary)" font-weight="700">A</text>
-            </g>
-            <!-- 5. Smart Deadbolt & Door Sensor (Top Left, 10 o'clock) -->
-            <g class="guardian-sensor-node" id="nodeLock" transform="translate(35, 70)">
-              <circle cx="0" cy="0" r="9" />
-              <text x="0" y="3" text-anchor="middle" font-size="7" fill="var(--text-primary)" font-weight="700">D</text>
-            </g>
-          </svg>
-        </div>
-
-        <!-- Guardian Information Content -->
-        <div class="guardian-content-wrap">
-          <div class="guardian-state-badge" id="guardianStateBadge">
-            <span class="guardian-pulse-pip" id="guardianPulsePip"></span>
-            <span id="guardianStateText">NORMAL MONITORING</span>
-          </div>
-
-          <h2 class="guardian-headline" id="guardianHeadline">
-            Eleanor is Safe &amp; Resting Comfortably
-          </h2>
-
-          <p class="guardian-subtext" id="guardianSubtext">
-            Beacon Hill Unit 4B &bull; Ambient multi-modal sensor fusion active &bull; Living room resting baseline verified &bull; Zero camera recording for 100% resident privacy.
-          </p>
-
-          <div class="guardian-meta-strip">
-            <span class="guardian-meta-item">
-              <span style="color: var(--accent-primary);">●</span>
-              <span>Telemetry: <strong id="guardianLastCheck">Continuous (20Hz)</strong></span>
-            </span>
-            <span class="guardian-meta-item">
-              <span>Risk Score: <strong id="guardianRiskScore" style="color: var(--accent-primary);">0.04 / 1.0 (LOW)</strong></span>
-            </span>
-            <span class="guardian-meta-item">
-              <span>Resident Zone: <strong id="guardianZone">Living Room (Armchair)</strong></span>
-            </span>
-            <span class="guardian-meta-item">
-              <span>Verification: <strong id="guardianVerifyStatus" style="color: var(--accent-primary);">Passive Aware</strong></span>
-            </span>
-          </div>
-        </div>
-
-        <!-- Guardian Quick Demonstration & Story Actions -->
-        <div class="user-hero-actions" style="display: flex; flex-direction: column; gap: 10px;">
-          <button class="btn-luxury-primary" onclick="openVideoDemoModal()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-              <polygon points="5 3 19 12 5 21 5 3"/>
-            </svg>
-            <strong>Watch Video Demo Reel</strong>
-          </button>
-          <button class="btn-luxury-secondary" onclick="window.voiceAudio ? window.voiceAudio.testAudio() : null">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
-            </svg>
-            <span>Test Speech</span>
-          </button>
-        </div>
-      </section>
 
       <!-- 1-Glance Reassurance Banner -->
       <section class="hero-ribbon is-critical" id="heroStatusCard" role="status" aria-live="polite">
@@ -829,26 +828,8 @@
         </div>
 
         <div class="ribbon-action-buttons">
-          <button class="btn-luxury-primary" onclick="openVideoDemoModal()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-              <polygon points="5 3 19 12 5 21 5 3"/>
-            </svg>
-            <strong>Watch Video Demo Reel</strong>
-          </button>
-
-          <button class="btn-luxury-secondary" onclick="window.voiceAudio.testAudio()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
-            </svg>
-            <strong>Test Speech</strong>
-          </button>
-
           <button class="btn-luxury-secondary" onclick="openVideoGuideModal()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-            </svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
             <span data-i18n="videoGuideBtn">Operation Guide</span>
           </button>
         </div>
@@ -1037,7 +1018,7 @@
       <section class="content-card" style="margin-top: 20px;">
         <div class="card-header-bar">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 1.3rem;">🧠</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
             <div>
               <div style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary);">Aegis CARE Engine &bull; Interactive Multi-Factor Workflow</div>
               <div style="font-size: 0.78rem; color: var(--text-secondary);">Automated Bayesian Risk Progression: DETECT &rarr; CORRELATE &rarr; VERIFY &rarr; RESPOND</div>
@@ -1050,56 +1031,56 @@
           <!-- Step 1: DETECT -->
           <div class="aegis-step-card is-active" id="careStepDetect">
             <div>
-              <span class="step-card-num-badge">1. DETECT</span>
+              <span class="step-card-num-badge">STAGE 01 &bull; DETECT</span>
               <div class="step-card-title">Sensory Event Ingestion</div>
               <div class="step-card-desc">
                 Identifies rapid posture collapse, room inactivity breach, cardiac arrhythmia surge, environmental hazard, or explicit acoustic help keywords.
               </div>
             </div>
             <div class="step-card-metric" id="careMetricDetect">
-              ⚡ 60GHz FMCW Radar: Fall Vector (-2.8m/s) &bull; 0.05G Immobility
+              60GHz FMCW Radar: Fall Vector (-2.8m/s) &bull; 0.05G Immobility
             </div>
           </div>
 
           <!-- Step 2: CORRELATE -->
           <div class="aegis-step-card is-active" id="careStepCorrelate">
             <div>
-              <span class="step-card-num-badge">2. CORRELATE</span>
+              <span class="step-card-num-badge">STAGE 02 &bull; CORRELATE</span>
               <div class="step-card-title">Contextual Evidence Fusion</div>
               <div class="step-card-desc">
                 Cross-references resident's 14-day circadian baseline, sensor reliability weights, and physical substrate hazard (e.g. bathroom wet floor tile).
               </div>
             </div>
             <div class="step-card-metric" id="careMetricCorrelate">
-              📊 Multi-Sensor Agreement: 94% &bull; Hazard Multiplier: +0.18
+              Multi-Sensor Agreement: 94% &bull; Hazard Multiplier: +0.18
             </div>
           </div>
 
           <!-- Step 3: VERIFY -->
           <div class="aegis-step-card is-active" id="careStepVerify">
             <div>
-              <span class="step-card-num-badge">3. VERIFY</span>
+              <span class="step-card-num-badge">STAGE 03 &bull; VERIFY</span>
               <div class="step-card-title">Echo Show 15 Voice Dialog</div>
               <div class="step-card-desc">
                 Initiates gentle natural-voice check-in. Displays 10-second visual countdown with accessible one-tap alternative response options.
               </div>
             </div>
             <div class="step-card-metric" id="careMetricVerify">
-              🎙️ Check-In Issued: "Eleanor, are you okay?" &bull; 10s Window
+              Voice Check-In Issued: "Eleanor, are you okay?" &bull; 10s Window
             </div>
           </div>
 
           <!-- Step 4: RESPOND -->
           <div class="aegis-step-card is-active in-alert" id="careStepRespond">
             <div>
-              <span class="step-card-num-badge" style="color: var(--status-critical);">4. RESPOND</span>
+              <span class="step-card-num-badge" style="color: var(--status-critical);">STAGE 04 &bull; RESPOND</span>
               <div class="step-card-title" style="color: var(--status-critical);">Tiered Escalation Matrix</div>
               <div class="step-card-desc">
                 Executes pre-configured response policy: notifies primary guardian David Vance via SMS/Push, unlocks front deadbolt, and generates CAD 911 dispatch packet.
               </div>
             </div>
             <div class="step-card-metric" id="careMetricRespond" style="color: var(--status-critical);">
-              🚨 Policy Active: Boston EMS CAD Dispatch + Door PIN #8492
+              Policy Active: Boston EMS CAD Dispatch + Door PIN #8492
             </div>
           </div>
         </div>
@@ -1108,7 +1089,7 @@
         <div style="background: var(--surface-subtle); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 18px; margin-top: 14px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
             <div style="font-size: 0.86rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-              <span>💬 Resident Voice Verification Simulation &amp; Accessible Alternatives</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> <span>Resident Voice Verification Simulation &amp; Accessible Alternatives</span>
             </div>
             <div style="font-size: 0.74rem; font-family: var(--font-mono); color: var(--text-muted);">
               SLA Headroom: &lt;220ms measured (SLA: &lt;500ms)
@@ -1117,16 +1098,16 @@
 
           <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
             <button class="btn-luxury-primary" onclick="window.voiceAudio ? window.voiceAudio.playScenarioAudio(currentScenario) : null">
-              <span>▶ Play Check-In Prompt ("Eleanor, are you okay?")</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> <span>Play Check-In Prompt ("Eleanor, are you okay?")</span>
             </button>
             <button class="btn-luxury-secondary" onclick="userAnswer('ok')">
-              <span>✓ Press: "I am fine, no help needed"</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> <span>Press: "I am fine, no help needed"</span>
             </button>
             <button class="btn-luxury-secondary" style="border-color: var(--status-critical); color: var(--status-critical);" onclick="userAnswer('help')">
-              <span>⚠️ Press: "I need help"</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> <span>Press: "I need help"</span>
             </button>
             <button class="btn-luxury-secondary" onclick="userAnswer('timeout')">
-              <span>⏱ Simulate Unanswered (10s Timeout)</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> <span>Simulate Unanswered (10s Timeout)</span>
             </button>
           </div>
         </div>
@@ -1150,17 +1131,17 @@
                 </svg>
               </span>
               <span id="camHeaderTitle" style="font-size: 0.92rem; font-weight: 700; color: #fff;">Live Radar Feed: Bathroom</span>
-              <span id="privacyShieldBadge" class="privacy-shield-badge">🔒 Privacy Preserved</span>
+              <span id="privacyShieldBadge" class="privacy-shield-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ui-icon" style="margin-right:4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Privacy Preserved</span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
               <button class="btn-luxury-secondary view-toggle-btn active" id="btnToggleRadar" onclick="toggleRadarView()" style="padding: 5px 10px; font-size: 0.72rem;">
-                📡 60GHz Radar
+                60GHz Radar
               </button>
               <button class="btn-luxury-secondary view-toggle-btn" id="btnToggleCamera" onclick="toggleCameraView()" style="padding: 5px 10px; font-size: 0.72rem;">
-                📹 Optical Camera
+                Optical Camera
               </button>
               <button class="btn-luxury-secondary view-toggle-btn" id="btnToggle3DMode" onclick="toggleMain3DMode()" style="padding: 5px 10px; font-size: 0.72rem;">
-                🌐 3D Twin
+                3D Twin
               </button>
               <div class="rec-badge-live" id="recBadgeLive">
                 <span class="rec-pulse-dot"></span> LIVE 20 Hz
@@ -1420,7 +1401,7 @@
         <section class="content-card">
           <div class="card-header-bar">
             <span style="display: flex; align-items: center; gap: 8px;">
-              <span>🎙️ Live Multi-Party Conversation Timeline</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> <span>Live Multi-Party Conversation Timeline</span>
               <span class="vtl-confidence-tag" id="voiceTimelineCount">6 Events</span>
             </span>
             <span style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono);" id="voiceLastUpdated">
@@ -1466,7 +1447,7 @@
             <div class="custom-utterance-bar">
               <input type="text" id="customUtteranceInput" class="input-utterance" placeholder="Type custom verbal response (e.g. 'I dropped my cane')..." onkeydown="if(event.key==='Enter') sendCustomVoiceUtterance();" />
               <button class="btn-send-utterance" onclick="sendCustomVoiceUtterance()">
-                🗣️ Speak Utterance
+                Speak Utterance
               </button>
             </div>
           </div>
@@ -1547,42 +1528,42 @@
               <!-- Demo Note 1: NIRA -->
               <div class="voicenote-player-card">
                 <div class="voicenote-meta">
-                  <div class="voicenote-speaker">🎙️ Echo Show 15 (Aegis Prompt)</div>
+                  <div class="voicenote-speaker">Echo Show 15 (Aegis Prompt)</div>
                   <div class="voicenote-time">[SIMULATION]</div>
                 </div>
                 <div class="voicenote-quote" id="demoAlexaQuote">
                   "Eleanor, this is Aegis. I noticed a fall in the bathroom. Are you okay?"
                 </div>
                 <button class="btn-play-voicenote" id="btnPlayAlexaVoice" onclick="playAlexaVoiceNote()">
-                  ▶️ Listen to Synthesized NIRA Prompt [Demo]
+                  Listen to Synthesized NIRA Prompt [Demo]
                 </button>
               </div>
 
               <!-- Demo Note 2: Eleanor -->
               <div class="voicenote-player-card">
                 <div class="voicenote-meta">
-                  <div class="voicenote-speaker">🗣️ Eleanor Vance (Acoustic Response)</div>
+                  <div class="voicenote-speaker">Eleanor Vance (Acoustic Response)</div>
                   <div class="voicenote-time">[SIMULATION]</div>
                 </div>
                 <div class="voicenote-quote" id="demoSeniorQuote">
                   "No response for 20 seconds. Presumed unconscious."
                 </div>
                 <button class="btn-play-voicenote" id="btnPlaySeniorVoice" onclick="playSeniorVoiceNote()">
-                  ▶️ Listen to Eleanor's Voice Reply [Demo]
+                  Listen to Eleanor's Voice Reply [Demo]
                 </button>
               </div>
 
               <!-- Demo Note 3: Son David -->
               <div class="voicenote-player-card">
                 <div class="voicenote-meta">
-                  <div class="voicenote-speaker">📱 David Vance (Son &bull; Guardian Drop-In)</div>
+                  <div class="voicenote-speaker">David Vance (Son &bull; Guardian Drop-In)</div>
                   <div class="voicenote-time">[SIMULATION]</div>
                 </div>
                 <div class="voicenote-quote">
                   "Mom! This is David. Aegis just alerted me on Alexa. I'm rushing over right now!"
                 </div>
                 <button class="btn-play-voicenote" onclick="playSonVoiceMemo()">
-                  ▶️ Listen to Caregiver Drop-In Audio [Demo]
+                  Listen to Caregiver Drop-In Audio [Demo]
                 </button>
               </div>
             </div>
@@ -1633,8 +1614,7 @@
         <!-- 1. WHAT HAPPENED? -->
         <div class="hud-card hud-card-red">
           <div class="hud-card-q">
-            <span>🚨</span>
-            <span>WHAT HAPPENED?</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--status-critical)" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> <span>WHAT HAPPENED?</span>
           </div>
           <div class="hud-card-ans" id="cmdWhatHappened">
             Acute Fall Event &bull; High-Impact Acceleration Signature
@@ -1647,8 +1627,7 @@
         <!-- 2. WHERE? -->
         <div class="hud-card hud-card-blue">
           <div class="hud-card-q">
-            <span>📍</span>
-            <span>WHERE?</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" stroke-width="2.2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> <span>WHERE?</span>
           </div>
           <div class="hud-card-ans" id="cmdWhere">
             Bathroom &bull; Beacon Hill Unit 4B
@@ -1661,8 +1640,7 @@
         <!-- 3. WHEN? -->
         <div class="hud-card hud-card-cyan">
           <div class="hud-card-q">
-            <span>⏱️</span>
-            <span>WHEN?</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> <span>WHEN?</span>
           </div>
           <div class="hud-card-ans" id="cmdWhen">
             02:14:00 UTC &bull; (Night Schedule)
@@ -1675,8 +1653,7 @@
         <!-- 4. WHY DID NIRA ESCALATE? -->
         <div class="hud-card hud-card-amber">
           <div class="hud-card-q">
-            <span>🧠</span>
-            <span>WHY DID NIRA ESCALATE?</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--status-warning)" stroke-width="2.2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg> <span>WHY DID NIRA ESCALATE?</span>
           </div>
           <div class="hud-card-ans" id="cmdWhyEscalated">
             Tachycardia (138 BPM) + 20s Silence + Wet Tile
@@ -1689,8 +1666,7 @@
         <!-- 5. WHO HAS BEEN NOTIFIED? -->
         <div class="hud-card hud-card-purple">
           <div class="hud-card-q">
-            <span>📱</span>
-            <span>WHO HAS BEEN NOTIFIED?</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> <span>WHO HAS BEEN NOTIFIED?</span>
           </div>
           <div class="hud-card-ans" id="cmdWhoNotified">
             Boston EMS 911 (Medic-14) & Son David Vance
@@ -1703,8 +1679,7 @@
         <!-- 6. WHAT IS HAPPENING NOW? -->
         <div class="hud-card hud-card-green">
           <div class="hud-card-q">
-            <span>⚡</span>
-            <span>WHAT IS HAPPENING NOW?</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> <span>WHAT IS HAPPENING NOW?</span>
           </div>
           <div class="hud-card-ans" id="cmdWhatNow">
             Smart Deadbolt UNLOCKED &bull; First Responders En Route
@@ -1720,7 +1695,7 @@
         <section class="content-card">
           <div class="card-header-bar">
             <span style="display: flex; align-items: center; gap: 8px;">
-              <span>📋 Chronological Incident Audit Trail (Authoritative Backend Events)</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> <span>Chronological Incident Audit Trail (Authoritative Backend Events)</span>
             </span>
             <div style="display: flex; align-items: center; gap: 8px;">
               <span class="vtl-confidence-tag" id="cmdRiskScoreTag">Risk Score: 94%</span>
@@ -1745,12 +1720,23 @@
             <!-- Card 1: 911 CAD Emergency Packet & Smart Entrance Deadbolt -->
             <div class="cmd-packet-card">
               <div class="card-header-bar" style="margin-bottom: 10px; padding: 0 0 8px 0; border-bottom: 1px solid rgba(244, 63, 94, 0.2);">
-                <span style="font-size: 0.86rem; font-weight: 800; color: #fff;">
-                  Boston EMS 911 CAD Incident Packet
-                </span>
-                <span style="font-size: 0.72rem; font-family: var(--font-mono); color: var(--accent-red); font-weight: 800;" id="cmdTriagePriority">
-                  CODE: RED-911
-                </span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--status-critical)" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  <span style="font-size: 0.88rem; font-weight: 800; color: #fff;">
+                    Boston EMS 911 CAD Incident Packet
+                  </span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <button class="btn-luxury-secondary" style="padding: 4px 8px; font-size: 0.70rem;" onclick="exportEmergencyPacket('json')">
+                    Export JSON
+                  </button>
+                  <button class="btn-luxury-secondary" style="padding: 4px 8px; font-size: 0.70rem;" onclick="exportEmergencyPacket('print')">
+                    Print Dossier
+                  </button>
+                  <span style="font-size: 0.72rem; font-family: var(--font-mono); color: var(--accent-red); font-weight: 800;" id="cmdTriagePriority">
+                    CODE: RED-911
+                  </span>
+                </div>
               </div>
 
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.76rem; margin-bottom: 10px;">
@@ -1791,9 +1777,45 @@
               <div style="margin-top: 10px; font-size: 0.74rem; color: var(--text-secondary); line-height: 1.45; background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: var(--radius-sm);">
                 <strong>Medical Notes on File:</strong> Eleanor Vance (Age 79) &bull; Mild cognitive impairment, Hypertension (Lisinopril), Penicillin allergy (Anaphylaxis risk), DNR: No.
               </div>
+
+              <!-- Machine-Readable CAD JSON Contract Payload Preview -->
+              <div style="margin-top: 10px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                  <span style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted);">CAD JSON Contract Payload:</span>
+                  <span style="font-size: 0.68rem; font-family: var(--font-mono); color: var(--accent-cyan);">NENA i3 Standard</span>
+                </div>
+                <pre class="packet-json-preview" id="packetJsonPreview" style="max-height: 110px; overflow-y: auto; font-size: 0.68rem; margin: 0; padding: 8px; border-radius: 4px;">{
+  "packet_id": "CAD-2026-BOS-9118",
+  "incident_id": "INC-2026-1021-01",
+  "timestamp": "2026-10-21T02:14:00Z",
+  "resident": {
+    "name": "Eleanor Vance",
+    "age": 79,
+    "gender": "Female",
+    "address": "32 Chestnut St, Apt 4B, Beacon Hill, Boston MA 02108",
+    "access_pin": "8492",
+    "lock_state": "UNLOCKED",
+    "allergies": ["Penicillin"],
+    "medications": ["Metoprolol 50mg"]
+  },
+  "safety_assessment": {
+    "risk_level": "CRITICAL",
+    "heuristic_score": 0.88,
+    "affected_room": "Bathroom",
+    "detection_source": "60GHz_FMCW_Radar",
+    "voice_verification_status": "TIMEOUT_UNANSWERED",
+    "camera_privacy_enforced": true
+  },
+  "provenance": {
+    "engine": "Aegis CARE Engine v2.0",
+    "sla_ms": 18,
+    "generated_at": "2026-10-21T02:14:15Z"
+  }
+}</pre>
+              </div>
             </div>
 
-            <!-- Card 2: Family Guardian Notification Hub & Live Action -->
+            <!-- Card 2: Family Guardian Notification Hub<!-- Card 2: Family Guardian Notification Hub & Live Action -->
             <div style="background: var(--bg-card-subtle); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px;">
               <div class="card-header-bar" style="margin-bottom: 10px; padding: 0 0 6px 0;">
                 <span style="font-size: 0.84rem; font-weight: 800; color: #fff;">
@@ -1852,114 +1874,11 @@
         </section>
       </div>
 
-      <!-- EMERGENCY CONTEXT PACKET (ECP) &bull; CAD 911 DOSSIER -->
-      <section class="emergency-packet-card" style="margin-top: 20px;">
-        <div class="packet-header-bar">
-          <div class="packet-title">
-            <span style="color: var(--status-critical); font-size: 1.4rem;">🚨</span>
-            <div>
-              <div style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary);">Emergency Context Packet (ECP) &bull; CAD 911 Dossier</div>
-              <div style="font-size: 0.76rem; color: var(--text-secondary); margin-top: 2px;">APCO P25 / NENA i3 Next-Generation 911 Standard &bull; Incident #CAD-2026-BOS-9118</div>
-            </div>
-          </div>
-          <div style="display: flex; gap: 8px;">
-            <button class="btn-luxury-primary" onclick="exportEmergencyPacket('json')">
-              Download ECP (.json)
-            </button>
-            <button class="btn-luxury-secondary" onclick="exportEmergencyPacket('print')">
-              Print CAD Dossier
-            </button>
-          </div>
-        </div>
-
-        <div class="packet-section-block">
-          <div class="packet-section-title">1. Dispatch Location &amp; Emergency Access Instructions</div>
-          <div class="packet-grid-2col">
-            <div class="packet-data-box">
-              <span class="device-spec-label">Resident Physical Address:</span><br>
-              <strong>32 Chestnut St, Apt 4B, Beacon Hill, Boston MA 02108</strong><br>
-              <span style="color: var(--text-muted); font-size: 0.72rem;">Elevator Code: #4004 &bull; Unit on 4th Floor North Wing</span>
-            </div>
-            <div class="packet-data-box" style="border-color: var(--status-critical);">
-              <span class="device-spec-label">Smart Front Door Status:</span><br>
-              <strong style="color: var(--status-critical);">UNLOCKED FOR FIRST RESPONDERS</strong><br>
-              <span style="color: var(--accent-secondary); font-weight: 700;">First Responder Keypad Token PIN: #8492</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="packet-section-block">
-          <div class="packet-section-title">2. Resident Profile &amp; Critical Medical Notes</div>
-          <div class="packet-grid-2col">
-            <div class="packet-data-box">
-              <span class="device-spec-label">Patient Demographics:</span><br>
-              <strong>Eleanor Vance &bull; Female &bull; Age 79 (DOB: 1947-03-14)</strong><br>
-              <span>Weight: 58kg &bull; Blood Type: A+ &bull; DNR: No (Full Resuscitation)</span>
-            </div>
-            <div class="packet-data-box">
-              <span class="device-spec-label">Active Clinical Diagnoses &amp; Medications:</span><br>
-              <strong>Osteoporosis &bull; Mild Hypertension &bull; Prior Fall 2025</strong><br>
-              <span style="color: var(--text-secondary);">Medications: Metoprolol 50mg PO Daily, Vitamin D3 (1000 IU)</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="packet-section-block">
-          <div class="packet-section-title">3. Multi-Factor Evidence Chain &amp; Automated Voice Check-In</div>
-          <div class="packet-grid-2col">
-            <div class="packet-data-box">
-              <span class="device-spec-label">Corroborating Telemetry Signals:</span><br>
-              <span>• 60GHz mmWave Radar: Sudden vertical velocity drop (-2.8m/s) at 02:14:00 AM</span><br>
-              <span>• Continuous Post-Impact Immobility: 42.5 seconds motionless</span><br>
-              <span>• Apple Watch PPG: Sinus tachycardia spike to 138 BPM (+91% above 72 BPM baseline)</span>
-            </div>
-            <div class="packet-data-box">
-              <span class="device-spec-label">Voice Verification Check-In:</span><br>
-              <span>• Prompt: "Eleanor, I noticed a fall in the bathroom. Are you okay?" (Echo Show 15)</span><br>
-              <span>• Response: 0 verbal utterances received</span><br>
-              <span style="color: var(--status-critical); font-weight: 700;">• 10-Second Window Expired without confirmation &rarr; Immediate Escalation</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="packet-section-block">
-          <div class="packet-section-title">4. Live Machine-Readable CAD JSON Contract Payload</div>
-          <pre class="packet-json-preview" id="packetJsonPreview">{
-  "packet_id": "CAD-2026-BOS-9118",
-  "incident_id": "INC-2026-1021-01",
-  "timestamp": "2026-10-21T02:14:00Z",
-  "resident": {
-    "name": "Eleanor Vance",
-    "age": 79,
-    "gender": "Female",
-    "address": "32 Chestnut St, Apt 4B, Beacon Hill, Boston MA 02108",
-    "access_pin": "8492",
-    "lock_state": "UNLOCKED",
-    "allergies": ["Penicillin"],
-    "medications": ["Metoprolol 50mg"]
-  },
-  "safety_assessment": {
-    "risk_level": "CRITICAL",
-    "heuristic_score": 0.88,
-    "affected_room": "Bathroom",
-    "detection_source": "60GHz_FMCW_Radar",
-    "voice_verification_status": "TIMEOUT_UNANSWERED",
-    "camera_privacy_enforced": true
-  },
-  "provenance": {
-    "engine": "Aegis CARE Engine v2.0",
-    "sla_ms": 18,
-    "generated_at": "2026-10-21T02:14:15Z"
-  }
-}</pre>
-        </div>
-      </section>
-
       <!-- MONITORED CARE CIRCLE & ESCALATION ROUTING -->
       <section class="content-card" style="margin-top: 20px;">
         <div class="card-header-bar">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 1.3rem;">👥</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2" class="ui-icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             <div>
               <div style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary);">Monitored Care Circle &amp; Escalation Routing</div>
               <div style="font-size: 0.78rem; color: var(--text-secondary);">Configured responders, verified channels, priority policy, and instantaneous communication actions</div>
@@ -1972,7 +1891,7 @@
           <!-- Responder 1: David Vance -->
           <div class="caregiver-card">
             <div class="caregiver-card-top">
-              <div class="caregiver-avatar">👨‍💼</div>
+              <div class="caregiver-avatar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
               <div>
                 <div class="caregiver-name">David Vance</div>
                 <div class="caregiver-role">Son &bull; Primary Family Guardian</div>
@@ -1982,9 +1901,9 @@
               Priority 1 recipient for all incident alerts, voice check-in notices, and morning routine digests.
             </div>
             <div class="caregiver-channels-strip">
-              <span class="care-channel-pill">📱 SMS Direct</span>
-              <span class="care-channel-pill">🔔 Push Notification</span>
-              <span class="care-channel-pill">📞 Echo Drop-In</span>
+              <span class="care-channel-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ui-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> SMS Direct</span>
+              <span class="care-channel-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ui-icon"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Push Notification</span>
+              <span class="care-channel-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ui-icon"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Echo Drop-In</span>
             </div>
             <div style="display: flex; gap: 8px; margin-top: auto;">
               <button class="btn-luxury-primary" style="flex: 1; justify-content: center;" onclick="triggerCaregiverNotification('David Vance')">
@@ -1999,7 +1918,7 @@
           <!-- Responder 2: Dr. Sarah Jenkins -->
           <div class="caregiver-card">
             <div class="caregiver-card-top">
-              <div class="caregiver-avatar" style="border-color: var(--accent-primary);">👩‍⚕️</div>
+              <div class="caregiver-avatar" style="border-color: var(--accent-primary);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
               <div>
                 <div class="caregiver-name">Dr. Sarah Jenkins, MD</div>
                 <div class="caregiver-role">Geriatric Care Physician &bull; MGH</div>
@@ -2009,9 +1928,9 @@
               Priority 2 oversight. Receives structured clinical incident context packets and 14-day mobility trends.
             </div>
             <div class="caregiver-channels-strip">
-              <span class="care-channel-pill">📋 Epic EHR Direct</span>
-              <span class="care-channel-pill">🏥 Clinic Pager</span>
-              <span class="care-channel-pill">🔒 FHIR API</span>
+              <span class="care-channel-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ui-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Epic EHR Direct</span>
+              <span class="care-channel-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ui-icon"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Clinic Pager</span>
+              <span class="care-channel-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ui-icon"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> FHIR API</span>
             </div>
             <button class="btn-luxury-secondary" style="width: 100%; justify-content: center; margin-top: auto;" onclick="showToast('📋 Clinical Summary Packet Transmitted to Dr. Jenkins (MGH)')">
               Transmit Clinical Packet
@@ -2021,7 +1940,7 @@
           <!-- Responder 3: Boston EMS Medic Unit 14 -->
           <div class="caregiver-card" style="border-color: var(--status-critical);">
             <div class="caregiver-card-top">
-              <div class="caregiver-avatar" style="border-color: var(--status-critical);">🚑</div>
+              <div class="caregiver-avatar" style="border-color: var(--status-critical);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--status-critical)" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div>
               <div>
                 <div class="caregiver-name">Boston EMS Medic-14</div>
                 <div class="caregiver-role">First Responders &bull; APCO CAD 911</div>
@@ -2031,8 +1950,8 @@
               Priority 3 emergency responder. Automated electronic dispatch when fall + immobility + 10s voice timeout triggers.
             </div>
             <div class="caregiver-channels-strip">
-              <span class="care-channel-pill" style="color: var(--status-critical); border-color: rgba(220,38,38,0.3);">🚨 APCO CAD 911</span>
-              <span class="care-channel-pill">🔑 Lock PIN #8492</span>
+              <span class="care-channel-pill" style="color: var(--status-critical); border-color: rgba(220,38,38,0.3);"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ui-icon"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg> APCO CAD 911</span>
+              <span class="care-channel-pill"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ui-icon"><path d="M21 2l-2 2m-1.5 1.5L16 7l-1.5-1.5L13 7l-1.5-1.5L10 7l-2-2"/></svg> Lock PIN #8492</span>
               <span class="care-channel-pill">⏱ 4.2 min ETA</span>
             </div>
             <button class="btn-luxury-primary" style="width: 100%; justify-content: center; background: var(--status-critical); border-color: var(--status-critical); margin-top: auto;" onclick="switchScenario('silent')">
@@ -2046,7 +1965,7 @@
       <section class="content-card" style="margin-top: 20px;">
         <div class="card-header-bar">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 1.3rem;">📜</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
             <div>
               <div style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary);">Cryptographic Trust Ledger &bull; Immutable Safety Log</div>
               <div style="font-size: 0.78rem; color: var(--text-secondary);">Authoritative chronological record of every sensory signal, algorithmic assessment, and caregiver action.</div>
@@ -2083,7 +2002,7 @@
         <div class="trust-stage-track" id="trustLedgerFullTrack">
           <!-- Event 1: Detection -->
           <div class="trust-event-item">
-            <div class="trust-event-node is-alert">⚡</div>
+            <div class="trust-event-node is-alert"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
             <div class="trust-event-body">
               <div class="trust-event-headline">
                 <span>Fall Signal Detected via 60GHz FMCW Radar</span>
@@ -2101,7 +2020,7 @@
 
           <!-- Event 2: Contextualization -->
           <div class="trust-event-item">
-            <div class="trust-event-node is-warning">🔍</div>
+            <div class="trust-event-node is-warning"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
             <div class="trust-event-body">
               <div class="trust-event-headline">
                 <span>Environmental Contextualization Multiplier Applied</span>
@@ -2119,7 +2038,7 @@
 
           <!-- Event 3: Acoustic Voice Verification -->
           <div class="trust-event-item">
-            <div class="trust-event-node is-alert">🗣️</div>
+            <div class="trust-event-node is-alert"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg></div>
             <div class="trust-event-body">
               <div class="trust-event-headline">
                 <span>Voice Verification Unanswered</span>
@@ -2137,7 +2056,7 @@
 
           <!-- Event 4: Emergency Escalation -->
           <div class="trust-event-item">
-            <div class="trust-event-node is-alert">🚨</div>
+            <div class="trust-event-node is-alert"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
             <div class="trust-event-body">
               <div class="trust-event-headline">
                 <span>CAD 911 Dispatch &amp; Smart Deadbolt Unlocked</span>
@@ -2159,7 +2078,7 @@
       <section class="company-arch-hero" style="margin-top: 20px;">
         <div>
           <div class="company-arch-title">
-            🏗️ NIRA Whole Working Structure &amp; Technical Architecture
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" stroke-width="2" style="display:inline-block; vertical-align:middle; margin-right:6px;"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg> NIRA Architecture &amp; Technical Specifications &amp; Technical Architecture
           </div>
           <div class="company-arch-sub">
             Built for Amazon Developer Hackathon 2026. High-performance Streamable HTTP Model Context Protocol (MCP) server delivering sub-25ms deterministic risk scoring, multimodal edge sensor fusion, and multi-channel emergency CAD dispatch.
@@ -2266,7 +2185,7 @@
       <section class="arch-inspector-box" id="archInspectorBox" style="margin-top: 14px;">
         <div class="arch-inspector-header">
           <div class="arch-inspector-title">
-            <span id="archInspectIcon">📡</span>
+            <span id="archInspectIcon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49"/></svg></span>
             <span id="archInspectTitle">Stage 1: Multimodal Ingestion Layer</span>
           </div>
           <span class="vtl-confidence-tag" id="archInspectBadge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.35);">
@@ -2392,7 +2311,7 @@
       <div class="hw-nodes-grid">
         <div class="hw-node-card">
           <div class="hw-node-header">
-            <span class="hw-node-name">📡 60GHz mmWave Radar</span>
+            <span class="hw-node-name"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ui-icon" style="margin-right:6px;"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49"/></svg>60GHz mmWave Radar</span>
             <span class="badge-normal" style="font-size: 0.68rem; padding: 2px 6px;">ONLINE</span>
           </div>
           <div class="hw-node-sub">TI IWR6843 60GHz FMCW radar pod. Bathroom ceiling mount.</div>
@@ -2401,7 +2320,7 @@
 
         <div class="hw-node-card">
           <div class="hw-node-header">
-            <span class="hw-node-name">📹 YOLOv8-Pose Edge AI</span>
+            <span class="hw-node-name"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ui-icon" style="margin-right:6px;"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>YOLOv8-Pose Edge AI</span>
             <span class="badge-normal" style="font-size: 0.68rem; padding: 2px 6px;">ONLINE</span>
           </div>
           <div class="hw-node-sub">On-device 17-keypoint skeleton inference. Zero video saved.</div>
@@ -2410,7 +2329,7 @@
 
         <div class="hw-node-card">
           <div class="hw-node-header">
-            <span class="hw-node-name">🗄️ SQLite / Postgres DB</span>
+            <span class="hw-node-name"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ui-icon" style="margin-right:6px;"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>SQLite / Postgres DB</span>
             <span class="badge-normal" style="font-size: 0.68rem; padding: 2px 6px;">ONLINE</span>
           </div>
           <div class="hw-node-sub">Persistent incident schema with auto-recovery on restart.</div>
@@ -2419,7 +2338,7 @@
 
         <div class="hw-node-card">
           <div class="hw-node-header">
-            <span class="hw-node-name">🌐 Alexa+ MCP SSE Core</span>
+            <span class="hw-node-name"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ui-icon" style="margin-right:6px;"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>Alexa+ MCP SSE Core</span>
             <span class="badge-normal" style="font-size: 0.68rem; padding: 2px 6px;">STREAMING</span>
           </div>
           <div class="hw-node-sub">Streamable HTTP /mcp and /sse for Alexa+ LLM tool invocation.</div>
@@ -2436,7 +2355,7 @@
       <section class="content-card" style="margin-bottom: 24px;">
         <div class="card-header-bar">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 1.3rem;">🌐</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
             <div>
               <div style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary);">Resident Calm Reassurance Mode &amp; Guardian Administrative Portals</div>
               <div style="font-size: 0.78rem; color: var(--text-secondary);">Role-tailored interfaces for Eleanor's bedside Echo Show display, family administrative configuration, and clinical session delegation</div>
@@ -2450,7 +2369,7 @@
           <div class="portal-access-card">
             <div>
               <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                <span style="font-size: 1.5rem;">🧘‍♀️</span>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                 <div>
                   <div style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary);">Resident Calm Reassurance Mode</div>
                   <div style="font-size: 0.72rem; color: var(--accent-primary); font-weight: 700;">Eleanor's Bedside Display Interface</div>
@@ -2470,7 +2389,7 @@
           <div class="portal-access-card">
             <div>
               <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                <span style="font-size: 1.5rem;">🛡️</span>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 <div>
                   <div style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary);">Family Guardian Admin Portal</div>
                   <div style="font-size: 0.72rem; color: var(--accent-secondary); font-weight: 700;">Guardian Configuration (/admin)</div>
@@ -2490,7 +2409,7 @@
           <div class="portal-access-card">
             <div>
               <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                <span style="font-size: 1.5rem;">👥</span>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 <div>
                   <div style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary);">Role-Based Perspective Switcher</div>
                   <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">Simulate Access Perspectives</div>
@@ -2501,13 +2420,13 @@
               </p>
               <div style="display: flex; flex-direction: column; gap: 6px;">
                 <button class="btn-luxury-secondary" style="font-size: 0.76rem; justify-content: flex-start;" onclick="switchUserRole('David Vance (Son)', 'Primary Guardian')">
-                  👤 David Vance &bull; Primary Guardian
+                  David Vance &bull; Primary Guardian
                 </button>
                 <button class="btn-luxury-secondary" style="font-size: 0.76rem; justify-content: flex-start;" onclick="switchUserRole('Dr. Sarah Jenkins', 'Geriatrician')">
-                  👩‍⚕️ Dr. Sarah Jenkins &bull; Physician
+                  Dr. Sarah Jenkins &bull; Physician
                 </button>
                 <button class="btn-luxury-secondary" style="font-size: 0.76rem; justify-content: flex-start;" onclick="switchUserRole('Medic-14 Unit', 'EMS First Responder')">
-                  🚑 Boston EMS Medic-14 &bull; First Responder
+                  Boston EMS Medic-14 &bull; First Responder
                 </button>
               </div>
             </div>
@@ -2565,7 +2484,7 @@
           </div>
 
           <button class="btn-live-secondary" id="btnSaveLiveProfile" onclick="saveLiveResidentProfile()" style="height: 38px; align-self: flex-end; padding: 0 14px;">
-            <span data-i18n="saveLiveProfileBtn">💾 Save Live Profile</span>
+            <span data-i18n="saveLiveProfileBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ui-icon" style="margin-right:4px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Save Live Profile</span>
           </button>
         </div>
 
@@ -2619,7 +2538,7 @@
             </div>
 
             <div class="live-viewport-placeholder" id="liveCamPlaceholder">
-              <div class="placeholder-icon">📹</div>
+              <div class="placeholder-icon"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.6"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
               <div class="placeholder-title" data-i18n="cameraInactiveTitle">Live Camera Inactive</div>
               <div class="placeholder-sub" data-i18n="cameraInactiveSub">Click "Start Live Camera" to feed real-time video into the custom-trained YOLOv8 fall detector.</div>
             </div>
@@ -2858,7 +2777,7 @@
           <!-- In-Map Live Telemetry Bar Overlay -->
           <div class="map-hud-overlay-top">
             <div class="hud-marker-chip resident-chip" id="hudResidentPill">
-              <span class="hud-icon">🔵</span>
+              <span class="hud-icon" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#38bdf8;box-shadow:0 0 8px #38bdf8;"></span>
               <div class="hud-info">
                 <strong id="hudResidentName">Live Resident</strong>
                 <span id="hudResidentStatus" class="hud-sub safe">Normal Movement &bull; Living Room</span>
@@ -2866,7 +2785,7 @@
             </div>
 
             <div class="hud-marker-chip caretaker-chip" id="hudCaretakerPill">
-              <span class="hud-icon">🟡</span>
+              <span class="hud-icon" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#fbbf24;box-shadow:0 0 8px #fbbf24;"></span>
               <div class="hud-info">
                 <strong id="hudCaretakerName">Caretaker: David Vance</strong>
                 <span id="hudCaretakerDistance" class="hud-sub">1.2 km away &bull; 3.5m ETA</span>
@@ -2874,7 +2793,7 @@
             </div>
 
             <div class="hud-marker-chip ems-chip" id="hudEmsPill">
-              <span class="hud-icon">🚑</span>
+              <span class="hud-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></span>
               <div class="hud-info">
                 <strong id="hudEmsName">Nearest EMS: Medic-14</strong>
                 <span id="hudEmsEta" class="hud-sub">0.6 km &bull; 1.5m Driving ETA</span>
@@ -3015,7 +2934,7 @@
   <!-- Resident Calm Reassurance Mode Modal -->
   <div class="modal-overlay" id="residentCalmModal" style="display: none;">
     <div class="modal-content" style="max-width: 650px; text-align: center; padding: 36px 24px; background: #FAF9F6; color: #0F1E36; border: 2px solid #0D9488; border-radius: 20px;">
-      <div style="font-size: 3rem; margin-bottom: 12px;" aria-hidden="true">🌿</div>
+      <div style="margin-bottom: 12px; color: var(--accent-primary);" aria-hidden="true"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
       <div style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #0D9488; margin-bottom: 8px;">
         NIRA Ambient Living Companion
       </div>
@@ -3031,7 +2950,7 @@
           ✓ I'm Feeling Good
         </button>
         <button class="btn-luxury-secondary" style="font-size: 1rem; padding: 12px 24px; border-radius: 9999px; border-color: #D97706; color: #D97706;" onclick="playSonVoiceMemo();">
-          📞 Speak to David
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ui-icon" style="margin-right:6px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Speak to David
         </button>
         <button class="btn-luxury-secondary" style="font-size: 1rem; padding: 12px 24px; border-radius: 9999px; border-color: #94A3B8; color: #475569;" onclick="closeResidentCalmMode()">
           Close Calm Display

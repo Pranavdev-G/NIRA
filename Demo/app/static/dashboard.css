@@ -7591,3 +7591,286 @@ a:hover {
   }
 }
 
+
+
+/* ==========================================================================
+   PROPORTIONAL CONSISTENT UI LAYOUT SYSTEM (APPLE HEALTH / TESLA COCKPIT)
+   ========================================================================== */
+
+/* Proportional Dual-Column Hero Telemetry Deck */
+.guardian-telemetry-grid {
+  display: grid;
+  grid-template-columns: 1.14fr 0.86fr;
+  gap: 20px;
+  align-items: stretch;
+  margin-bottom: 22px;
+}
+
+@media (max-width: 1080px) {
+  .guardian-telemetry-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+
+/* Proportional Guardian Hero Card inside Grid */
+.guardian-telemetry-grid .guardian-hero-card {
+  margin-bottom: 0;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 380px;
+}
+
+.guardian-telemetry-grid .guardian-hero-top {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 20px;
+  align-items: center;
+}
+
+@media (max-width: 600px) {
+  .guardian-telemetry-grid .guardian-hero-top {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+}
+
+.guardian-telemetry-grid .guardian-visual-wrap {
+  width: 150px;
+  height: 150px;
+}
+
+.guardian-telemetry-grid .guardian-headline {
+  font-size: 1.28rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.guardian-telemetry-grid .guardian-subtext {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.guardian-telemetry-grid .guardian-meta-strip {
+  gap: 12px;
+  font-size: 0.74rem;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.guardian-telemetry-grid .user-hero-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.guardian-telemetry-grid .user-hero-actions .btn-luxury-primary,
+.guardian-telemetry-grid .user-hero-actions .btn-luxury-secondary {
+  padding: 8px 14px;
+  font-size: 0.78rem;
+}
+
+/* Proportional Risk Gauge Card inside Grid */
+.guardian-telemetry-grid .risk-gauge-card {
+  margin-bottom: 0;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 380px;
+}
+
+.guardian-telemetry-grid .risk-gauge-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.guardian-telemetry-grid .risk-gauge-visual {
+  width: 160px;
+  flex-shrink: 0;
+}
+
+.guardian-telemetry-grid .risk-gauge-svg {
+  width: 160px;
+  height: 100px;
+}
+
+.guardian-telemetry-grid .risk-gauge-score-display {
+  bottom: 6px;
+}
+
+.guardian-telemetry-grid .risk-gauge-numeric {
+  font-size: 1.7rem;
+}
+
+.guardian-telemetry-grid .risk-gauge-tier-label {
+  font-size: 0.72rem;
+}
+
+.guardian-telemetry-grid .risk-gauge-legend {
+  margin-top: 6px;
+  gap: 6px;
+  font-size: 0.65rem;
+}
+
+.guardian-telemetry-grid .risk-gauge-headline-wrap {
+  flex: 1;
+}
+
+.guardian-telemetry-grid .risk-gauge-title {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.35;
+  margin-bottom: 4px;
+}
+
+.guardian-telemetry-grid .risk-gauge-narrative {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.guardian-telemetry-grid .risk-gauge-corroboration-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.guardian-telemetry-grid .risk-gauge-corroboration-grid .packet-data-box {
+  padding: 7px 10px;
+  font-size: 0.72rem;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.guardian-telemetry-grid .risk-gauge-disclaimer {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Streamlined Reassurance Alert Ribbon */
+.hero-ribbon {
+  padding: 12px 18px !important;
+  margin-bottom: 20px !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.hero-ribbon .ribbon-text .title {
+  font-size: 0.94rem !important;
+  font-weight: 800 !important;
+}
+
+.hero-ribbon .ribbon-text .sub {
+  font-size: 0.78rem !important;
+  margin-top: 2px !important;
+}
+
+/* Refined Briefing HUD Cards */
+.briefing-hud-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+@media (max-width: 1200px) {
+  .briefing-hud-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .briefing-hud-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .briefing-hud-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hud-card {
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-elevated);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.hud-card-q {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-card-ans {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+.hud-card-sub {
+  font-size: 0.70rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Subtle Accent Borders for HUD cards */
+.hud-card-red { border-left: 3px solid var(--status-critical); }
+.hud-card-blue { border-left: 3px solid var(--accent-secondary); }
+.hud-card-cyan { border-left: 3px solid var(--accent-primary); }
+.hud-card-amber { border-left: 3px solid var(--status-warning); }
+.hud-card-purple { border-left: 3px solid #c084fc; }
+.hud-card-green { border-left: 3px solid #34d399; }
+
+/* Refined Caregiver Avatar with SVG */
+.caregiver-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--surface-higher);
+  border: 1.5px solid var(--accent-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+/* Standardized Icon Placement */
+.ui-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
