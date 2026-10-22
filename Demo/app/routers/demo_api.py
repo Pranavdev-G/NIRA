@@ -83,7 +83,14 @@ async def get_system_reference():
 def _run_scenario_background(scenario_name: str):
     """Executes a scenario in the background using the demo package orchestrator."""
     try:
-        from demo.scenario_simulator import ScenarioSimulator
+        try:
+            from Demo.scenario_simulator import ScenarioSimulator
+        except ImportError:
+            try:
+                from demo.scenario_simulator import ScenarioSimulator
+            except ImportError:
+                from scenario_simulator import ScenarioSimulator
+
         sim = ScenarioSimulator(base_url="http://localhost:8000", resident_id="user_eleanor_vance", step_delay_sec=0.3)
         if scenario_name == "normal_day":
             sim.run_normal_day(slot_delay_sec=0.2)

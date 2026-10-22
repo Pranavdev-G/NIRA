@@ -33,17 +33,31 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 
 try:
-    from demo.wearable_simulator import WearableSimulator
-    from demo.environment_simulator import EnvironmentSimulator
-    from demo.radar_simulator import RadarSimulator
-    from demo.vision_simulator import VisionSimulator
-    from demo.voice_simulator import VoiceSimulator
+    from Demo.wearable_simulator import WearableSimulator
+    from Demo.environment_simulator import EnvironmentSimulator
+    from Demo.radar_simulator import RadarSimulator
+    from Demo.vision_simulator import VisionSimulator
+    from Demo.voice_simulator import VoiceSimulator
 except ImportError:
-    from wearable_simulator import WearableSimulator
-    from environment_simulator import EnvironmentSimulator
-    from radar_simulator import RadarSimulator
-    from vision_simulator import VisionSimulator
-    from voice_simulator import VoiceSimulator
+    try:
+        from .wearable_simulator import WearableSimulator
+        from .environment_simulator import EnvironmentSimulator
+        from .radar_simulator import RadarSimulator
+        from .vision_simulator import VisionSimulator
+        from .voice_simulator import VoiceSimulator
+    except ImportError:
+        try:
+            from demo.wearable_simulator import WearableSimulator
+            from demo.environment_simulator import EnvironmentSimulator
+            from demo.radar_simulator import RadarSimulator
+            from demo.vision_simulator import VisionSimulator
+            from demo.voice_simulator import VoiceSimulator
+        except ImportError:
+            from wearable_simulator import WearableSimulator
+            from environment_simulator import EnvironmentSimulator
+            from radar_simulator import RadarSimulator
+            from vision_simulator import VisionSimulator
+            from voice_simulator import VoiceSimulator
 
 # Ensure UTF-8 output on Windows consoles
 if hasattr(sys.stdout, "reconfigure"):
