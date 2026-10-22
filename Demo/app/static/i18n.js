@@ -70,11 +70,11 @@ const TRANSLATIONS = {
     zoneKitchen: "Kitchen",
 
     // Live Camera Card
-    liveCameraTitle: "1. Live Camera — Trained Fall & Unresponsiveness AI",
+    liveCameraTitle: "Optical Fall & Pose Kinematics",
     startCameraBtn: "Start Live Camera",
     stopCameraBtn: "Stop Camera",
-    cameraInactiveTitle: "Live Camera Inactive",
-    cameraInactiveSub: "Click \"Start Live Camera\" to feed real-time video into the custom-trained YOLOv8 fall detector.",
+    cameraInactiveTitle: "Camera Inactive",
+    cameraInactiveSub: "Start camera stream to activate optical fall detection and pose tracking.",
     safetyStatusLabel: "Safety Status",
     detectedActionLabel: "Detected Action",
     unresponsiveTimerLabel: "Unresponsiveness Timer",
@@ -84,12 +84,12 @@ const TRANSLATIONS = {
     unresponsivenessState: "🚨 UNRESPONSIVENESS",
 
     // Live Voice AI
-    liveVoiceTitle: "2. Live Voice AI & Conversational Hub",
-    liveVoiceHeader: "LIVE SPEECH RECOGNITION (WEB SPEECH API):",
-    liveVoiceInstructions: "Click \"Start Live Mic\" and speak into your microphone. Say \"I'm okay\" or \"Help me, I fell!\" to trigger state transitions in real time.",
+    liveVoiceTitle: "Acoustic Distress & Voice Verification",
+    liveVoiceHeader: "SPEECH VERIFICATION CHANNEL:",
+    liveVoiceInstructions: "Ambient acoustic listener standby. Click \"Start Live Mic\" and speak into microphone. Verbal responses like \"I'm okay\" or \"Help me, I fell!\" trigger real-time verification.",
     startMicBtn: "Start Live Mic",
     stopMicBtn: "Stop Mic",
-    speakPromptBtn: "Speak Alexa Prompt",
+    speakPromptBtn: "Test Voice Verification",
     acousticStateLabel: "Acoustic State",
     detectedIntentLabel: "Detected Intent",
     confidenceLabel: "Confidence",
@@ -98,15 +98,15 @@ const TRANSLATIONS = {
     micListeningStatus: "LISTENING...",
 
     // Live Events & Risk CAD
-    liveEventStreamTitle: "Live Event Stream (SSE Transport: /sse)",
+    liveEventStreamTitle: "Live Event Stream",
     awaitingLiveEvents: "Awaiting real-time events from live camera and microphone...",
-    liveRiskCadTitle: "Live Risk & 911 Emergency Packet (EPK)",
-    copyEpkBtn: "📋 Copy EPK JSON",
+    liveRiskCadTitle: "Emergency Triage & 911 CAD Dispatch",
+    copyEpkBtn: "Copy JSON",
 
     // Live Geospatial Radar Map
-    liveMapRadarTitle: "3. Live Geospatial GIS & Emergency Dispatch Radar",
-    detectGpsBtn: "Detect My GPS Location",
-    quickPresetsLabel: "Quick City Hubs:",
+    liveMapRadarTitle: "Geospatial GIS & Emergency Dispatch Radar",
+    detectGpsBtn: "Detect My GPS",
+    quickPresetsLabel: "Hubs:",
     mapLocateBtn: "Locate",
     emergencyMatrixTitle: "Nearby Emergency Responders & Healthcare Facilities",
 

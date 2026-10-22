@@ -3161,6 +3161,11 @@ function renderLiveModeConsole(state) {
       riskPill.textContent = `${activeLiveInc.risk} (${Math.round(activeLiveInc.confidence * 100)}%)`;
       riskPill.className = `status-pill ${activeLiveInc.risk === "CRITICAL" ? "critical" : "warning"}`;
     }
+    const triageStatusEl = document.getElementById("liveTriagePriorityText");
+    if (triageStatusEl) {
+      triageStatusEl.textContent = activeLiveInc.risk === "CRITICAL" ? "PRIORITY 1 - IMMEDIATE EMS DISPATCH" : "PRIORITY 2 - URGENT CARE";
+      triageStatusEl.className = `triage-status-pill ${activeLiveInc.risk === "CRITICAL" ? "critical" : "warning"}`;
+    }
     if (epkId) epkId.textContent = activeLiveInc.id;
     if (epkView) {
       const epkObj = {
@@ -3191,6 +3196,11 @@ function renderLiveModeConsole(state) {
     if (riskPill) {
       riskPill.textContent = (typeof t === "function" ? t("standbySafe") : "STANDBY / SAFE");
       riskPill.className = "status-pill connected";
+    }
+    const triageStatusEl = document.getElementById("liveTriagePriorityText");
+    if (triageStatusEl) {
+      triageStatusEl.textContent = "ROUTINE MONITORING";
+      triageStatusEl.className = "triage-status-pill safe";
     }
     if (epkId) epkId.textContent = "STANDBY";
     if (epkView) {
@@ -3593,10 +3603,36 @@ async function saveLiveResidentProfile() {
     if (res.ok) {
       showToast(`💾 Live Profile Saved: <strong>${name} (${age})</strong>`);
       updateHeaderResidentCapsule(name, age);
+      syncLiveResidentDisplay();
     }
   } catch (err) {
     console.warn("Error saving profile:", err);
   }
+}
+
+function syncLiveResidentDisplay() {
+  const name = (document.getElementById("liveResidentName") || {}).value || "Live Resident";
+  const age = (document.getElementById("liveResidentAge") || {}).value || "75";
+  const room = (document.getElementById("liveRoomSelect") || {}).value || "living_room";
+  const phone = (document.getElementById("liveCaregiverPhone") || {}).value || "+1 (555) 019-2831";
+
+  const dName = document.getElementById("liveResidentDisplayName");
+  const dAge = document.getElementById("liveResidentDisplayAge");
+  const dZone = document.getElementById("liveResidentDisplayZone");
+  const dPhone = document.getElementById("liveResidentDisplayPhone");
+  if (dName) dName.textContent = name;
+  if (dAge) dAge.textContent = `${age} yrs`;
+  if (dZone) dZone.textContent = typeof capitalize === "function" ? capitalize(room.replace(/_/g, ' ')) : room;
+  if (dPhone) dPhone.textContent = phone;
+}
+
+function toggleLiveConfigDrawer() {
+  const drawer = document.getElementById("liveProfileConfigDrawer");
+  const btn = document.getElementById("btnToggleLiveConfig");
+  if (!drawer) return;
+  const isHidden = drawer.style.display === "none" || !drawer.style.display;
+  drawer.style.display = isHidden ? "block" : "none";
+  if (btn) btn.classList.toggle("active", isHidden);
 }
 
 function updateHeaderResidentCapsule(name, age) {
@@ -3621,6 +3657,7 @@ async function loadLiveResidentProfile() {
       if (phoneInp && data.emergency_phone) phoneInp.value = data.emergency_phone;
 
       updateHeaderResidentCapsule(data.full_name || "Live Resident", data.age || 75);
+      syncLiveResidentDisplay();
     }
   } catch (err) {
     console.warn("Could not load live profile:", err);
@@ -4419,6 +4456,8 @@ window.switchMapCity = switchMapCity;
 window.searchMapLocation = searchMapLocation;
 window.focusMapRoute = focusMapRoute;
 window.updateMapResidentAlarmState = updateMapResidentAlarmState;
+window.toggleLiveConfigDrawer = toggleLiveConfigDrawer;
+window.syncLiveResidentDisplay = syncLiveResidentDisplay;
 
 
 // ---------------------------------------------------------------------------
@@ -4428,6 +4467,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initNiraTheme();
   initUserSession();
   loadIncidentReportsFromApi();
+  loadLiveResidentProfile();
 
   // Initialize View / Mode Router (Landing Gateway vs Direct Workspace View)
   const hash = (window.location.hash || "").replace("#", "").toLowerCase();

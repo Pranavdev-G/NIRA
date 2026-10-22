@@ -2443,63 +2443,99 @@
     <!-- ======================================================================
          SECTION 2: LIVE MODE (Real-World Live Telemetry & Device Ingestion)
          ====================================================================== -->
+    <!-- ======================================================================
+         SECTION 2: LIVE MODE (Real-World Live Telemetry & Device Ingestion)
+         ====================================================================== -->
     <div id="sectionLiveMode" class="system-mode-container" style="display: none;" role="region" aria-label="Live Mode: Real-Time Ingestion Console">
 
-      <!-- Live Monitoring Session Bar -->
+      <!-- Live Monitoring Session Bar & Resident Cockpit -->
       <section class="live-session-toolbar" role="region" aria-label="Live Operational Setup">
-        <div class="live-status-group">
-          <div class="live-status-chip active">
-            <span class="live-pulse-dot"></span>
-            <span id="liveArmStatusText" data-i18n="liveMonitoringArmed">LIVE MONITORING ARMED</span>
+        <div class="live-toolbar-primary">
+          <!-- Status & Arming Control -->
+          <div class="live-status-group">
+            <div class="live-status-chip active">
+              <span class="live-pulse-dot"></span>
+              <span id="liveArmStatusText" data-i18n="liveMonitoringArmed">LIVE MONITORING ARMED</span>
+            </div>
+            <button class="btn-live-toggle" id="btnToggleArm" onclick="toggleLiveArming()">
+              <span id="btnToggleArmText" data-i18n="pauseProtection">Pause Protection</span>
+            </button>
           </div>
-          <button class="btn-live-toggle" id="btnToggleArm" onclick="toggleLiveArming()">
-            <span id="btnToggleArmText" data-i18n="pauseProtection">Pause Protection</span>
-          </button>
+
+          <!-- Active Resident Capsule & Configuration Toggle -->
+          <div class="live-resident-capsule">
+            <div class="capsule-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="capsule-text">
+              <span class="capsule-resident"><strong id="liveResidentDisplayName">Live Resident</strong> (<span id="liveResidentDisplayAge">75 yrs</span>)</span>
+              <span class="capsule-sub"><span id="liveResidentDisplayZone">Living Room</span> &bull; <span id="liveResidentDisplayPhone">+1 (555) 019-2831</span></span>
+            </div>
+            <button type="button" class="btn-edit-resident-config" id="btnToggleLiveConfig" onclick="toggleLiveConfigDrawer()" title="Configure resident profile and monitored zone">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              <span>Setup</span>
+            </button>
+          </div>
+
+          <!-- Live Precision Telemetry Metrics -->
+          <div class="live-telemetry-metrics">
+            <div class="metric-chip">
+              <span class="label" data-i18n="slaLatencyLabel">SLA Latency</span>
+              <span class="value" id="liveSlaLatency">18ms</span>
+            </div>
+            <div class="metric-chip">
+              <span class="label" data-i18n="opticalModelLabel">AI Engine</span>
+              <span class="value" id="liveModelNameBadge" style="color: var(--accent-cyan); font-size: 0.82rem;">YOLOv8 Pose</span>
+            </div>
+            <div class="metric-chip">
+              <span class="label" data-i18n="liveSafetyStateLabel">Safety State</span>
+              <span class="value safe" id="liveRiskBadge" data-i18n="normalMovementState">NORMAL MOVEMENT</span>
+            </div>
+          </div>
         </div>
 
-        <div class="live-config-strip">
-          <div class="live-field-wrap">
-            <label for="liveResidentName" data-i18n="realResidentName">Real Resident Name:</label>
-            <input type="text" id="liveResidentName" class="live-text-input" value="Live Resident" data-i18n-placeholder="residentNamePlaceholder" placeholder="Resident Name" onchange="saveLiveResidentProfile()">
-          </div>
+        <!-- Collapsible Resident Configuration Drawer -->
+        <div class="live-config-drawer" id="liveProfileConfigDrawer" style="display: none;">
+          <div class="drawer-inner">
+            <div class="drawer-header">
+              <div class="drawer-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Monitored Profile &amp; Emergency Escalation Contacts</span>
+              </div>
+              <span class="drawer-sub">Configure resident telemetry and real-time CAD emergency contact numbers</span>
+            </div>
 
-          <div class="live-field-wrap">
-            <label for="liveResidentAge" data-i18n="residentAge">Resident Age:</label>
-            <input type="number" id="liveResidentAge" class="live-text-input" value="75" min="18" max="120" style="width: 80px;" onchange="saveLiveResidentProfile()">
-          </div>
+            <div class="drawer-fields">
+              <div class="live-field-wrap">
+                <label for="liveResidentName" data-i18n="realResidentName">Resident Full Name:</label>
+                <input type="text" id="liveResidentName" class="live-text-input" value="Live Resident" data-i18n-placeholder="residentNamePlaceholder" placeholder="Resident Name" oninput="syncLiveResidentDisplay()" onchange="saveLiveResidentProfile()">
+              </div>
 
-          <div class="live-field-wrap">
-            <label for="liveRoomSelect" data-i18n="monitoredZone">Monitored Zone:</label>
-            <select id="liveRoomSelect" class="live-select-input" onchange="saveLiveResidentProfile()">
-              <option value="living_room" selected data-i18n="zoneLivingRoom">Living Room</option>
-              <option value="bathroom" data-i18n="zoneBathroom">Bathroom (High Hazard Tile)</option>
-              <option value="bedroom" data-i18n="zoneBedroom">Bedroom</option>
-              <option value="kitchen" data-i18n="zoneKitchen">Kitchen</option>
-            </select>
-          </div>
+              <div class="live-field-wrap">
+                <label for="liveResidentAge" data-i18n="residentAge">Resident Age:</label>
+                <input type="number" id="liveResidentAge" class="live-text-input" value="75" min="18" max="120" style="width: 80px;" oninput="syncLiveResidentDisplay()" onchange="saveLiveResidentProfile()">
+              </div>
 
-          <div class="live-field-wrap">
-            <label for="liveCaregiverPhone" data-i18n="guardianPhone">Guardian SMS (TextBee):</label>
-            <input type="text" id="liveCaregiverPhone" class="live-text-input" value="+1 (555) 019-2831" placeholder="Guardian Phone" onchange="saveLiveResidentProfile()">
-          </div>
+              <div class="live-field-wrap">
+                <label for="liveRoomSelect" data-i18n="monitoredZone">Monitored Zone:</label>
+                <select id="liveRoomSelect" class="live-select-input" onchange="syncLiveResidentDisplay(); saveLiveResidentProfile();">
+                  <option value="living_room" selected data-i18n="zoneLivingRoom">Living Room</option>
+                  <option value="bathroom" data-i18n="zoneBathroom">Bathroom (High Hazard Tile)</option>
+                  <option value="bedroom" data-i18n="zoneBedroom">Bedroom</option>
+                  <option value="kitchen" data-i18n="zoneKitchen">Kitchen</option>
+                </select>
+              </div>
 
-          <button class="btn-live-secondary" id="btnSaveLiveProfile" onclick="saveLiveResidentProfile()" style="height: 38px; align-self: flex-end; padding: 0 14px;">
-            <span data-i18n="saveLiveProfileBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ui-icon" style="margin-right:4px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Save Live Profile</span>
-          </button>
-        </div>
+              <div class="live-field-wrap">
+                <label for="liveCaregiverPhone" data-i18n="guardianPhone">Guardian SMS (TextBee):</label>
+                <input type="text" id="liveCaregiverPhone" class="live-text-input" value="+1 (555) 019-2831" placeholder="Guardian Phone" oninput="syncLiveResidentDisplay()" onchange="saveLiveResidentProfile()">
+              </div>
 
-        <div class="live-telemetry-metrics">
-          <div class="metric-chip">
-            <span class="label" data-i18n="slaLatencyLabel">SLA Latency</span>
-            <span class="value" id="liveSlaLatency">18ms</span>
-          </div>
-          <div class="metric-chip">
-            <span class="label" data-i18n="opticalModelLabel">Optical Model</span>
-            <span class="value" id="liveModelNameBadge" style="color: var(--accent-cyan); font-size: 0.85rem;">YOLOv8 Trained</span>
-          </div>
-          <div class="metric-chip">
-            <span class="label" data-i18n="liveSafetyStateLabel">Live Safety State</span>
-            <span class="value safe" id="liveRiskBadge" data-i18n="normalMovementState">NORMAL MOVEMENT</span>
+              <button class="btn-live-secondary btn-drawer-save" id="btnSaveLiveProfile" onclick="saveLiveResidentProfile(); toggleLiveConfigDrawer();">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                <span data-i18n="saveLiveProfileBtn">Save Profile</span>
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -2514,7 +2550,7 @@
                 <path d="M23 7l-7 5 7 5V7z"/>
                 <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
               </svg>
-              <span data-i18n="liveCameraTitle">1. Live Camera — Trained Fall &amp; Unresponsiveness AI</span>
+              <span data-i18n="liveCameraTitle">Optical Fall &amp; Pose Kinematics</span>
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">
               <span class="status-pill connected" id="liveStateBadge" style="font-weight: 800;" data-i18n="normalMovementState">NORMAL MOVEMENT</span>
@@ -2538,21 +2574,21 @@
             </div>
 
             <div class="live-viewport-placeholder" id="liveCamPlaceholder">
-              <div class="placeholder-icon"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.6"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
-              <div class="placeholder-title" data-i18n="cameraInactiveTitle">Live Camera Inactive</div>
-              <div class="placeholder-sub" data-i18n="cameraInactiveSub">Click "Start Live Camera" to feed real-time video into the custom-trained YOLOv8 fall detector.</div>
+              <div class="placeholder-icon"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.6"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
+              <div class="placeholder-title" data-i18n="cameraInactiveTitle">Camera Inactive</div>
+              <div class="placeholder-sub" data-i18n="cameraInactiveSub">Start camera stream to activate optical fall detection and pose tracking.</div>
             </div>
           </div>
 
           <div class="live-card-actions">
             <button class="btn-live-primary" id="btnStartLiveCam" onclick="startLiveWebcam()">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="5 3 19 12 5 21 5 3"/>
               </svg>
               <span data-i18n="startCameraBtn">Start Live Camera</span>
             </button>
             <button class="btn-live-secondary" id="btnStopLiveCam" onclick="stopLiveWebcam()" style="display: none;">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="6" y="6" width="12" height="12"/>
               </svg>
               <span data-i18n="stopCameraBtn">Stop Camera</span>
@@ -2589,18 +2625,18 @@
                 <line x1="12" y1="19" x2="12" y2="23"/>
                 <line x1="8" y1="23" x2="16" y2="23"/>
               </svg>
-              <span data-i18n="liveVoiceTitle">2. Live Voice AI &amp; Conversational Hub</span>
+              <span data-i18n="liveVoiceTitle">Acoustic Distress &amp; Voice Verification</span>
             </div>
             <span class="status-pill offline" id="liveMicPill" data-i18n="micIdleStatus">MIC IDLE</span>
           </div>
 
           <div class="live-transcript-wrap">
             <div class="transcript-header-bar">
-              <span class="label" data-i18n="liveVoiceHeader">LIVE SPEECH RECOGNITION (WEB SPEECH API):</span>
+              <span class="label" data-i18n="liveVoiceHeader">SPEECH VERIFICATION CHANNEL:</span>
               <span class="phase-tag" id="liveVoicePhaseTag">IDLE</span>
             </div>
             <div class="live-transcript-text" id="liveVoiceTranscriptText" data-i18n="liveVoiceInstructions">
-              Click "Start Live Mic" and speak into your microphone. Say <em>"I'm okay"</em> or <em>"Help me, I fell!"</em> to trigger state transitions in real time.
+              Ambient acoustic listener standby. Click "Start Live Mic" and speak into microphone. Verbal responses like <em>"I'm okay"</em> or <em>"Help me, I fell!"</em> trigger real-time verification.
             </div>
             <div class="live-soundwave-row" id="liveSoundwaveRow">
               <div class="live-bar"></div>
@@ -2616,24 +2652,24 @@
 
           <div class="live-card-actions">
             <button class="btn-live-primary" id="btnStartLiveMic" onclick="startLiveVoiceListening()">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
                 <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
               </svg>
               <span data-i18n="startMicBtn">Start Live Mic</span>
             </button>
             <button class="btn-live-secondary" id="btnStopLiveMic" onclick="stopLiveVoiceListening()" style="display: none;">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="6" y="6" width="12" height="12"/>
               </svg>
               <span data-i18n="stopMicBtn">Stop Mic</span>
             </button>
             <button class="btn-live-secondary" onclick="speakLivePrompt()">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
                 <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
               </svg>
-              <span data-i18n="speakPromptBtn">Speak Alexa Prompt</span>
+              <span data-i18n="speakPromptBtn">Test Voice Verification</span>
             </button>
           </div>
 
@@ -2668,7 +2704,7 @@
                 <line x1="3" y1="12" x2="3.01" y2="12"/>
                 <line x1="3" y1="18" x2="3.01" y2="18"/>
               </svg>
-              <span data-i18n="liveEventStreamTitle">Live Event Stream (SSE Transport: /sse)</span>
+              <span data-i18n="liveEventStreamTitle">Live Event Stream</span>
             </div>
             <span class="stream-counter" id="liveStreamCounter">0 Received</span>
           </div>
@@ -2685,35 +2721,66 @@
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
               </svg>
-              <span data-i18n="liveRiskCadTitle">Live Risk &amp; 911 Emergency Packet (EPK)</span>
+              <span data-i18n="liveRiskCadTitle">Emergency Triage &amp; 911 CAD Dispatch</span>
             </div>
             <span class="status-pill connected" id="liveRiskTriagePill" data-i18n="standbySafe">STANDBY / SAFE</span>
           </div>
 
           <div class="epk-preview-box">
             <div class="epk-header-row">
-              <span>INCIDENT #<span id="liveEpkId">STANDBY</span></span>
-              <button class="btn-copy-epk" onclick="copyLiveEpkJson()" data-i18n="copyEpkBtn">📋 Copy EPK JSON</button>
+              <div class="epk-incident-tag">
+                <span class="epk-hash">INCIDENT #</span>
+                <strong id="liveEpkId">STANDBY</strong>
+              </div>
+              <button class="btn-copy-epk" onclick="copyLiveEpkJson()" data-i18n="copyEpkBtn">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <span>Copy JSON</span>
+              </button>
             </div>
-            <pre class="epk-code-view" id="liveEpkJsonView">Live optical fall detector and voice listener armed. EPK will generate upon verified clinical event.</pre>
+
+            <!-- Polished Clinical Summary Cards -->
+            <div class="epk-clinical-summary-grid">
+              <div class="triage-tile">
+                <span class="triage-tile-label">Triage Priority</span>
+                <span id="liveTriagePriorityText" class="triage-status-pill safe">ROUTINE MONITORING</span>
+              </div>
+              <div class="triage-tile">
+                <span class="triage-tile-label">First Responder Access</span>
+                <span class="triage-pin-val"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> PIN: 8492 (Auto-Unlocks)</span>
+              </div>
+              <div class="triage-tile">
+                <span class="triage-tile-label">CAD Dispatch Protocol</span>
+                <span class="triage-dispatch-val">911 CAD Packet Ready</span>
+              </div>
+            </div>
+
+            <!-- Expandable Raw EPK JSON Payload -->
+            <details class="epk-raw-collapsible">
+              <summary class="epk-raw-summary">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                <span>Inspect Raw 911 CAD JSON Payload</span>
+              </summary>
+              <pre class="epk-code-view" id="liveEpkJsonView">Live optical fall detector and voice listener armed. EPK will generate upon verified clinical event.</pre>
+            </details>
           </div>
         </section>
       </div>
 
-      <!-- 3. Dynamic Geospatial GIS & Emergency Dispatch Radar (Marks Resident, Caretaker, & Emergency Services) -->
+      <!-- Geospatial GIS & Emergency Dispatch Radar -->
       <section class="live-card-panel map-radar-panel" id="sectionLiveMapRadar" role="region" aria-label="Dynamic Geospatial Emergency Radar">
         <div class="live-card-header">
           <div class="title-wrap">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2">
               <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
               <line x1="8" y1="2" x2="8" y2="18"/>
               <line x1="16" y1="6" x2="16" y2="22"/>
             </svg>
-            <span data-i18n="liveMapRadarTitle">3. Live Geospatial GIS &amp; Emergency Dispatch Radar</span>
+            <span data-i18n="liveMapRadarTitle">Geospatial GIS &amp; Emergency Dispatch Radar</span>
           </div>
           <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <span class="vtl-confidence-tag" id="liveMapLocationBadge" style="background: rgba(56, 189, 248, 0.12); color: var(--accent-cyan); border-color: rgba(56, 189, 248, 0.3);">
-              📍 <span id="liveMapCurrentCity">Boston, MA</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span id="liveMapCurrentCity">Boston, MA</span>
             </span>
             <span class="status-pill connected" id="liveMapGpsPill">
               <span class="live-pulse-dot" style="background: #38bdf8;"></span>
@@ -2726,7 +2793,7 @@
         <div class="map-toolbar-strip">
           <div class="map-controls-left">
             <button class="btn-map-control btn-gps-detect" id="btnDetectGps" onclick="detectBrowserGps()" title="Use browser geolocation to mark your real living room">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                 <circle cx="12" cy="12" r="10"/>
                 <line x1="12" y1="2" x2="12" y2="6"/>
                 <line x1="12" y1="18" x2="12" y2="22"/>
@@ -2734,19 +2801,19 @@
                 <line x1="18" y1="12" x2="22" y2="12"/>
                 <circle cx="12" cy="12" r="3"/>
               </svg>
-              <span data-i18n="detectGpsBtn">Detect My GPS Location</span>
+              <span data-i18n="detectGpsBtn">Detect My GPS</span>
             </button>
 
             <div class="map-city-chips-group">
-              <span class="chips-label" data-i18n="quickPresetsLabel">Quick City Hubs:</span>
+              <span class="chips-label" data-i18n="quickPresetsLabel">Hubs:</span>
               <div class="city-chips-scroll" id="mapCityChips">
-                <button class="city-chip active" data-city="boston" onclick="switchMapCity('boston', this)">📍 Boston, MA</button>
-                <button class="city-chip" data-city="seattle" onclick="switchMapCity('seattle', this)">🌲 Seattle, WA</button>
-                <button class="city-chip" data-city="san_francisco" onclick="switchMapCity('san_francisco', this)">🌉 San Francisco, CA</button>
-                <button class="city-chip" data-city="new_york" onclick="switchMapCity('new_york', this)">🗽 New York, NY</button>
-                <button class="city-chip" data-city="london" onclick="switchMapCity('london', this)">🎡 London, UK</button>
-                <button class="city-chip" data-city="bengaluru" onclick="switchMapCity('bengaluru', this)">🇮🇳 Bengaluru, IN</button>
-                <button class="city-chip" data-city="tokyo" onclick="switchMapCity('tokyo', this)">🗼 Tokyo, JP</button>
+                <button class="city-chip active" data-city="boston" onclick="switchMapCity('boston', this)">Boston</button>
+                <button class="city-chip" data-city="seattle" onclick="switchMapCity('seattle', this)">Seattle</button>
+                <button class="city-chip" data-city="san_francisco" onclick="switchMapCity('san_francisco', this)">San Francisco</button>
+                <button class="city-chip" data-city="new_york" onclick="switchMapCity('new_york', this)">New York</button>
+                <button class="city-chip" data-city="london" onclick="switchMapCity('london', this)">London</button>
+                <button class="city-chip" data-city="bengaluru" onclick="switchMapCity('bengaluru', this)">Bengaluru</button>
+                <button class="city-chip" data-city="tokyo" onclick="switchMapCity('tokyo', this)">Tokyo</button>
               </div>
             </div>
           </div>
@@ -2754,7 +2821,7 @@
           <div class="map-search-bar">
             <input type="text" id="mapAddressSearchInput" class="map-search-input" placeholder="Search address, city, or zip code..." onkeydown="if(event.key==='Enter') searchMapLocation()">
             <button class="btn-map-search" onclick="searchMapLocation()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <circle cx="11" cy="11" r="8"/>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
@@ -2764,11 +2831,14 @@
 
           <!-- MapTiler Style Toggle (OpenStreetMap vs Dark) -->
           <div class="map-style-toggle-group" title="MapTiler Vector/Raster Tiles">
-            <button class="btn-map-style active" id="btnStyleOsm" onclick="setMapTilerStyle('openstreetmap', this)">🗺️ OpenStreetMap</button>
-            <button class="btn-map-style" id="btnStyleDark" onclick="setMapTilerStyle('dark', this)">🌙 Dark</button>
+            <button class="btn-map-style active" id="btnStyleOsm" onclick="setMapTilerStyle('openstreetmap', this)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px;"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>Street
+            </button>
+            <button class="btn-map-style" id="btnStyleDark" onclick="setMapTilerStyle('dark', this)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>Dark
+            </button>
           </div>
         </div>
-
 
         <!-- Interactive Map Layout (Leaflet Canvas + Telemetry HUD Overlays) -->
         <div class="map-viewport-wrapper">
@@ -2803,7 +2873,8 @@
 
           <!-- Map Interactive Hint Badge -->
           <div class="map-click-hint">
-            <span>🖱️ Click anywhere on map to reposition resident &amp; recalculate emergency services</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            <span>Click anywhere on map to reposition resident &amp; recalculate emergency services</span>
           </div>
         </div>
 
