@@ -10,9 +10,20 @@ Validates that:
 4. CSS styling and Leaflet integrations are correctly referenced.
 """
 
+import sys
+from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
-from app.main import app
+
+# Ensure Demo directory is on sys.path for both IDE language servers and pytest runners
+_DEMO_DIR = Path(__file__).resolve().parent.parent
+if str(_DEMO_DIR) not in sys.path:
+    sys.path.insert(0, str(_DEMO_DIR))
+
+try:
+    from app.main import app
+except ImportError:
+    from Demo.app.main import app
 
 client = TestClient(app)
 

@@ -3717,6 +3717,7 @@ a:hover {
   padding-left: 0.30em;
   background: linear-gradient(180deg, #FFFFFF 15%, #cbd5e1 55%, #64748b 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 0 40px rgba(56, 189, 248, 0.55));
   text-transform: uppercase;
