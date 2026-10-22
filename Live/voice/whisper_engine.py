@@ -18,18 +18,8 @@ from typing import Optional, Union, Dict, Any, Tuple
 import numpy as np
 import torch
 
-try:
-    from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
-    HAS_TRANSFORMERS = True
-except ImportError:
-    HAS_TRANSFORMERS = False
-
-try:
-    import whisper as openai_whisper
-    HAS_OPENAI_WHISPER = True
-except ImportError:
-    openai_whisper = None
-    HAS_OPENAI_WHISPER = False
+HAS_TRANSFORMERS = None
+HAS_OPENAI_WHISPER = None
 
 from .speech_to_text import SpeechToText
 from .models import TranscriptionResult
@@ -97,12 +87,22 @@ class WhisperModelManager:
 
     def load_model(self, force_reload: bool = False):
         """Loads Whisper large-v3-turbo into memory once."""
+        global HAS_TRANSFORMERS, HAS_OPENAI_WHISPER
+
         with self._load_lock:
             if self._is_loaded and not force_reload:
                 return
 
             t0 = time.perf_counter()
             logger.info(f"Loading Whisper model '{self.model_id}' on {self.device}...")
+
+            # Lazy import transformers
+            if HAS_TRANSFORMERS is None:
+                try:
+                    from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
+                    HAS_TRANSFORMERS = True
+                except ImportError:
+                    HAS_TRANSFORMERS = False
 
             # Strategy 1: Try Hugging Face Transformers pipeline
             if HAS_TRANSFORMERS:
@@ -136,6 +136,14 @@ class WhisperModelManager:
                     logger.warning(f"Transformers loading error ({e}). Attempting openai-whisper fallback...")
 
             # Strategy 2: Fallback to official openai-whisper library
+            if HAS_OPENAI_WHISPER is None:
+                try:
+                    import whisper as openai_whisper
+                    HAS_OPENAI_WHISPER = True
+                except ImportError:
+                    openai_whisper = None
+                    HAS_OPENAI_WHISPER = False
+
             if HAS_OPENAI_WHISPER:
                 try:
                     # Model name mapping: 'large-v3-turbo' or 'turbo'

@@ -13,6 +13,12 @@ import os
 import time
 import argparse
 
+# Print initial banner immediately before any module imports
+print("\n==================================================================", flush=True)
+print(" [NIRA] AEGIS AMBIENT CARE — LIVE VOICE INTERACTION SYSTEM", flush=True)
+print(" Amazon Developer Hackathon 2026", flush=True)
+print("==================================================================", flush=True)
+
 # Ensure parent path resolution
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 LIVE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
@@ -28,12 +34,6 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-from Live.voice.whisper_engine import WhisperSpeechToText, detect_optimal_hardware, DEFAULT_MODEL_ID
-from Live.voice.microphone import MicrophoneCapture
-from Live.voice.response_analyzer import ResponseAnalyzer
-from Live.voice.service import VoiceService
-from Live.voice.models import VoiceInteractionStatus
-
 
 def main():
     parser = argparse.ArgumentParser(description="NIRA Live Voice Interaction - Real Microphone Test")
@@ -45,49 +45,57 @@ def main():
     parser.add_argument("--device", type=int, default=None, help="Audio input device index")
     args = parser.parse_args()
 
-    print("\n==================================================================")
-    print(" [NIRA] AEGIS AMBIENT CARE — LIVE VOICE INTERACTION SYSTEM")
-    print(" Amazon Developer Hackathon 2026")
-    print("==================================================================")
-
+    # Fast path for device listing: Avoid loading heavy ML libraries if only querying hardware
     if args.list_devices:
+        from Live.voice.microphone import MicrophoneCapture
         devices = MicrophoneCapture.list_input_devices()
-        print("\nAvailable Audio Input Devices:")
+        print("\nAvailable Audio Input Devices:", flush=True)
         for d in devices:
             default_tag = " [DEFAULT]" if d["is_default"] else ""
-            print(f"  [{d['index']}] {d['name']} (channels: {d['channels']}, rate: {d['default_samplerate']}Hz){default_tag}")
+            print(f"  [{d['index']}] {d['name']} (channels: {d['channels']}, rate: {d['default_samplerate']}Hz){default_tag}", flush=True)
+        print("==================================================================\n", flush=True)
         return
 
-    # 1. Hardware Detection
+    # Step 1: Hardware detection
+    print("\n[1/4] Detecting hardware accelerators...", flush=True)
+    from Live.voice.whisper_engine import detect_optimal_hardware, DEFAULT_MODEL_ID
     device, dtype = detect_optimal_hardware()
-    print(f"\n[Hardware] Accelerator: {device.upper()} | Precision: {dtype}")
+    print(f"      • Hardware: {device.upper()} | Precision: {dtype}", flush=True)
 
-    # 2. Check Microphone
+    # Step 2: Check Microphone
+    print("[2/4] Checking audio input hardware...", flush=True)
+    from Live.voice.microphone import MicrophoneCapture
     mic_available = MicrophoneCapture.is_available()
     default_dev = MicrophoneCapture.get_default_device_info()
     dev_name = default_dev['name'] if default_dev else "None"
-    print(f"[Microphone] Status: {'ACTIVE' if mic_available else 'NOT DETECTED'} | Device: {dev_name}")
+    dev_idx = default_dev['index'] if default_dev else -1
+    print(f"      • Microphone Status : {'ACTIVE' if mic_available else 'NOT DETECTED'}", flush=True)
+    print(f"      • Selected Device   : [{dev_idx}] {dev_name}", flush=True)
 
     if not mic_available:
-        print("\n[ERROR] No active microphone detected on this system.")
-        print("Please connect a microphone or use an audio input device to run live speech recognition.")
+        print("\n[ERROR] No active microphone detected on this system.", flush=True)
+        print("Please connect a microphone or use an audio input device to run live speech recognition.", flush=True)
+        print("==================================================================\n", flush=True)
         return
 
-    # 3. Model Initialization (Singleton load)
-    print(f"[ASR Engine] Loading {DEFAULT_MODEL_ID} into memory...")
+    # Step 3: Model Initialization
+    print(f"[3/4] Initializing {DEFAULT_MODEL_ID} from local cache...", flush=True)
     t_load_start = time.perf_counter()
+    from Live.voice.whisper_engine import WhisperSpeechToText
     stt = WhisperSpeechToText(model_id=DEFAULT_MODEL_ID, auto_load=True)
     load_time = time.perf_counter() - t_load_start
-    print(f"[ASR Engine] Model ready in {load_time:.2f}s ({stt.manager.backend} backend)")
+    print(f"      • Model Ready in {load_time:.2f}s ({stt.manager.backend} backend)", flush=True)
 
-    # 4. Service Setup
+    # Step 4: Live Check-In Service
+    print("[4/4] Starting live check-in interaction...", flush=True)
+    from Live.voice.service import VoiceService
     voice_service = VoiceService(stt=stt)
 
-    # 5. Live Speech Interaction Turn
-    print("\n------------------------------------------------------------------")
-    print(f"NIRA: {args.question}")
-    print("------------------------------------------------------------------")
-    print("\nListening... (Please speak into your microphone now)")
+    print("\n------------------------------------------------------------------", flush=True)
+    print(f"NIRA: \"{args.question}\"", flush=True)
+    print("------------------------------------------------------------------", flush=True)
+    print("\n🎙️  LISTENING... (Please speak your answer into your microphone now)", flush=True)
+    print("   [Speak normally, e.g. 'I am okay' or 'I feel dizzy'. Recording stops automatically when you finish speaking]\n", flush=True)
 
     result = voice_service.run_check_in(
         elderly_id=args.elderly_id,
@@ -96,23 +104,24 @@ def main():
         silence_timeout_sec=args.silence_timeout
     )
 
-    print("\nTranscribing...")
+    print("🤖 Transcribing and analyzing speech response...\n", flush=True)
     time.sleep(0.1)
 
-    print("\n==================================================================")
-    print(f"Transcript:\n\"{result.transcript}\"")
-    print(f"\nStatus:\n{result.status.value}")
-    print(f"\nUrgency:\n{result.urgency.value}")
-    print(f"\nReason:\n{result.reason}")
-    print(f"\nAction:\n{result.action.value}")
-    print("------------------------------------------------------------------")
+    print("==================================================================", flush=True)
+    print(f"Transcript:\n\"{result.transcript}\"", flush=True)
+    print(f"\nStatus:\n{result.status.value}", flush=True)
+    print(f"\nUrgency:\n{result.urgency.value}", flush=True)
+    print(f"\nReason:\n{result.reason}", flush=True)
+    print(f"\nAction:\n{result.action.value}", flush=True)
+    print("------------------------------------------------------------------", flush=True)
     print(f"Metadata:")
-    print(f"  • Spoken Language : {result.language}")
-    print(f"  • Quality Metric  : {result.transcription_quality}")
-    print(f"  • Audio Duration  : {result.duration_sec:.2f}s")
-    print(f"  • Total Latency   : {result.processing_time_sec:.2f}s")
-    print(f"  • Interaction ID  : {result.interaction_id}")
-    print("==================================================================\n")
+    print(f"  • Spoken Language : {result.language}", flush=True)
+    print(f"  • Quality Metric  : {result.transcription_quality}", flush=True)
+    print(f"  • Audio Duration  : {result.duration_sec:.2f}s", flush=True)
+    print(f"  • Pipeline Latency: {result.processing_time_sec:.2f}s", flush=True)
+    print(f"  • Model Used      : {result.model}", flush=True)
+    print(f"  • Interaction ID  : {result.interaction_id}", flush=True)
+    print("==================================================================\n", flush=True)
 
 
 if __name__ == "__main__":
