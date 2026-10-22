@@ -480,12 +480,42 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // Auto-enter if hash is present (#demo, #demo/emergencyalert, or #live)
+    function selectLandingProfile(roleKey) {
+      try {
+        localStorage.setItem("nira_active_profile", roleKey);
+        if (typeof window.setUserProfile === "function") {
+          window.setUserProfile(roleKey, false);
+        }
+      } catch(e) {}
+
+      enterSystemMode("demo");
+
+      setTimeout(function() {
+        if (typeof window.setUserProfile === "function") {
+          window.setUserProfile(roleKey, true);
+        }
+      }, 80);
+    }
+    window.selectLandingProfile = selectLandingProfile;
+
+    // Auto-enter if hash is present (#demo, #demo/emergencyalert, #profile=senior, #profile=admin, #profile=ems, or #live)
     function checkInitialHashMode() {
       var raw = (window.location.hash || "").replace("#", "").toLowerCase();
       var parts = raw.split('/');
       var mode = parts[0];
       var subTab = parts[1];
+
+      if (raw.indexOf("profile=senior") !== -1 || raw === "senior") {
+        selectLandingProfile("senior_home");
+        return;
+      } else if (raw.indexOf("profile=admin") !== -1 || raw === "admin") {
+        selectLandingProfile("admin_son");
+        return;
+      } else if (raw.indexOf("profile=ems") !== -1 || raw === "ems" || raw.indexOf("emergencyalert") !== -1 || raw.indexOf("ambulance") !== -1) {
+        selectLandingProfile("ems");
+        return;
+      }
+
       if (mode === "demo" || mode === "live") {
         enterSystemMode(mode);
         if (mode === "demo" && subTab) {
@@ -562,7 +592,7 @@
 
         <div class="landing-profile-grid">
           <!-- Profile 1: David Vance (Son • Family Admin) -->
-          <a href="/admin" class="landing-profile-card profile-admin" id="cardProfileAdmin" aria-label="Select David Vance Family Admin Profile">
+          <div class="landing-profile-card profile-admin" id="cardProfileAdmin" onclick="selectLandingProfile('admin_son');" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLandingProfile('admin_son');}" tabindex="0" role="button" aria-label="Select David Vance Family Admin Profile">
             <div class="profile-card-top">
               <div class="landing-profile-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3);">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -577,13 +607,13 @@
               <div class="landing-profile-desc">Full Admin Console • Live Telemetry &amp; Door Overrides</div>
             </div>
             <div class="landing-profile-footer">
-              <span>Open Admin Console</span>
+              <span>Open Admin Dashboard</span>
               <span>&rarr;</span>
             </div>
-          </a>
+          </div>
 
           <!-- Profile 2: Eleanor & Family (Home View) -->
-          <div class="landing-profile-card profile-home" id="cardProfileHome" onclick="enterSystemMode('demo');" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();enterSystemMode('demo');}" tabindex="0" role="button" aria-label="Select Eleanor and Family Home View Profile">
+          <div class="landing-profile-card profile-home" id="cardProfileHome" onclick="selectLandingProfile('senior_home');" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLandingProfile('senior_home');}" tabindex="0" role="button" aria-label="Select Eleanor and Family Home View Profile">
             <div class="profile-card-top">
               <div class="landing-profile-icon" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -607,7 +637,7 @@
           </div>
 
           <!-- Profile 3: Medic 14 (Boston EMS First Responder) -->
-          <div class="landing-profile-card profile-ems" id="cardProfileEMS" onclick="enterSystemMode('demo'); window.location.hash='#demo/emergencyalert'; if(window.switchTab){window.switchTab('emergencyalert');}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();enterSystemMode('demo');if(window.switchTab){window.switchTab('emergencyalert');}}" tabindex="0" role="button" aria-label="Select Medic 14 Boston EMS First Responder Profile">
+          <div class="landing-profile-card profile-ems" id="cardProfileEMS" onclick="selectLandingProfile('ems');" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectLandingProfile('ems');}" tabindex="0" role="button" aria-label="Select Medic 14 Boston EMS First Responder Profile">
             <div class="profile-card-top">
               <div class="landing-profile-icon" style="background: rgba(244, 63, 94, 0.15); color: #f43f5e; border-color: rgba(244, 63, 94, 0.3);">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -764,7 +794,7 @@
             <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary);" id="userName">David Vance (Son)</div>
             <div style="font-size: 0.7rem; color: var(--text-secondary);">
               <span id="userRole" data-i18n="userRole">Primary Guardian</span> &bull;
-              <a href="/login" onclick="logoutUser()">Switch</a>
+              <a href="javascript:void(0)" onclick="returnToLandingGateway()" style="color: var(--neon-blue); font-weight: 700; text-decoration: none;" title="Switch User Profile">Switch Profile</a>
             </div>
           </div>
         </div>
@@ -953,7 +983,7 @@
         <span data-i18n="tabLiveVision">Vision &amp; Radar</span>
       </button>
 
-      <button class="tab-nav-btn" id="tabBtnVoice" onclick="switchTab('voice')" role="tab" aria-selected="false" aria-controls="panelVoice" tabindex="-1">
+      <button class="tab-nav-btn" id="tabBtnVoice" onclick="switchTab('voice')" style="display: none !important;" role="tab" aria-selected="false" aria-controls="panelVoice" tabindex="-1">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
           <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
@@ -963,7 +993,7 @@
         <span data-i18n="tabVoiceAI">Voice AI</span>
       </button>
 
-      <button class="tab-nav-btn" id="tabBtnDispatch" onclick="switchTab('dispatch')" role="tab" aria-selected="false" aria-controls="panelDispatch" tabindex="-1">
+      <button class="tab-nav-btn" id="tabBtnDispatch" onclick="switchTab('dispatch')" style="display: none !important;" role="tab" aria-selected="false" aria-controls="panelDispatch" tabindex="-1">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <polygon points="12 2 2 7 12 12 22 7 12 2"/>
           <polyline points="2 17 12 22 22 17"/>
@@ -983,7 +1013,7 @@
       <div class="demo-module-card">
         <div class="demo-card-header">
           <div class="demo-card-title-wrap">
-            <span class="demo-card-icon" aria-hidden="true">≡ƒÄÖ∩╕Å</span>
+            <span class="demo-card-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></span>
             <div>
               <h3>Voice Safety Assistant &amp; Conversational AI</h3>
               <div class="demo-card-desc">Interactive bidirectional speech interface with real-time transcription, predefined responses, and ambient acoustic monitoring.</div>
@@ -995,7 +1025,7 @@
         <!-- Video Walkthrough Callout Banner inside Eleanor's Voice / Home Dashboard -->
         <div class="demo-video-callout-banner" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(15, 23, 42, 0.85) 100%); border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 14px; padding: 14px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);">
           <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.45); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">≡ƒÄ¼</div>
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.45); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
             <div>
               <div style="font-weight: 800; color: #ffffff; font-size: 0.95rem;">New to NIRA? Watch the Gemini 3D &amp; Human Explainer Video</div>
               <div style="font-size: 0.8rem; color: #94a3b8;">5-step multimodal walkthrough featuring 3D Digital Twin and Human AI Presenter Dr. Maya explaining Voice Assistant, Daily Check-in, Fall Detection &amp; Ambulance CAD Dispatch.</div>
@@ -1003,10 +1033,10 @@
           </div>
           <div style="display: flex; gap: 8px;">
             <button class="btn-demo-primary" onclick="window.switchTab('demovideo')" style="white-space: nowrap; font-size: 0.82rem;" title="Watch Gemini 3D & Human Explainer Video">
-              Γû╢ Watch Gemini 3D &amp; Human Explainer &rarr;
+              ▶ Watch Gemini 3D &amp; Human Explainer &rarr;
             </button>
             <button class="btn-demo-secondary" onclick="openVideoDemoModal()" style="white-space: nowrap; font-size: 0.82rem;" title="Watch 3D Visual Simulation Reel">
-              ≡ƒÄÑ 3D Reel
+              🎥 3D Reel
             </button>
           </div>
         </div>
@@ -1022,7 +1052,7 @@
                 <line x1="8" y1="23" x2="16" y2="23"/>
               </svg>
             </button>
-            <div id="demoMicStatusText" style="font-size: 0.88rem; font-weight: 700; color: #ffffff;">Microphone Ready ΓÇó Click to speak</div>
+            <div id="demoMicStatusText" style="font-size: 0.88rem; font-weight: 700; color: #ffffff;">Microphone Ready • Click to speak</div>
             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Works with or without browser mic permission</div>
 
             <div class="demo-audio-visualizer" id="demoAudioVisualizer" style="display: none;">
@@ -1041,9 +1071,9 @@
             <!-- Quick Utterance Prompt Chips -->
             <div class="demo-voice-prompts-strip">
               <div style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 2px;">Predefined Demo Responses:</div>
-              <button class="demo-prompt-pill-btn" onclick="window.person2VoiceAssistant.handleUserInput('I am fine, everything is okay.')">≡ƒÆ¼ "I am fine, everything is okay."</button>
-              <button class="demo-prompt-pill-btn" onclick="window.person2VoiceAssistant.handleUserInput('I fell in the bathroom and need help!')">≡ƒÜ¿ "I fell in the bathroom and need help!"</button>
-              <button class="demo-prompt-pill-btn" onclick="window.person2VoiceAssistant.handleUserInput('What is my scheduled medication?')">≡ƒÆè "What is my scheduled medication?"</button>
+              <button class="demo-prompt-pill-btn" onclick="window.person2VoiceAssistant.handleUserInput('I am fine, everything is okay.')">💬 "I am fine, everything is okay."</button>
+              <button class="demo-prompt-pill-btn" onclick="window.person2VoiceAssistant.handleUserInput('I fell in the bathroom and need help!')">🚨 "I fell in the bathroom and need help!"</button>
+              <button class="demo-prompt-pill-btn" onclick="window.person2VoiceAssistant.handleUserInput('What is my scheduled medication?')">💊 "What is my scheduled medication?"</button>
               <button class="demo-prompt-pill-btn" onclick="window.person2VoiceAssistant.handleUserInput('Check my current heart rate and pulse.')">Γ¥ñ∩╕Å "Check my current heart rate and pulse."</button>
             </div>
           </div>
@@ -1076,7 +1106,7 @@
       <div class="demo-module-card">
         <div class="demo-card-header">
           <div class="demo-card-title-wrap">
-            <span class="demo-card-icon" aria-hidden="true">≡ƒôï</span>
+            <span class="demo-card-icon" aria-hidden="true">📋</span>
             <div>
               <h3>Elderly Daily Wellness Check-in</h3>
               <div class="demo-card-desc">Scheduled morning health check, vital reassurance questionnaire, and clinical attention alert system.</div>
@@ -1090,19 +1120,19 @@
         <!-- Primary Status Option Cards -->
         <div class="demo-checkin-grid">
           <div class="demo-checkin-option-card selected" data-status="fine" onclick="window.person2DailyCheckin.selectStatus('fine')" role="radio" aria-checked="true" tabindex="0">
-            <div class="opt-icon" aria-hidden="true">≡ƒƒó</div>
+            <div class="opt-icon" aria-hidden="true">🟢</div>
             <div class="opt-label">I'm Fine</div>
             <div class="opt-desc">Feeling healthy, normal energy, no pain or mobility difficulties.</div>
           </div>
 
           <div class="demo-checkin-option-card" data-status="unwell" onclick="window.person2DailyCheckin.selectStatus('unwell')" role="radio" aria-checked="false" tabindex="0">
-            <div class="opt-icon" aria-hidden="true">≡ƒƒí</div>
+            <div class="opt-icon" aria-hidden="true">🟡</div>
             <div class="opt-label">Feeling Unwell</div>
             <div class="opt-desc">Dizziness, mild pain, fatigue, or balance irregularity noted.</div>
           </div>
 
           <div class="demo-checkin-option-card" data-status="assistance" onclick="window.person2DailyCheckin.selectStatus('assistance')" role="radio" aria-checked="false" tabindex="0">
-            <div class="opt-icon" aria-hidden="true">≡ƒö┤</div>
+            <div class="opt-icon" aria-hidden="true">🔴</div>
             <div class="opt-label">Need Assistance</div>
             <div class="opt-desc">Requires immediate caregiver visit or urgent clinical attention.</div>
           </div>
@@ -1183,7 +1213,7 @@
       <div class="demo-module-card">
         <div class="demo-card-header">
           <div class="demo-card-title-wrap">
-            <span class="demo-card-icon" aria-hidden="true">≡ƒÜ¿</span>
+            <span class="demo-card-icon" aria-hidden="true">🚨</span>
             <div>
               <h3>Fall Detection &amp; Biometric Sensor Simulation</h3>
               <div class="demo-card-desc">Simulated IMU accelerometer, 60GHz mmWave radar, optical pose skeleton, and Apple Watch biometrics.</div>
@@ -1259,7 +1289,7 @@
           </div>
 
           <button class="btn-simulate-fall-large" id="btnTriggerFallSimulation" onclick="window.person2FallSimulation.simulateFallAction()">
-            ≡ƒÜ¿ Simulate Fall
+            🚨 Simulate Fall
           </button>
 
           <div style="display: flex; gap: 12px; margin-top: 6px;">
@@ -1280,7 +1310,7 @@
       <div class="demo-module-card">
         <div class="demo-card-header">
           <div class="demo-card-title-wrap">
-            <span class="demo-card-icon" aria-hidden="true">ΓÜá∩╕Å</span>
+            <span class="demo-card-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></span>
             <div>
               <h3>Emergency Alert &amp; Caregiver Response Command</h3>
               <div class="demo-card-desc">Active incident verification, real-time caregiver acknowledgment, and automated first-responder CAD dispatch packet.</div>
@@ -1293,6 +1323,307 @@
           <!-- Rendered dynamically by EmergencyAlertController -->
         </div>
       </div>
+
+      <!-- Integrated First Responder 911 CAD Command HUD -->
+      <div style="margin-top: 24px;">
+<!-- Tactical Command Center Header Bar -->
+      <div class="cmd-header-bar">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+              <polyline points="2 17 12 22 22 17"/>
+              <polyline points="2 12 12 17 22 12"/>
+            </svg>
+            <span style="font-size: 0.96rem; font-weight: 800; color: #fff;">
+              Emergency Command Center &bull; Boston EMS 911 CAD
+            </span>
+          </div>
+          <span id="cmdIncidentIdBadge" class="vtl-confidence-tag" style="background: rgba(244, 63, 94, 0.15); border-color: rgba(244, 63, 94, 0.35); color: #f43f5e;">
+            INC-20261019-88192
+          </span>
+          <span id="cmdSeverityBadge" class="vtl-sim-badge" style="background: rgba(244, 63, 94, 0.2); border-color: var(--accent-red); color: #fda4af;">
+            SEVERITY: CRITICAL
+          </span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span class="elapsed-timer-badge" id="cmdElapsedBadge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="cmdElapsedTimer">ELAPSED: T + 02:45</span>
+          </span>
+          <span style="font-size: 0.72rem; color: var(--accent-green); font-family: var(--font-mono); font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green);"></span>
+            CAD LINK: ACTIVE
+          </span>
+        </div>
+      </div>
+
+      <!-- Ten-Second Incident Briefing Grid (The 6 W's of NIRA Emergency Triage) -->
+      <div class="briefing-hud-grid">
+        <!-- 1. WHAT HAPPENED? -->
+        <div class="hud-card hud-card-red">
+          <div class="hud-card-q">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--status-critical)" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> <span>WHAT HAPPENED?</span>
+          </div>
+          <div class="hud-card-ans" id="cmdWhatHappened">
+            Acute Fall Event &bull; High-Impact Acceleration Signature
+          </div>
+          <div class="hud-card-sub" id="cmdWhatSub">
+            Zero post-impact ambulation detected on wet ceramic tile substrate
+          </div>
+        </div>
+
+        <!-- 2. WHERE? -->
+        <div class="hud-card hud-card-blue">
+          <div class="hud-card-q">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" stroke-width="2.2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> <span>WHERE?</span>
+          </div>
+          <div class="hud-card-ans" id="cmdWhere">
+            Bathroom &bull; Beacon Hill Unit 4B
+          </div>
+          <div class="hud-card-sub" id="cmdWhereSub">
+            442 Beacon St, Boston MA &bull; 60GHz Ceiling Radar & Wet Floor Sensor
+          </div>
+        </div>
+
+        <!-- 3. WHEN? -->
+        <div class="hud-card hud-card-cyan">
+          <div class="hud-card-q">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> <span>WHEN?</span>
+          </div>
+          <div class="hud-card-ans" id="cmdWhen">
+            02:14:00 UTC &bull; (Night Schedule)
+          </div>
+          <div class="hud-card-sub" id="cmdWhenSub">
+            Detection Time: Authoritative Event Timestamp &bull; Live Elapsed Active
+          </div>
+        </div>
+
+        <!-- 4. WHY DID NIRA ESCALATE? -->
+        <div class="hud-card hud-card-amber">
+          <div class="hud-card-q">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--status-warning)" stroke-width="2.2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg> <span>WHY DID NIRA ESCALATE?</span>
+          </div>
+          <div class="hud-card-ans" id="cmdWhyEscalated">
+            Tachycardia (138 BPM) + 20s Silence + Wet Tile
+          </div>
+          <div class="hud-card-sub" id="cmdWhySub">
+            +4.2h nocturnal deviation; multi-modal evidence justified immediate escalation
+          </div>
+        </div>
+
+        <!-- 5. WHO HAS BEEN NOTIFIED? -->
+        <div class="hud-card hud-card-purple">
+          <div class="hud-card-q">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> <span>WHO HAS BEEN NOTIFIED?</span>
+          </div>
+          <div class="hud-card-ans" id="cmdWhoNotified">
+            Boston EMS 911 (Medic-14) & Son David Vance
+          </div>
+          <div class="hud-card-sub" id="cmdWhoSub">
+            Echo Show 15 Drop-In Call + Cellular SMS (Door PIN: 8492) + Push
+          </div>
+        </div>
+
+        <!-- 6. WHAT IS HAPPENING NOW? -->
+        <div class="hud-card hud-card-green">
+          <div class="hud-card-q">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> <span>WHAT IS HAPPENING NOW?</span>
+          </div>
+          <div class="hud-card-ans" id="cmdWhatNow">
+            Smart Deadbolt UNLOCKED &bull; First Responders En Route
+          </div>
+          <div class="hud-card-sub" id="cmdWhatNowSub">
+            Two-way audio open; emergency packet transmitted to CAD agency
+          </div>
+        </div>
+      </div>
+
+      <div class="two-col-grid">
+        <!-- Left: Event-Driven Chronological Incident Audit Trail -->
+        <section class="content-card">
+          <div class="card-header-bar">
+            <span style="display: flex; align-items: center; gap: 8px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> <span>Chronological Incident Audit Trail (Authoritative Backend Events)</span>
+            </span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="vtl-confidence-tag" id="cmdRiskScoreTag">Risk Score: 94%</span>
+              <span class="vtl-sim-badge" id="cmdTimelineCount">7 Events</span>
+            </div>
+          </div>
+
+          <div style="font-size: 0.74rem; color: var(--text-secondary); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+            <span>Real-time sequential actions recorded by NIRA Multi-Modal Safety Engine:</span>
+            <span style="font-family: var(--font-mono); color: var(--accent-cyan);" id="cmdTimelineSyncStatus">&bull; Auto-Synced from Database</span>
+          </div>
+
+          <!-- Chronological Timeline Items Feed -->
+          <div class="cmd-timeline-feed" id="cmdIncidentTimeline">
+            <!-- Rendered by renderEmergencyCommandCenter(state) -->
+          </div>
+        </section>
+
+        <!-- Right: 911 CAD Emergency Packet, Smart Lock & Guardian Controls -->
+        <section class="content-card" style="display: flex; flex-direction: column; justify-content: space-between; gap: 14px;">
+          <div>
+            <!-- Card 1: 911 CAD Emergency Packet & Smart Entrance Deadbolt -->
+            <div class="cmd-packet-card">
+              <div class="card-header-bar" style="margin-bottom: 10px; padding: 0 0 8px 0; border-bottom: 1px solid rgba(244, 63, 94, 0.2);">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--status-critical)" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  <span style="font-size: 0.88rem; font-weight: 800; color: #fff;">
+                    Boston EMS 911 CAD Incident Packet
+                  </span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <button class="btn-luxury-secondary" style="padding: 4px 8px; font-size: 0.70rem;" onclick="exportEmergencyPacket('json')">
+                    Export JSON
+                  </button>
+                  <button class="btn-luxury-secondary" style="padding: 4px 8px; font-size: 0.70rem;" onclick="exportEmergencyPacket('print')">
+                    Print Dossier
+                  </button>
+                  <span style="font-size: 0.72rem; font-family: var(--font-mono); color: var(--accent-red); font-weight: 800;" id="cmdTriagePriority">
+                    CODE: RED-911
+                  </span>
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.76rem; margin-bottom: 10px;">
+                <div>
+                  <span style="color: var(--text-muted); font-size: 0.68rem; text-transform: uppercase; font-weight: 700;">Packet ID:</span>
+                  <div style="font-family: var(--font-mono); font-weight: 700; color: #fff;" id="cmdPacketId">EPK-84920</div>
+                </div>
+                <div>
+                  <span style="color: var(--text-muted); font-size: 0.68rem; text-transform: uppercase; font-weight: 700;">Packet Status:</span>
+                  <div style="font-family: var(--font-mono); font-weight: 700; color: #34d399;" id="cmdPacketStatus">TRANSMITTED</div>
+                </div>
+                <div>
+                  <span style="color: var(--text-muted); font-size: 0.68rem; text-transform: uppercase; font-weight: 700;">Dispatched Agency:</span>
+                  <div style="font-weight: 700; color: #fff;" id="cmdAgency">Boston EMS CAD (02108)</div>
+                </div>
+                <div>
+                  <span style="color: var(--text-muted); font-size: 0.68rem; text-transform: uppercase; font-weight: 700;">Units En Route:</span>
+                  <div style="font-weight: 700; color: #f43f5e;" id="cmdUnits">Medic-14, Rescue-2</div>
+                </div>
+              </div>
+
+              <!-- Smart Entrance Lock Box -->
+              <div class="cmd-door-box">
+                <div>
+                  <div style="font-size: 0.70rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 2px;">
+                    Smart Deadbolt Entrance Access
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span id="cmdDoorBadge" class="door-badge-unlocked">UNLOCKED (PIN: 8492)</span>
+                    <span style="font-size: 0.70rem; color: var(--accent-cyan); font-family: var(--font-mono);">Pathway: 100% Illum.</span>
+                  </div>
+                </div>
+                <button class="btn-tactical-lock" onclick="toggleCmdDoorLock()">
+                  Toggle Deadbolt
+                </button>
+              </div>
+
+              <div style="margin-top: 10px; font-size: 0.74rem; color: var(--text-secondary); line-height: 1.45; background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: var(--radius-sm);">
+                <strong>Medical Notes on File:</strong> Eleanor Vance (Age 79) &bull; Mild cognitive impairment, Hypertension (Lisinopril), Penicillin allergy (Anaphylaxis risk), DNR: No.
+              </div>
+
+              <!-- Machine-Readable CAD JSON Contract Payload Preview -->
+              <div style="margin-top: 10px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                  <span style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted);">CAD JSON Contract Payload:</span>
+                  <span style="font-size: 0.68rem; font-family: var(--font-mono); color: var(--accent-cyan);">NENA i3 Standard</span>
+                </div>
+                <pre class="packet-json-preview" id="packetJsonPreview" style="max-height: 110px; overflow-y: auto; font-size: 0.68rem; margin: 0; padding: 8px; border-radius: 4px;">{
+  "packet_id": "CAD-2026-BOS-9118",
+  "incident_id": "INC-2026-1021-01",
+  "timestamp": "2026-10-21T02:14:00Z",
+  "resident": {
+    "name": "Eleanor Vance",
+    "age": 79,
+    "gender": "Female",
+    "address": "32 Chestnut St, Apt 4B, Beacon Hill, Boston MA 02108",
+    "access_pin": "8492",
+    "lock_state": "UNLOCKED",
+    "allergies": ["Penicillin"],
+    "medications": ["Metoprolol 50mg"]
+  },
+  "safety_assessment": {
+    "risk_level": "CRITICAL",
+    "heuristic_score": 0.88,
+    "affected_room": "Bathroom",
+    "detection_source": "60GHz_FMCW_Radar",
+    "voice_verification_status": "TIMEOUT_UNANSWERED",
+    "camera_privacy_enforced": true
+  },
+  "provenance": {
+    "engine": "Aegis CARE Engine v2.0",
+    "sla_ms": 18,
+    "generated_at": "2026-10-21T02:14:15Z"
+  }
+}</pre>
+              </div>
+            </div>
+
+            <!-- Card 2: Family Guardian Notification Hub<!-- Card 2: Family Guardian Notification Hub & Live Action -->
+            <div style="background: var(--bg-card-subtle); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px;">
+              <div class="card-header-bar" style="margin-bottom: 10px; padding: 0 0 6px 0;">
+                <span style="font-size: 0.84rem; font-weight: 800; color: #fff;">
+                  Family Guardian Notification Hub
+                </span>
+                <span id="cmdCaregiverStatusBadge" class="vtl-confidence-tag" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.35);">
+                  ALERTED & DISPATCHED
+                </span>
+              </div>
+
+              <div style="font-size: 0.76rem; color: #cbd5e1; margin-bottom: 8px;">
+                Guardian: <strong>David Vance (Son &bull; Primary Guardian)</strong> &bull; +1-555-019-2834
+              </div>
+
+              <!-- Multi-Channel Dispatch Matrix -->
+              <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.72rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; background: rgba(0,0,0,0.2); border-radius: 4px;">
+                  <span>Channel 1: Echo Show 15 Drop-In Call</span>
+                  <span style="color: var(--accent-green); font-weight: 700;">Two-Way Audio Active</span>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; background: rgba(0,0,0,0.2); border-radius: 4px;">
+                  <span>Channel 2: High-Priority Push Notification</span>
+                  <span style="color: #cbd5e1; font-weight: 700;">Delivered &bull; Opened</span>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; background: rgba(0,0,0,0.2); border-radius: 4px;">
+                  <span>Channel 3: Automated SMS Alert & GPS Link</span>
+                  <span style="color: #cbd5e1; font-weight: 700;">Sent with Door PIN 8492</span>
+                </div>
+              </div>
+
+              <!-- Interactive Guardian Actions -->
+              <button class="btn-tactical-ack" id="btnAckIncident" onclick="acknowledgeGuardianIncident()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                <span id="btnAckText">Acknowledge Incident (Guardian David)</span>
+              </button>
+
+              <button class="btn-tactical-audio" onclick="playSonVoiceMemo()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                <span>Listen to Guardian Drop-In Audio [Demo]</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Multi-Factor Clinical Evidence Summary -->
+          <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+            <div style="font-size: 0.70rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">
+              Multi-Factor Evidence Ingestion
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.70rem; font-family: var(--font-mono);">
+              <div style="color: #cbd5e1;">YOLOv8-Pose Impact: <strong style="color: var(--accent-red);" id="evYolo">2.8m/s (High)</strong></div>
+              <div style="color: #cbd5e1;">60GHz Radar: <strong style="color: var(--accent-amber);" id="evRadar">Immobile (0.05)</strong></div>
+              <div style="color: #cbd5e1;">Heart Rate: <strong style="color: var(--accent-red);" id="evHr">138 BPM (+91%)</strong></div>
+              <div style="color: #cbd5e1;">Circadian Anomaly: <strong style="color: var(--accent-cyan);" id="evCircadian">+4.2h Deviation</strong></div>
+            </div>
+          </div>
+        </section>
+      </div>
+      </div>
     </div>
 
     <!-- ======================================================================
@@ -1302,7 +1633,7 @@
       <div class="demo-module-card">
         <div class="demo-card-header">
           <div class="demo-card-title-wrap">
-            <span class="demo-card-icon" aria-hidden="true">≡ƒù║∩╕Å</span>
+            <span class="demo-card-icon" aria-hidden="true">🗺️</span>
             <div>
               <h3>Incident Location &amp; Nearby Hospital Network</h3>
               <div class="demo-card-desc">OpenStreetMap Leaflet integration with emergency routing ETA, trauma center statuses, and vector fallback.</div>
@@ -1313,9 +1644,9 @@
 
         <!-- Map Legend -->
         <div class="demo-map-legend-bar">
-          <div class="legend-item"><span style="color: var(--accent-red); font-size: 1rem;">≡ƒÜ¿</span> <strong>Incident / Resident Location</strong> (Unit 4B)</div>
-          <div class="legend-item"><span style="color: var(--accent-blue); font-size: 1rem;">≡ƒÅÑ</span> <strong>Level 1 Trauma Centers</strong></div>
-          <div class="legend-item"><span style="color: var(--accent-green); font-size: 1rem;">≡ƒƒó</span> <strong>Boston EMS Medic-14 Route</strong></div>
+          <div class="legend-item"><span style="color: var(--accent-red); font-size: 1rem;">🚨</span> <strong>Incident / Resident Location</strong> (Unit 4B)</div>
+          <div class="legend-item"><span style="color: var(--accent-blue); font-size: 1rem;">🏥</span> <strong>Level 1 Trauma Centers</strong></div>
+          <div class="legend-item"><span style="color: var(--accent-green); font-size: 1rem;">🟢</span> <strong>Boston EMS Medic-14 Route</strong></div>
           <div class="legend-item" style="margin-left: auto; color: var(--text-muted);"><small>Fixed sample coordinates for hackathon showcase</small></div>
         </div>
 
@@ -1337,7 +1668,7 @@
       <div class="demo-module-card">
         <div class="demo-card-header">
           <div class="demo-card-title-wrap">
-            <span class="demo-card-icon" aria-hidden="true">≡ƒöö</span>
+            <span class="demo-card-icon" aria-hidden="true">🔔</span>
             <div>
               <h3>Notification Center</h3>
               <div class="demo-card-desc">Categorized emergency alerts, daily check-in verifications, vital reminders, and guardian audit events.</div>
@@ -1354,8 +1685,8 @@
         <div class="demo-notif-toolbar">
           <div class="demo-notif-filters">
             <button class="demo-notif-filter-pill active" data-category="all" onclick="window.person2NotificationCenter.setFilter('all')">All Notifications</button>
-            <button class="demo-notif-filter-pill" data-category="emergency" onclick="window.person2NotificationCenter.setFilter('emergency')">≡ƒÜ¿ Emergency Alerts</button>
-            <button class="demo-notif-filter-pill" data-category="check_in" onclick="window.person2NotificationCenter.setFilter('check_in')">≡ƒôï Daily Check-ins</button>
+            <button class="demo-notif-filter-pill" data-category="emergency" onclick="window.person2NotificationCenter.setFilter('emergency')">🚨 Emergency Alerts</button>
+            <button class="demo-notif-filter-pill" data-category="check_in" onclick="window.person2NotificationCenter.setFilter('check_in')">📋 Daily Check-ins</button>
             <button class="demo-notif-filter-pill" data-category="reminder" onclick="window.person2NotificationCenter.setFilter('reminder')">ΓÅ░ Reminders &amp; Vitals</button>
           </div>
         </div>
@@ -1374,7 +1705,7 @@
       <div class="demo-module-card">
         <div class="demo-card-header">
           <div class="demo-card-title-wrap">
-            <span class="demo-card-icon" aria-hidden="true">≡ƒô£</span>
+            <span class="demo-card-icon" aria-hidden="true">📜</span>
             <div>
               <h3>Incident History &amp; Clinical Safety Audit Trail</h3>
               <div class="demo-card-desc">Persistent chronological registry of anomalies, simulated falls, caregiver acknowledgments, and resolutions.</div>
@@ -1440,7 +1771,7 @@
       <div class="demo-module-card">
         <div class="demo-card-header">
           <div class="demo-card-title-wrap">
-            <span class="demo-card-icon" aria-hidden="true">≡ƒÄ¼</span>
+            <span class="demo-card-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>
             <div>
               <h3>NIRA 3D &amp; Human Explainer Video &bull; Powered by Gemini</h3>
               <div class="demo-card-desc">Multimodal 3D Digital Twin and Human AI Presenter (Dr. Maya Thorne, MD) providing clinical decision rationale, telemetry breakdown, and live voiceover across all 5 safety phases.</div>
@@ -1448,7 +1779,7 @@
           </div>
           <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <button class="btn-luxury-primary" onclick="openVideoDemoModal()" style="font-size: 0.82rem; padding: 8px 16px;">
-              <span>≡ƒÄÑ Watch 3D Video Reel</span>
+              <span>🎥 Watch 3D Video Reel</span>
             </button>
             <span class="pill-badge pill-blue">GEMINI 3D &bull; HUMAN AI</span>
           </div>

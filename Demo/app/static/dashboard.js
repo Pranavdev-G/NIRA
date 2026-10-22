@@ -988,10 +988,17 @@ function closeResidentCalmMode() {
 
 function switchUserRole(name, role) {
   playChime("info");
-  const nameEl = document.getElementById("userName");
-  const roleEl = document.getElementById("userRole");
-  if (nameEl) nameEl.textContent = name;
-  if (roleEl) roleEl.textContent = role;
+  let profileKey = "senior_home";
+  if (role && (role.includes("Guardian") || role.includes("Admin") || name.includes("David"))) {
+    profileKey = "admin_son";
+  } else if (role && (role.includes("EMS") || role.includes("Responder") || name.includes("Medic") || role.includes("CAD"))) {
+    profileKey = "ems";
+  } else {
+    profileKey = "senior_home";
+  }
+  if (typeof setUserProfile === "function") {
+    setUserProfile(profileKey, true);
+  }
   showToast(`👤 Active Session Switched to: <strong>${name}</strong> (${role})`);
 }
 
@@ -2561,45 +2568,144 @@ function switchTab(tabId) {
 window.switchTab = switchTab;
 
 // ---------------------------------------------------------------------------
-// User Session Management
+// User Profiles & Strict Role-Based Feature Permissions
 // ---------------------------------------------------------------------------
-function initUserSession() {
-  const sessionStr = localStorage.getItem("aegis_auth_user");
-  let user = null;
-  if (sessionStr) {
-    try {
-      user = JSON.parse(sessionStr);
-    } catch(e) {}
+const USER_PROFILES = {
+  senior_home: {
+    key: "senior_home",
+    name: "Eleanor Vance (Senior Home View)",
+    subtitle: "Senior Resident • Beacon Hill Unit 4B",
+    role: "Senior Home View",
+    badgeClass: "badge-senior",
+    avatar: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+    allowedTabs: ["voiceassistant", "dailycheckin", "demovideo"],
+    defaultTab: "voiceassistant",
+    showScenarioBar: false
+  },
+  admin_son: {
+    key: "admin_son",
+    name: "David Vance (Son • Family Admin)",
+    subtitle: "Primary Family Guardian & Admin",
+    role: "Family Primary Admin",
+    badgeClass: "badge-admin",
+    avatar: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+    allowedTabs: ["overview", "vision", "falldetection", "notificationcenter", "incidenthistory"],
+    defaultTab: "overview",
+    showScenarioBar: true
+  },
+  ems: {
+    key: "ems",
+    name: "Medic 14 (Boston EMS First Responder)",
+    subtitle: "First Responder Computer-Aided Dispatch",
+    role: "First Responder / Dispatch",
+    badgeClass: "badge-ems",
+    avatar: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>`,
+    allowedTabs: ["emergencyalert", "dispatch", "locationmap"],
+    defaultTab: "emergencyalert",
+    showScenarioBar: false
+  }
+};
+
+let currentActiveProfileKey = "senior_home";
+
+function setUserProfile(profileKey, triggerTabSwitch = true) {
+  let key = profileKey || "senior_home";
+  if (key.includes("admin") || key.includes("david")) {
+    key = "admin_son";
+  } else if (key.includes("ems") || key.includes("medic") || key.includes("first") || key.includes("cad")) {
+    key = "ems";
+  } else {
+    key = "senior_home";
   }
 
-  if (!user) {
-    user = {
-      name: "David Vance (Son)",
-      role: "Primary Guardian",
-      email: "david.vance@example.com",
-      avatar: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
-      patient: "Eleanor Vance (Age 79)"
-    };
-    localStorage.setItem("aegis_auth_user", JSON.stringify(user));
-  }
+  const profile = USER_PROFILES[key] || USER_PROFILES.senior_home;
+  currentActiveProfileKey = profile.key;
 
+  try {
+    localStorage.setItem("nira_active_profile", profile.key);
+    localStorage.setItem("aegis_auth_user", JSON.stringify({
+      name: profile.name,
+      role: profile.role,
+      key: profile.key,
+      avatar: profile.avatar
+    }));
+  } catch(e) {}
+
+  // Update header session badge
   const nameEl = document.getElementById("userName");
   const roleEl = document.getElementById("userRole");
   const avatarEl = document.getElementById("userAvatar");
+  const sessionBadge = document.getElementById("userSessionBadge");
 
-  if (nameEl) nameEl.textContent = user.name || "David Vance";
-  if (roleEl) roleEl.textContent = user.role || "Primary Guardian";
-  if (avatarEl) {
-    if (user.avatar && user.avatar.includes("<svg")) {
-      avatarEl.innerHTML = user.avatar;
-    } else {
-      avatarEl.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>`;
+  if (nameEl) nameEl.textContent = profile.name;
+  if (roleEl) roleEl.textContent = profile.role;
+  if (avatarEl && profile.avatar) avatarEl.innerHTML = profile.avatar;
+  if (sessionBadge) {
+    sessionBadge.className = "header-chip " + profile.badgeClass;
+  }
+
+  // Update scenario bar visibility (shown for David Vance Admin, hidden for Senior and EMS)
+  const scenarioBar = document.querySelector(".scenario-bar-container");
+  if (scenarioBar) {
+    scenarioBar.style.display = profile.showScenarioBar ? "flex" : "none";
+  }
+
+  // Filter tabs in .tab-navigation-strip
+  const allTabs = [
+    { id: 'voiceassistant', btn: 'tabBtnVoiceAssistant' },
+    { id: 'dailycheckin', btn: 'tabBtnDailyCheckin' },
+    { id: 'demovideo', btn: 'tabBtnDemoVideo' },
+    { id: 'falldetection', btn: 'tabBtnFallDetection' },
+    { id: 'emergencyalert', btn: 'tabBtnEmergencyAlert' },
+    { id: 'locationmap', btn: 'tabBtnLocationMap' },
+    { id: 'notificationcenter', btn: 'tabBtnNotificationCenter' },
+    { id: 'incidenthistory', btn: 'tabBtnIncidentHistory' },
+    { id: 'overview', btn: 'tabBtnOverview' },
+    { id: 'vision', btn: 'tabBtnVision' },
+    { id: 'voice', btn: 'tabBtnVoice' },
+    { id: 'dispatch', btn: 'tabBtnDispatch' }
+  ];
+
+  allTabs.forEach(t => {
+    const btn = document.getElementById(t.btn);
+    if (!btn) return;
+    const isAllowed = profile.allowedTabs.includes(t.id);
+    btn.style.display = isAllowed ? "inline-flex" : "none";
+  });
+
+  // Determine current active tab
+  const activeBtn = document.querySelector(".tab-nav-btn.active");
+  const activeTabId = activeBtn ? activeBtn.id.replace("tabBtn", "").toLowerCase() : null;
+
+  if (triggerTabSwitch) {
+    if (!activeTabId || !profile.allowedTabs.includes(activeTabId)) {
+      switchTab(profile.defaultTab);
     }
   }
+}
+window.setUserProfile = setUserProfile;
+
+function initUserSession() {
+  let profileKey = "senior_home";
+  try {
+    const saved = localStorage.getItem("nira_active_profile");
+    const userStr = localStorage.getItem("aegis_auth_user");
+    if (saved) {
+      profileKey = saved;
+    } else if (userStr) {
+      const u = JSON.parse(userStr);
+      if (u.key) profileKey = u.key;
+      else if (u.role && u.role.includes("Admin")) profileKey = "admin_son";
+      else if (u.role && (u.role.includes("First") || u.role.includes("Dispatch"))) profileKey = "ems";
+    }
+  } catch(e) {}
+
+  setUserProfile(profileKey, false);
 }
 
 function logoutUser() {
   localStorage.removeItem("aegis_auth_user");
+  localStorage.removeItem("nira_active_profile");
   window.location.href = "/login";
 }
 
@@ -3126,6 +3232,20 @@ window.switchSystemMode = switchSystemMode;
 if (typeof window !== "undefined") {
   const checkInitialHash = () => {
     const rawHash = (window.location.hash || "").replace("#", "").toLowerCase();
+    if (rawHash.includes("profile=senior") || rawHash === "senior") {
+      enterSystemMode("demo");
+      setUserProfile("senior_home", true);
+      return;
+    } else if (rawHash.includes("profile=admin") || rawHash === "admin") {
+      enterSystemMode("demo");
+      setUserProfile("admin_son", true);
+      return;
+    } else if (rawHash.includes("profile=ems") || rawHash === "ems" || rawHash.includes("emergencyalert") || rawHash.includes("ambulance")) {
+      enterSystemMode("demo");
+      setUserProfile("ems", true);
+      return;
+    }
+
     if (rawHash.startsWith("demo")) {
       enterSystemMode("demo");
       const parts = rawHash.split("/");
