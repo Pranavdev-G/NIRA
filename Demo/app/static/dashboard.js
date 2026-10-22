@@ -2448,15 +2448,65 @@ function sleep(ms) {
 }
 
 // ---------------------------------------------------------------------------
-// Multi-View Tab Navigation (Overview, Vision & Floorplan, Voice AI, Dispatch)
+// Multi-View Tab Navigation (Person 2 Demo Module Views & Core Views)
 // ---------------------------------------------------------------------------
 function switchTab(tabId) {
   playChime("info");
-  const tabs = ['overview', 'vision', 'voice', 'dispatch'];
-  tabs.forEach(t => {
-    const btn = document.getElementById('tabBtn' + capitalize(t));
-    const panel = document.getElementById('panel' + capitalize(t));
-    const isActive = (t === tabId);
+
+  const aliasMap = {
+    'voiceassistant': 'voiceassistant',
+    'assistant': 'voiceassistant',
+    'dailycheckin': 'dailycheckin',
+    'checkin': 'dailycheckin',
+    'demovideo': 'demovideo',
+    'video': 'demovideo',
+    'demo': 'demovideo',
+    'guide': 'demovideo',
+    'tutorial': 'demovideo',
+    'falldetection': 'falldetection',
+    'fall': 'falldetection',
+    'falldetect': 'falldetection',
+    'emergencyalert': 'emergencyalert',
+    'alert': 'emergencyalert',
+    'ambulance': 'emergencyalert',
+    'cad': 'emergencyalert',
+    'medic14': 'emergencyalert',
+    'locationmap': 'locationmap',
+    'map': 'locationmap',
+    'hospitals': 'locationmap',
+    'notificationcenter': 'notificationcenter',
+    'notifications': 'notificationcenter',
+    'notif': 'notificationcenter',
+    'incidenthistory': 'incidenthistory',
+    'history': 'incidenthistory',
+    'incidents': 'incidenthistory',
+    'overview': 'overview',
+    'vision': 'vision',
+    'voice': 'voice',
+    'dispatch': 'dispatch'
+  };
+
+  const canonical = (tabId && aliasMap[tabId.toLowerCase()]) ? aliasMap[tabId.toLowerCase()] : (tabId ? tabId.toLowerCase() : 'voiceassistant');
+
+  const allTabs = [
+    { id: 'voiceassistant', btn: 'tabBtnVoiceAssistant', panel: 'panelVoiceAssistant' },
+    { id: 'dailycheckin', btn: 'tabBtnDailyCheckin', panel: 'panelDailyCheckin' },
+    { id: 'demovideo', btn: 'tabBtnDemoVideo', panel: 'panelDemoVideo' },
+    { id: 'falldetection', btn: 'tabBtnFallDetection', panel: 'panelFallDetection' },
+    { id: 'emergencyalert', btn: 'tabBtnEmergencyAlert', panel: 'panelEmergencyAlert' },
+    { id: 'locationmap', btn: 'tabBtnLocationMap', panel: 'panelLocationMap' },
+    { id: 'notificationcenter', btn: 'tabBtnNotificationCenter', panel: 'panelNotificationCenter' },
+    { id: 'incidenthistory', btn: 'tabBtnIncidentHistory', panel: 'panelIncidentHistory' },
+    { id: 'overview', btn: 'tabBtnOverview', panel: 'panelOverview' },
+    { id: 'vision', btn: 'tabBtnVision', panel: 'panelVision' },
+    { id: 'voice', btn: 'tabBtnVoice', panel: 'panelVoice' },
+    { id: 'dispatch', btn: 'tabBtnDispatch', panel: 'panelDispatch' }
+  ];
+
+  allTabs.forEach(t => {
+    const btn = document.getElementById(t.btn);
+    const panel = document.getElementById(t.panel);
+    const isActive = (t.id === canonical);
     if (btn) {
       if (isActive) {
         btn.classList.add('active');
@@ -2477,8 +2527,13 @@ function switchTab(tabId) {
     }
   });
 
+  // If switched to demovideo, trigger video player initialization or playback
+  if (canonical === 'demovideo' && window.demoVideoController) {
+    window.demoVideoController.play();
+  }
+
   // If switched to vision tab, trigger canvas resize to fit viewport
-  if (tabId === 'vision') {
+  if (canonical === 'vision') {
     setTimeout(() => {
       if (window.cameraSim) {
         window.cameraSim.resizeCanvas();
@@ -2488,7 +2543,22 @@ function switchTab(tabId) {
       }
     }, 60);
   }
+
+  // If switched to locationmap, trigger Leaflet resize
+  if (canonical === 'locationmap' && window.person2LocationMap) {
+    setTimeout(() => {
+      if (window.person2LocationMap.leafletMap) {
+        window.person2LocationMap.leafletMap.invalidateSize();
+      }
+    }, 100);
+  }
+
+  // Update hash safely without full reload
+  if (window.history && window.history.replaceState) {
+    window.history.replaceState(null, null, '#demo/' + canonical);
+  }
 }
+window.switchTab = switchTab;
 
 // ---------------------------------------------------------------------------
 // User Session Management
@@ -3055,9 +3125,15 @@ window.switchSystemMode = switchSystemMode;
 // Check URL hash immediately on boot or navigation
 if (typeof window !== "undefined") {
   const checkInitialHash = () => {
-    const hash = (window.location.hash || "").replace("#", "").toLowerCase();
-    if (hash === "demo" || hash === "live") {
-      enterSystemMode(hash);
+    const rawHash = (window.location.hash || "").replace("#", "").toLowerCase();
+    if (rawHash.startsWith("demo")) {
+      enterSystemMode("demo");
+      const parts = rawHash.split("/");
+      if (parts.length > 1 && typeof window.switchTab === "function") {
+        setTimeout(() => window.switchTab(parts[1]), 120);
+      }
+    } else if (rawHash === "live") {
+      enterSystemMode("live");
     }
   };
   if (document.readyState === "loading") {

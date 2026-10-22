@@ -216,7 +216,188 @@
         margin-bottom: 38px;
       }
     }
+
+    /* --- PROFILE SPLIT SECTION --- */
+    .landing-profile-section {
+      width: 100%;
+      max-width: 860px;
+      margin-top: 34px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .landing-profile-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      margin-bottom: 14px;
+    }
+
+    .landing-profile-divider {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+    }
+
+    .landing-profile-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+
+    .landing-profile-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      width: 100%;
+    }
+
+    .landing-profile-card {
+      background: rgba(15, 23, 42, 0.72);
+      backdrop-filter: blur(20px);
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      padding: 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      text-decoration: none;
+      color: #ffffff;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    .landing-profile-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: transparent;
+      transition: all 0.25s ease;
+    }
+
+    .landing-profile-card.profile-admin:hover {
+      border-color: rgba(245, 158, 11, 0.7);
+      background: rgba(245, 158, 11, 0.08);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 36px rgba(245, 158, 11, 0.25);
+    }
+    .landing-profile-card.profile-admin::before {
+      background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    }
+
+    .landing-profile-card.profile-home:hover {
+      border-color: rgba(56, 189, 248, 0.7);
+      background: rgba(56, 189, 248, 0.08);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 36px rgba(56, 189, 248, 0.25);
+    }
+    .landing-profile-card.profile-home::before {
+      background: linear-gradient(90deg, #0284c7, #38bdf8);
+    }
+
+    .landing-profile-card.profile-ems:hover {
+      border-color: rgba(244, 63, 94, 0.7);
+      background: rgba(244, 63, 94, 0.08);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 36px rgba(244, 63, 94, 0.25);
+    }
+    .landing-profile-card.profile-ems::before {
+      background: linear-gradient(90deg, #e11d48, #f43f5e);
+    }
+
+    .profile-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .landing-profile-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      flex-shrink: 0;
+    }
+
+    .landing-profile-badge {
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 9999px;
+    }
+
+    .profile-admin .landing-profile-badge {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .profile-home .landing-profile-badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .profile-ems .landing-profile-badge {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fda4af;
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .landing-profile-name {
+      font-size: 0.96rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.3;
+    }
+
+    .landing-profile-desc {
+      font-size: 0.77rem;
+      color: #94a3b8;
+      line-height: 1.4;
+      margin-top: 3px;
+    }
+
+    .landing-profile-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .profile-admin .landing-profile-footer { color: #fbbf24; }
+    .profile-home .landing-profile-footer { color: #38bdf8; }
+    .profile-ems .landing-profile-footer { color: #f43f5e; }
+
+    @media (max-width: 820px) {
+      .landing-profile-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+    }
   </style>
+
 
   <!-- Immediate inline router for NIRA Landing Page (guarantees instant responsiveness even if external JS is delayed/cached) -->
   <script>
@@ -299,11 +480,26 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // Auto-enter if hash is present (#demo or #live)
+    // Auto-enter if hash is present (#demo, #demo/emergencyalert, or #live)
     function checkInitialHashMode() {
-      var hash = (window.location.hash || "").replace("#", "").toLowerCase();
-      if (hash === "demo" || hash === "live") {
-        enterSystemMode(hash);
+      var raw = (window.location.hash || "").replace("#", "").toLowerCase();
+      var parts = raw.split('/');
+      var mode = parts[0];
+      var subTab = parts[1];
+      if (mode === "demo" || mode === "live") {
+        enterSystemMode(mode);
+        if (mode === "demo" && subTab) {
+          var attempts = 0;
+          var pollTab = setInterval(function() {
+            attempts++;
+            if (typeof window.switchTab === "function") {
+              window.switchTab(subTab);
+              clearInterval(pollTab);
+            } else if (attempts > 30) {
+              clearInterval(pollTab);
+            }
+          }, 100);
+        }
       }
     }
     window.addEventListener("DOMContentLoaded", checkInitialHashMode);
@@ -355,6 +551,88 @@
           </div>
         </div>
       </div>
+
+      <!-- Select Authenticated Profile Section -->
+      <div class="landing-profile-section" id="landingProfileSection">
+        <div class="landing-profile-header">
+          <div class="landing-profile-divider"></div>
+          <span class="landing-profile-title">Select Authenticated Profile:</span>
+          <div class="landing-profile-divider"></div>
+        </div>
+
+        <div class="landing-profile-grid">
+          <!-- Profile 1: David Vance (Son • Family Admin) -->
+          <a href="/admin" class="landing-profile-card profile-admin" id="cardProfileAdmin" aria-label="Select David Vance Family Admin Profile">
+            <div class="profile-card-top">
+              <div class="landing-profile-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </div>
+              <span class="landing-profile-badge">Admin Access</span>
+            </div>
+            <div>
+              <div class="landing-profile-name">David Vance (Son • Family Admin)</div>
+              <div class="landing-profile-desc">Full Admin Console • Live Telemetry &amp; Door Overrides</div>
+            </div>
+            <div class="landing-profile-footer">
+              <span>Open Admin Console</span>
+              <span>&rarr;</span>
+            </div>
+          </a>
+
+          <!-- Profile 2: Eleanor & Family (Home View) -->
+          <div class="landing-profile-card profile-home" id="cardProfileHome" onclick="enterSystemMode('demo');" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();enterSystemMode('demo');}" tabindex="0" role="button" aria-label="Select Eleanor and Family Home View Profile">
+            <div class="profile-card-top">
+              <div class="landing-profile-icon" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                  <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+              </div>
+              <span class="landing-profile-badge">Home View &bull; 🎬 Video</span>
+            </div>
+            <div>
+              <div class="landing-profile-name">Eleanor &amp; Family (Home View)</div>
+              <div class="landing-profile-desc">Interactive Safety Dashboard • Multilingual • Voice Test</div>
+              <div style="margin-top: 6px; font-size: 0.74rem; color: #38bdf8; font-weight: 700;">
+                🎬 Includes "How To Use" Interactive Demo Video
+              </div>
+            </div>
+            <div class="landing-profile-footer">
+              <span>Open Home Dashboard</span>
+              <span>&rarr;</span>
+            </div>
+          </div>
+
+          <!-- Profile 3: Medic 14 (Boston EMS First Responder) -->
+          <div class="landing-profile-card profile-ems" id="cardProfileEMS" onclick="enterSystemMode('demo'); window.location.hash='#demo/emergencyalert'; if(window.switchTab){window.switchTab('emergencyalert');}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();enterSystemMode('demo');if(window.switchTab){window.switchTab('emergencyalert');}}" tabindex="0" role="button" aria-label="Select Medic 14 Boston EMS First Responder Profile">
+            <div class="profile-card-top">
+              <div class="landing-profile-icon" style="background: rgba(244, 63, 94, 0.15); color: #f43f5e; border-color: rgba(244, 63, 94, 0.3);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                  <polyline points="2 17 12 22 22 17"/>
+                  <polyline points="2 12 12 17 22 12"/>
+                </svg>
+              </div>
+              <span class="landing-profile-badge" style="background: rgba(244, 63, 94, 0.25); border-color: rgba(244, 63, 94, 0.6);">Ambulance Mode</span>
+            </div>
+            <div>
+              <div class="landing-profile-name">Medic 14 (Boston EMS First Responder)</div>
+              <div class="landing-profile-desc">Emergency CAD Dispatch • Smart Door Token: 8492</div>
+              <div style="margin-top: 6px; font-size: 0.74rem; color: #fda4af; font-weight: 700;">
+                🚑 First Responder CAD &bull; Emergency Alert Mechanism
+              </div>
+            </div>
+            <div class="landing-profile-footer">
+              <span>Open Ambulance CAD</span>
+              <span>&rarr;</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -397,6 +675,34 @@
           </svg>
           <span>NIRA Portal</span>
         </button>
+
+        <!-- Quick Access: Notification Center with live unread badge -->
+        <button class="btn-header-action" id="btnHeaderNotif" onclick="switchTab('notificationcenter')" title="Open Notification Center" aria-label="Notification Center">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span>Notifications</span>
+          <span class="demo-unread-badge-counter" id="headerNotifBadge" style="display: none;">0</span>
+        </button>
+
+        <!-- Interactive Explainable Video Button -->
+        <button class="btn-header-action" id="btnHeaderDemoVideo" onclick="switchTab('demovideo')" title="Watch Application Explainable Video & Walkthrough" aria-label="Explainable Video Guide" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; font-weight: 800;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          <span>🎬 Explainable Video</span>
+        </button>
+
+        <!-- Quick Reset: Demo Data -->
+        <button class="btn-header-action reset-btn" id="btnHeaderResetDemo" onclick="if(window.person2DemoStore) window.person2DemoStore.resetDemoData()" title="Reset Demo Data to Initial Baseline" aria-label="Reset Demo Data">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <polyline points="1 4 1 10 7 10"/>
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+          </svg>
+          <span>Reset Demo</span>
+        </button>
+
 
         <!-- Dark / Light / System Theme Selector -->
         <div class="theme-selector-pill" role="radiogroup" aria-label="Theme Selection">
@@ -551,43 +857,119 @@
       </div>
     </div>
 
-    <!-- Apple iOS / macOS Style Multi-View Tab Navigation -->
+    <!-- Apple iOS / macOS Style Multi-View Tab Navigation Strip -->
     <nav class="tab-navigation-strip" role="tablist" aria-label="NIRA Safety Telemetry Views">
-      <button class="tab-nav-btn active" id="tabBtnOverview" onclick="switchTab('overview')" role="tab" aria-selected="true" aria-controls="panelOverview" tabindex="0">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <rect x="3" y="3" width="7" height="7"/>
-          <rect x="14" y="3" width="7" height="7"/>
-          <rect x="14" y="14" width="7" height="7"/>
-          <rect x="3" y="14" width="7" height="7"/>
-        </svg>
-        <span data-i18n="tabOverview">1. Overview &amp; Health Vitals</span>
-      </button>
-
-      <button class="tab-nav-btn" id="tabBtnVision" onclick="switchTab('vision')" role="tab" aria-selected="false" aria-controls="panelVision" tabindex="0">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path d="M23 7l-7 5 7 5V7z"/>
-          <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-        </svg>
-        <span data-i18n="tabLiveVision">2. Live Vision &amp; Floorplan</span>
-      </button>
-
-      <button class="tab-nav-btn" id="tabBtnVoice" onclick="switchTab('voice')" role="tab" aria-selected="false" aria-controls="panelVoice" tabindex="0">
+      <!-- Person 2 Demo Module Assigned Tabs -->
+      <button class="tab-nav-btn active" id="tabBtnVoiceAssistant" onclick="switchTab('voiceassistant')" role="tab" aria-selected="true" aria-controls="panelVoiceAssistant" tabindex="0">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
           <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
           <line x1="12" y1="19" x2="12" y2="23"/>
           <line x1="8" y1="23" x2="16" y2="23"/>
         </svg>
-        <span data-i18n="tabVoiceAI">3. Voice AI &amp; Conversational Hub</span>
+        <span>Voice Assistant</span>
       </button>
 
-      <button class="tab-nav-btn" id="tabBtnDispatch" onclick="switchTab('dispatch')" role="tab" aria-selected="false" aria-controls="panelDispatch" tabindex="0">
+      <button class="tab-nav-btn" id="tabBtnDailyCheckin" onclick="switchTab('dailycheckin')" role="tab" aria-selected="false" aria-controls="panelDailyCheckin" tabindex="-1">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M9 11l3 3L22 4"/>
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        </svg>
+        <span>Daily Check-in</span>
+      </button>
+
+      <button class="tab-nav-btn" id="tabBtnFallDetection" onclick="switchTab('falldetection')" role="tab" aria-selected="false" aria-controls="panelFallDetection" tabindex="-1">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>Fall Detection</span>
+      </button>
+
+      <button class="tab-nav-btn" id="tabBtnEmergencyAlert" onclick="switchTab('emergencyalert')" role="tab" aria-selected="false" aria-controls="panelEmergencyAlert" tabindex="-1" style="border: 1px solid rgba(244, 63, 94, 0.45); background: rgba(244, 63, 94, 0.08);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" aria-hidden="true">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+          <polyline points="2 17 12 22 22 17"/>
+          <polyline points="2 12 12 17 22 12"/>
+        </svg>
+        <span style="color: #fda4af;">Ambulance CAD</span>
+        <span class="pill-badge pill-red" style="font-size: 0.62rem; padding: 2px 6px; margin-left: 4px;">Medic 14</span>
+      </button>
+
+      <!-- How-To Explainable Video Tab -->
+      <button class="tab-nav-btn" id="tabBtnDemoVideo" onclick="switchTab('demovideo')" role="tab" aria-selected="false" aria-controls="panelDemoVideo" tabindex="-1" style="border: 1px solid rgba(56, 189, 248, 0.45); background: rgba(56, 189, 248, 0.08);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" aria-hidden="true">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        <span style="color: #38bdf8;">🎬 Explainable Video</span>
+      </button>
+
+      <button class="tab-nav-btn" id="tabBtnLocationMap" onclick="switchTab('locationmap')" role="tab" aria-selected="false" aria-controls="panelLocationMap" tabindex="-1">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+          <line x1="8" y1="2" x2="8" y2="18"/>
+          <line x1="16" y1="6" x2="16" y2="22"/>
+        </svg>
+        <span>Location &amp; Hospitals</span>
+      </button>
+
+      <button class="tab-nav-btn" id="tabBtnNotificationCenter" onclick="switchTab('notificationcenter')" role="tab" aria-selected="false" aria-controls="panelNotificationCenter" tabindex="-1">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span>Notifications</span>
+        <span class="demo-unread-badge-counter" id="tabNotifBadge" style="display: none;">0</span>
+      </button>
+
+      <button class="tab-nav-btn" id="tabBtnIncidentHistory" onclick="switchTab('incidenthistory')" role="tab" aria-selected="false" aria-controls="panelIncidentHistory" tabindex="-1">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        <span>Incident History</span>
+      </button>
+
+      <!-- Baseline Core Views -->
+      <button class="tab-nav-btn" id="tabBtnOverview" onclick="switchTab('overview')" role="tab" aria-selected="false" aria-controls="panelOverview" tabindex="-1">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7"/>
+          <rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        <span data-i18n="tabOverview">Overview &amp; Vitals</span>
+      </button>
+
+      <button class="tab-nav-btn" id="tabBtnVision" onclick="switchTab('vision')" role="tab" aria-selected="false" aria-controls="panelVision" tabindex="-1">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M23 7l-7 5 7 5V7z"/>
+          <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+        </svg>
+        <span data-i18n="tabLiveVision">Vision &amp; Radar</span>
+      </button>
+
+      <button class="tab-nav-btn" id="tabBtnVoice" onclick="switchTab('voice')" role="tab" aria-selected="false" aria-controls="panelVoice" tabindex="-1">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/>
+          <line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+        <span data-i18n="tabVoiceAI">Voice AI</span>
+      </button>
+
+      <button class="tab-nav-btn" id="tabBtnDispatch" onclick="switchTab('dispatch')" role="tab" aria-selected="false" aria-controls="panelDispatch" tabindex="-1">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <polygon points="12 2 2 7 12 12 22 7 12 2"/>
           <polyline points="2 17 12 22 22 17"/>
           <polyline points="2 12 12 17 22 12"/>
         </svg>
-        <span data-i18n="tabCadDispatch">4. Emergency Command Center</span>
+        <span data-i18n="tabCadDispatch">CAD Command</span>
       </button>
     </nav>
 
@@ -597,7 +979,493 @@
       <!-- ======================================================================
            TAB 1: OVERVIEW & HEALTH VITALS (Executive Health Snapshot)
            ====================================================================== -->
-      <div class="tab-content-panel active" id="panelOverview" role="tabpanel" aria-labelledby="tabBtnOverview">
+          <div class="tab-content-panel active" id="panelVoiceAssistant" role="tabpanel" aria-labelledby="tabBtnVoiceAssistant">
+      <div class="demo-module-card">
+        <div class="demo-card-header">
+          <div class="demo-card-title-wrap">
+            <span class="demo-card-icon" aria-hidden="true">≡ƒÄÖ∩╕Å</span>
+            <div>
+              <h3>Voice Safety Assistant &amp; Conversational AI</h3>
+              <div class="demo-card-desc">Interactive bidirectional speech interface with real-time transcription, predefined responses, and ambient acoustic monitoring.</div>
+            </div>
+          </div>
+          <span class="pill-badge pill-blue">Web Speech &bull; Fallback Enabled</span>
+        </div>
+
+        <!-- Video Walkthrough Callout Banner inside Eleanor's Voice / Home Dashboard -->
+        <div class="demo-video-callout-banner" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(15, 23, 42, 0.85) 100%); border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 14px; padding: 14px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.45); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">≡ƒÄ¼</div>
+            <div>
+              <div style="font-weight: 800; color: #ffffff; font-size: 0.95rem;">New to NIRA? Watch the Gemini 3D &amp; Human Explainer Video</div>
+              <div style="font-size: 0.8rem; color: #94a3b8;">5-step multimodal walkthrough featuring 3D Digital Twin and Human AI Presenter Dr. Maya explaining Voice Assistant, Daily Check-in, Fall Detection &amp; Ambulance CAD Dispatch.</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-demo-primary" onclick="window.switchTab('demovideo')" style="white-space: nowrap; font-size: 0.82rem;" title="Watch Gemini 3D & Human Explainer Video">
+              Γû╢ Watch Gemini 3D &amp; Human Explainer &rarr;
+            </button>
+            <button class="btn-demo-secondary" onclick="openVideoDemoModal()" style="white-space: nowrap; font-size: 0.82rem;" title="Watch 3D Visual Simulation Reel">
+              ≡ƒÄÑ 3D Reel
+            </button>
+          </div>
+        </div>
+
+        <div class="demo-voice-container">
+          <!-- Left: Mic Controller & Audio Visualizer -->
+          <div class="demo-voice-panel-left">
+            <button class="demo-mic-circle-btn" id="demoMicToggleBtn" onclick="window.person2VoiceAssistant.toggleListening()" aria-label="Toggle Microphone Voice Input" aria-pressed="false">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                <line x1="12" y1="19" x2="12" y2="23"/>
+                <line x1="8" y1="23" x2="16" y2="23"/>
+              </svg>
+            </button>
+            <div id="demoMicStatusText" style="font-size: 0.88rem; font-weight: 700; color: #ffffff;">Microphone Ready ΓÇó Click to speak</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Works with or without browser mic permission</div>
+
+            <div class="demo-audio-visualizer" id="demoAudioVisualizer" style="display: none;">
+              <span class="bar"></span>
+              <span class="bar"></span>
+              <span class="bar"></span>
+              <span class="bar"></span>
+              <span class="bar"></span>
+            </div>
+
+            <div id="demoLiveTranscriptionBox" style="display: none; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: var(--radius-sm); padding: 8px 12px; margin-top: 12px; width: 100%;">
+              <small style="color: var(--accent-blue); font-weight: 700;">Live Speech Stream:</small>
+              <div id="demoLiveTranscriptionText" style="font-size: 0.82rem; color: #ffffff; font-style: italic;">Listening...</div>
+            </div>
+
+            <!-- Quick Utterance Prompt Chips -->
+            <div class="demo-voice-prompts-strip">
+              <div style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 2px;">Predefined Demo Responses:</div>
+              <button class="demo-prompt-pill-btn" onclick="window.person2VoiceAssistant.handleUserInput('I am fine, everything is okay.')">≡ƒÆ¼ "I am fine, everything is okay."</button>
+              <button class="demo-prompt-pill-btn" onclick="window.person2VoiceAssistant.handleUserInput('I fell in the bathroom and need help!')">≡ƒÜ¿ "I fell in the bathroom and need help!"</button>
+              <button class="demo-prompt-pill-btn" onclick="window.person2VoiceAssistant.handleUserInput('What is my scheduled medication?')">≡ƒÆè "What is my scheduled medication?"</button>
+              <button class="demo-prompt-pill-btn" onclick="window.person2VoiceAssistant.handleUserInput('Check my current heart rate and pulse.')">Γ¥ñ∩╕Å "Check my current heart rate and pulse."</button>
+            </div>
+          </div>
+
+          <!-- Right: Conversation History & Text Input Fallback -->
+          <div class="demo-voice-panel-right">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px;">
+              <strong style="font-size: 0.85rem; color: #ffffff;">Echo Show 15 &bull; Two-Way Conversation Transcript</strong>
+              <small style="color: var(--text-muted);">Timestamped History</small>
+            </div>
+
+            <div class="demo-voice-history-wrap" id="demoVoiceHistoryList">
+              <!-- Rendered dynamically by VoiceAssistantController -->
+            </div>
+
+            <!-- Text Input Fallback Box -->
+            <div class="demo-voice-input-bar">
+              <input type="text" id="demoVoiceInput" class="demo-voice-text-input" placeholder="Type a message or response for Eleanor (text fallback)..." onkeydown="if(event.key==='Enter'){window.person2VoiceAssistant.handleUserInput(this.value); this.value='';}">
+              <button class="btn-demo-primary" onclick="const el=document.getElementById('demoVoiceInput'); if(el){window.person2VoiceAssistant.handleUserInput(el.value); el.value='';}">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         PAGE B: DAILY CHECK-IN (Elderly Wellness Questionnaire)
+         ====================================================================== -->
+    <div class="tab-content-panel" id="panelDailyCheckin" role="tabpanel" aria-labelledby="tabBtnDailyCheckin">
+      <div class="demo-module-card">
+        <div class="demo-card-header">
+          <div class="demo-card-title-wrap">
+            <span class="demo-card-icon" aria-hidden="true">≡ƒôï</span>
+            <div>
+              <h3>Elderly Daily Wellness Check-in</h3>
+              <div class="demo-card-desc">Scheduled morning health check, vital reassurance questionnaire, and clinical attention alert system.</div>
+            </div>
+          </div>
+          <div id="demoLatestCheckinStatus">
+            <span class="pill-badge pill-neutral">Checking status...</span>
+          </div>
+        </div>
+
+        <!-- Primary Status Option Cards -->
+        <div class="demo-checkin-grid">
+          <div class="demo-checkin-option-card selected" data-status="fine" onclick="window.person2DailyCheckin.selectStatus('fine')" role="radio" aria-checked="true" tabindex="0">
+            <div class="opt-icon" aria-hidden="true">≡ƒƒó</div>
+            <div class="opt-label">I'm Fine</div>
+            <div class="opt-desc">Feeling healthy, normal energy, no pain or mobility difficulties.</div>
+          </div>
+
+          <div class="demo-checkin-option-card" data-status="unwell" onclick="window.person2DailyCheckin.selectStatus('unwell')" role="radio" aria-checked="false" tabindex="0">
+            <div class="opt-icon" aria-hidden="true">≡ƒƒí</div>
+            <div class="opt-label">Feeling Unwell</div>
+            <div class="opt-desc">Dizziness, mild pain, fatigue, or balance irregularity noted.</div>
+          </div>
+
+          <div class="demo-checkin-option-card" data-status="assistance" onclick="window.person2DailyCheckin.selectStatus('assistance')" role="radio" aria-checked="false" tabindex="0">
+            <div class="opt-icon" aria-hidden="true">≡ƒö┤</div>
+            <div class="opt-label">Need Assistance</div>
+            <div class="opt-desc">Requires immediate caregiver visit or urgent clinical attention.</div>
+          </div>
+        </div>
+
+        <!-- Secondary Wellness Questions -->
+        <div class="demo-checkin-subquestions">
+          <div class="subq-item">
+            <label>1. Sleep Quality Last Night:</label>
+            <div class="subq-radios">
+              <label><input type="radio" name="demoSleep" value="Slept well (7.5+ hrs)" checked> Slept well</label>
+              <label><input type="radio" name="demoSleep" value="Fair (Woke up once)"> Fair</label>
+              <label><input type="radio" name="demoSleep" value="Poor / Restless"> Restless</label>
+            </div>
+          </div>
+
+          <div class="subq-item">
+            <label>2. Morning Medications (Lisinopril 10mg):</label>
+            <div class="subq-radios">
+              <label><input type="checkbox" id="demoCheckinMeds" checked> Taken with breakfast</label>
+            </div>
+          </div>
+
+          <div class="subq-item">
+            <label>3. Mobility &amp; Balance Stability:</label>
+            <div class="subq-radios">
+              <label><input type="radio" name="demoMobility" value="Normal gait" checked> Normal</label>
+              <label><input type="radio" name="demoMobility" value="Mild stiffness"> Mild stiffness</label>
+              <label><input type="radio" name="demoMobility" value="Unsteady / Stumbled"> Unsteady</label>
+            </div>
+          </div>
+
+          <div class="subq-item">
+            <label>4. Monitored Resident Profile:</label>
+            <div style="font-size: 0.85rem; color: #ffffff;">Eleanor Vance &bull; Unit 4B Beacon Hill (Age 79)</div>
+          </div>
+        </div>
+
+        <label for="demoCheckinNotes" style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">
+          Optional Resident or Caregiver Notes:
+        </label>
+        <textarea id="demoCheckinNotes" class="demo-textarea" placeholder="Add custom notes (e.g. prepared tea, walked in garden, slight right knee soreness)..."></textarea>
+
+        <button class="btn-demo-primary" onclick="window.person2DailyCheckin.submitCheckin()">
+          Submit Daily Check-in &rarr;
+        </button>
+
+        <!-- Submission Confirmation Card -->
+        <div id="demoCheckinConfirmation" style="display: none;"></div>
+
+        <!-- Previous Check-ins Table -->
+        <div style="margin-top: 32px;">
+          <h4 style="font-size: 0.95rem; font-weight: 800; color: #ffffff; margin-bottom: 12px;">Previous Check-in Records</h4>
+          <div class="demo-table-wrap">
+            <table class="demo-data-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Status</th>
+                  <th>Sleep Quality</th>
+                  <th>Medication</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="demoCheckinHistoryTableBody">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         PAGE C: FALL DETECTION SIMULATION (Telemetry HUD & Simulate Fall)
+         ====================================================================== -->
+    <div class="tab-content-panel" id="panelFallDetection" role="tabpanel" aria-labelledby="tabBtnFallDetection">
+      <div class="demo-module-card">
+        <div class="demo-card-header">
+          <div class="demo-card-title-wrap">
+            <span class="demo-card-icon" aria-hidden="true">≡ƒÜ¿</span>
+            <div>
+              <h3>Fall Detection &amp; Biometric Sensor Simulation</h3>
+              <div class="demo-card-desc">Simulated IMU accelerometer, 60GHz mmWave radar, optical pose skeleton, and Apple Watch biometrics.</div>
+            </div>
+          </div>
+          <span class="pill-badge pill-neutral">SIMULATED TELEMETRY HUD</span>
+        </div>
+
+        <!-- Simulated Sensor Matrix HUD -->
+        <div class="demo-sensor-hud-grid">
+          <div class="demo-sensor-tile">
+            <div class="tile-head">
+              <small>3-Axis IMU Accelerometer</small>
+              <span class="pill-badge pill-blue">Watch / Pendant</span>
+            </div>
+            <div class="tile-val" id="demoSensorAccel">0.99 g (0.08, -0.02, 0.98)</div>
+            <div class="tile-sub">Real-time gravity vector &amp; impact velocity</div>
+          </div>
+
+          <div class="demo-sensor-tile">
+            <div class="tile-head">
+              <small>Impact Velocity</small>
+              <span class="pill-badge pill-blue">Kinematic Threshold</span>
+            </div>
+            <div class="tile-val" id="demoSensorVelocity">0.20 m/s</div>
+            <div class="tile-sub">Threshold for fall: &ge; 2.20 m/s</div>
+          </div>
+
+          <div class="demo-sensor-tile">
+            <div class="tile-head">
+              <small>Posture Classification</small>
+              <span class="pill-badge pill-blue">60GHz Radar / Vision</span>
+            </div>
+            <div class="tile-val" id="demoSensorPosture" style="color: var(--accent-green-text);">Standing / Ambulatory</div>
+            <div class="tile-sub">Evaluates horizontal floor angle deviation</div>
+          </div>
+
+          <div class="demo-sensor-tile">
+            <div class="tile-head">
+              <small>Heart Rate Telemetry</small>
+              <span class="pill-badge pill-blue">Apple Watch ECG</span>
+            </div>
+            <div class="tile-val" id="demoSensorHeartRate" style="color: var(--accent-green-text);">74 BPM</div>
+            <div class="tile-sub">Resting baseline: 72 BPM (Normal)</div>
+          </div>
+
+          <div class="demo-sensor-tile">
+            <div class="tile-head">
+              <small>Floor Substrate Condition</small>
+              <span class="pill-badge pill-blue">Room Sensors</span>
+            </div>
+            <div class="tile-val" id="demoSensorSubstrate">Dry</div>
+            <div class="tile-sub">Identifies wet tile hazard in bathroom</div>
+          </div>
+
+          <div class="demo-sensor-tile">
+            <div class="tile-head">
+              <small>60GHz mmWave Micromotion</small>
+              <span class="pill-badge pill-blue">Ceiling Radar</span>
+            </div>
+            <div class="tile-val" id="demoSensorRadar">0.35 m/s (Living Room)</div>
+            <div class="tile-sub">Detects micro-respiration &amp; chest wall movement</div>
+          </div>
+        </div>
+
+        <!-- Simulate Fall Action Box -->
+        <div class="demo-fall-trigger-box">
+          <div>
+            <h4 style="font-size: 1.25rem; font-weight: 800; color: #ffffff; margin-bottom: 6px;">Interactive Fall Incident Generator</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 540px; margin: 0 auto;">
+              Clicking below dispatches a high-impact fall signature through the NIRA event pipeline. It generates exactly one incident, alerts caregiver channels, and primes the emergency workflow.
+            </p>
+          </div>
+
+          <button class="btn-simulate-fall-large" id="btnTriggerFallSimulation" onclick="window.person2FallSimulation.simulateFallAction()">
+            ≡ƒÜ¿ Simulate Fall
+          </button>
+
+          <div style="display: flex; gap: 12px; margin-top: 6px;">
+            <button class="btn-demo-secondary" onclick="window.person2FallSimulation.resetSensors()">Reset Sensors to Baseline</button>
+            <button class="btn-demo-secondary" onclick="window.switchTab('alert')">Go to Alert Screen</button>
+          </div>
+        </div>
+
+        <!-- Result Banner -->
+        <div class="demo-incident-result-banner" id="demoFallIncidentResultBanner" style="display: none;"></div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         PAGE D: EMERGENCY ALERT SCREEN (Incident Verification & Dispatch)
+         ====================================================================== -->
+    <div class="tab-content-panel" id="panelEmergencyAlert" role="tabpanel" aria-labelledby="tabBtnEmergencyAlert">
+      <div class="demo-module-card">
+        <div class="demo-card-header">
+          <div class="demo-card-title-wrap">
+            <span class="demo-card-icon" aria-hidden="true">ΓÜá∩╕Å</span>
+            <div>
+              <h3>Emergency Alert &amp; Caregiver Response Command</h3>
+              <div class="demo-card-desc">Active incident verification, real-time caregiver acknowledgment, and automated first-responder CAD dispatch packet.</div>
+            </div>
+          </div>
+          <span class="pill-badge pill-red">LIVE INCIDENT CONTROLLER</span>
+        </div>
+
+        <div id="demoEmergencyAlertContent">
+          <!-- Rendered dynamically by EmergencyAlertController -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         PAGE E: LOCATION MAP & NEARBY HOSPITALS (Leaflet OSM + Fallback)
+         ====================================================================== -->
+    <div class="tab-content-panel" id="panelLocationMap" role="tabpanel" aria-labelledby="tabBtnLocationMap">
+      <div class="demo-module-card">
+        <div class="demo-card-header">
+          <div class="demo-card-title-wrap">
+            <span class="demo-card-icon" aria-hidden="true">≡ƒù║∩╕Å</span>
+            <div>
+              <h3>Incident Location &amp; Nearby Hospital Network</h3>
+              <div class="demo-card-desc">OpenStreetMap Leaflet integration with emergency routing ETA, trauma center statuses, and vector fallback.</div>
+            </div>
+          </div>
+          <span class="pill-badge pill-blue">OpenStreetMap &bull; Leaflet</span>
+        </div>
+
+        <!-- Map Legend -->
+        <div class="demo-map-legend-bar">
+          <div class="legend-item"><span style="color: var(--accent-red); font-size: 1rem;">≡ƒÜ¿</span> <strong>Incident / Resident Location</strong> (Unit 4B)</div>
+          <div class="legend-item"><span style="color: var(--accent-blue); font-size: 1rem;">≡ƒÅÑ</span> <strong>Level 1 Trauma Centers</strong></div>
+          <div class="legend-item"><span style="color: var(--accent-green); font-size: 1rem;">≡ƒƒó</span> <strong>Boston EMS Medic-14 Route</strong></div>
+          <div class="legend-item" style="margin-left: auto; color: var(--text-muted);"><small>Fixed sample coordinates for hackathon showcase</small></div>
+        </div>
+
+        <!-- Leaflet Map Container -->
+        <div class="demo-map-container" id="demoMapContainer"></div>
+
+        <!-- Hospital Information Cards -->
+        <h4 style="font-size: 0.95rem; font-weight: 800; color: #ffffff; margin-bottom: 14px;">Nearby Hospital Trauma Centers &amp; ER Routing</h4>
+        <div class="demo-hospitals-grid" id="demoHospitalCardsGrid">
+          <!-- Populated dynamically by LocationMapController -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         PAGE F: NOTIFICATION CENTER (Filterable System Alerts)
+         ====================================================================== -->
+    <div class="tab-content-panel" id="panelNotificationCenter" role="tabpanel" aria-labelledby="tabBtnNotificationCenter">
+      <div class="demo-module-card">
+        <div class="demo-card-header">
+          <div class="demo-card-title-wrap">
+            <span class="demo-card-icon" aria-hidden="true">≡ƒöö</span>
+            <div>
+              <h3>Notification Center</h3>
+              <div class="demo-card-desc">Categorized emergency alerts, daily check-in verifications, vital reminders, and guardian audit events.</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span class="pill-badge pill-blue" id="demoNotifUnreadCount">0 unread</span>
+            <button class="btn-demo-secondary" onclick="window.person2DemoStore.markAllNotificationsRead()">Mark All Read</button>
+            <button class="btn-demo-secondary" onclick="window.person2DemoStore.clearNotifications()">Clear All</button>
+          </div>
+        </div>
+
+        <!-- Filter Toolbar -->
+        <div class="demo-notif-toolbar">
+          <div class="demo-notif-filters">
+            <button class="demo-notif-filter-pill active" data-category="all" onclick="window.person2NotificationCenter.setFilter('all')">All Notifications</button>
+            <button class="demo-notif-filter-pill" data-category="emergency" onclick="window.person2NotificationCenter.setFilter('emergency')">≡ƒÜ¿ Emergency Alerts</button>
+            <button class="demo-notif-filter-pill" data-category="check_in" onclick="window.person2NotificationCenter.setFilter('check_in')">≡ƒôï Daily Check-ins</button>
+            <button class="demo-notif-filter-pill" data-category="reminder" onclick="window.person2NotificationCenter.setFilter('reminder')">ΓÅ░ Reminders &amp; Vitals</button>
+          </div>
+        </div>
+
+        <!-- Notification List -->
+        <div class="demo-notif-list" id="demoNotificationList">
+          <!-- Populated dynamically by NotificationCenterController -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         PAGE G: INCIDENT HISTORY (Audit Trail & Filterable Log)
+         ====================================================================== -->
+    <div class="tab-content-panel" id="panelIncidentHistory" role="tabpanel" aria-labelledby="tabBtnIncidentHistory">
+      <div class="demo-module-card">
+        <div class="demo-card-header">
+          <div class="demo-card-title-wrap">
+            <span class="demo-card-icon" aria-hidden="true">≡ƒô£</span>
+            <div>
+              <h3>Incident History &amp; Clinical Safety Audit Trail</h3>
+              <div class="demo-card-desc">Persistent chronological registry of anomalies, simulated falls, caregiver acknowledgments, and resolutions.</div>
+            </div>
+          </div>
+          <span class="pill-badge pill-neutral">AUDIT LOG REGISTRY</span>
+        </div>
+
+        <!-- Filter Controls -->
+        <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">
+          <div>
+            <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Filter by Event Type:</label>
+            <select id="demoHistTypeFilter" class="lang-select-box" onchange="window.person2IncidentHistory.setFilters(this.value, undefined)">
+              <option value="all">All Event Types</option>
+              <option value="possible_fall">High-Impact Fall</option>
+              <option value="rapid_posture_change">Rapid Posture Change</option>
+              <option value="wellness_check_alert">Wellness Check Alert</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Filter by Status:</label>
+            <select id="demoHistStatusFilter" class="lang-select-box" onchange="window.person2IncidentHistory.setFilters(undefined, this.value)">
+              <option value="all">All Statuses</option>
+              <option value="ACTIVE">Active</option>
+              <option value="ACKNOWLEDGED">Acknowledged</option>
+              <option value="CANCELLED_FALSE_ALARM">Cancelled (False Alarm)</option>
+              <option value="RESOLVED">Resolved</option>
+            </select>
+          </div>
+
+          <div style="margin-left: auto;">
+            <button class="btn-demo-primary" onclick="window.switchTab('falldetection')">+ Simulate New Incident</button>
+          </div>
+        </div>
+
+        <!-- Incident Table -->
+        <div class="demo-table-wrap">
+          <table class="demo-data-table">
+            <thead>
+              <tr>
+                <th>Incident ID</th>
+                <th>Event Type</th>
+                <th>Timestamp</th>
+                <th>Location</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th>Audit Action</th>
+              </tr>
+            </thead>
+            <tbody id="demoIncidentHistoryTableBody">
+              <!-- Populated dynamically by IncidentHistoryController -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         PAGE H: EXPLAINABLE AI VIDEO & APPLICATION GUIDE
+         ====================================================================== -->
+    <div class="tab-content-panel" id="panelDemoVideo" role="tabpanel" aria-labelledby="tabBtnDemoVideo">
+      <div class="demo-module-card">
+        <div class="demo-card-header">
+          <div class="demo-card-title-wrap">
+            <span class="demo-card-icon" aria-hidden="true">≡ƒÄ¼</span>
+            <div>
+              <h3>NIRA 3D &amp; Human Explainer Video &bull; Powered by Gemini</h3>
+              <div class="demo-card-desc">Multimodal 3D Digital Twin and Human AI Presenter (Dr. Maya Thorne, MD) providing clinical decision rationale, telemetry breakdown, and live voiceover across all 5 safety phases.</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <button class="btn-luxury-primary" onclick="openVideoDemoModal()" style="font-size: 0.82rem; padding: 8px 16px;">
+              <span>≡ƒÄÑ Watch 3D Video Reel</span>
+            </button>
+            <span class="pill-badge pill-blue">GEMINI 3D &bull; HUMAN AI</span>
+          </div>
+        </div>
+
+        <div id="demoVideoPlayerContainer">
+          <!-- Populated dynamically by DemoVideoController -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         TAB 1: OVERVIEW & HEALTH VITALS (Executive Health Snapshot)
+         ====================================================================== -->
+
+
+      <div class="tab-content-panel" id="panelOverview" role="tabpanel" aria-labelledby="tabBtnOverview">
 
       <!-- RESIDENT PROFILE & CONSENT STATUS HEADER -->
       <section class="resident-profile-banner" role="region" aria-label="Resident Profile and Consent Status">
@@ -3045,6 +3913,13 @@
     </div>
   </div>
 
+  <!-- Person 2 Demo Incident Detail Modal -->
+  <div class="demo-modal-overlay" id="demoIncidentDetailModal" role="dialog" aria-modal="true" aria-hidden="true" onclick="if(event.target===this) window.closeIncidentModal();">
+    <div class="demo-modal-window" id="demoIncidentDetailModalBody">
+      <!-- Populated dynamically by IncidentHistoryController -->
+    </div>
+  </div>
+
   <div class="toast-area" id="toastContainer"></div>
 
   <script src="/static/three.min.js"></script>
@@ -3054,5 +3929,6 @@
   <script src="/static/camera_sim.js?v=7.0"></script>
   <script src="/static/video_reel.js?v=6.0"></script>
   <script src="/static/dashboard.js?v=13.0"></script>
+  <script src="/static/demo_module.js?v=2.0"></script>
 </body>
 </html>
