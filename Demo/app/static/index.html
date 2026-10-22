@@ -3461,6 +3461,13 @@
               </svg>
               <span data-i18n="stopCameraBtn">Stop Camera</span>
             </button>
+            <button class="btn-live-secondary" onclick="testSimulateInactivity()" title="Simulate 3 minutes stillness to trigger alarm inquiry">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-amber)" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <span>Test 3-Min Inactivity</span>
+            </button>
           </div>
 
           <div class="live-telemetry-row">
@@ -3537,7 +3544,13 @@
                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
                 <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
               </svg>
-              <span data-i18n="speakPromptBtn">Test Voice Verification</span>
+              <span data-i18n="speakPromptBtn">Test Voice Prompt</span>
+            </button>
+            <button class="btn-live-secondary" onclick="handleLiveSpokenUtterance('Yes, I am okay.')" title="Simulate answering 'I am okay' to train baseline and dismiss alarm" style="border-color: rgba(52, 211, 153, 0.4); color: #34d399;">
+              <span>💬 "I'm okay" (Dismiss &amp; Learn)</span>
+            </button>
+            <button class="btn-live-secondary" onclick="handleLiveSpokenUtterance('Help me, I fell down!')" title="Simulate distress response" style="border-color: rgba(239, 68, 68, 0.4); color: #ef4444;">
+              <span>🚨 "Help me" (Emergency)</span>
             </button>
           </div>
 

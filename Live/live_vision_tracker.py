@@ -4,9 +4,11 @@ Amazon Developer Hackathon 2026.
 
 Integrates real-time camera inference with trained YOLOv8 model on Kaggle dataset.
 Evaluates:
-  1. NORMAL MOVEMENT (Walking / Sitting)
-  2. FALL DETECTED (Class 0: Fall Detected)
-  3. UNRESPONSIVENESS (Motionless on floor > threshold seconds)
+  1. NORMAL MOVEMENT (Walking / Sitting within daily circadian routine)
+  2. FALL DETECTED (Class 0: Sudden Fall / Collapse via biomechanics + YOLOv8)
+  3. PROLONGED INACTIVITY (Motionless without movement for 3-5 mins / learned routine limit)
+  4. ALARM INQUIRY WAKE-UP & SPOKEN VOICE RESPONSE VERIFICATION (Microphone + Whisper STT)
+  5. SELF-LEARNING DAILY ACTIVITY ROUTINE (Adapts baselines on safe feedback to eliminate false alarms)
 """
 
 import os
@@ -28,6 +30,22 @@ try:
 except ImportError:
     requests = None
 
+# Internal package imports
+try:
+    from Live.activity_routine_learner import DailyActivityRoutineLearner, get_activity_learner
+    from Live.voice.response_analyzer import ResponseAnalyzer
+    from Live.voice.models import VoiceInteractionStatus
+except ImportError:
+    try:
+        from activity_routine_learner import DailyActivityRoutineLearner, get_activity_learner
+        from voice.response_analyzer import ResponseAnalyzer
+        from voice.models import VoiceInteractionStatus
+    except ImportError:
+        DailyActivityRoutineLearner = None
+        get_activity_learner = None
+        ResponseAnalyzer = None
+        VoiceInteractionStatus = None
+
 logger = logging.getLogger("NIRA.LiveVisionTracker")
 
 # Label mappings from Kaggle Fall Detection Dataset
@@ -39,36 +57,67 @@ CLASS_NAMES = {
 
 STATE_NORMAL = "NORMAL_MOVEMENT"
 STATE_FALL = "FALL_DETECTED"
+STATE_PROLONGED_INACTIVITY = "PROLONGED_INACTIVITY"
 STATE_UNRESPONSIVE = "UNRESPONSIVENESS"
+STATE_ALARM_INQUIRY = "ALARM_INQUIRY_ACTIVE"
+STATE_CONFIRMED_SAFE = "CONFIRMED_SAFE"
 
 
 class LiveVisionTracker:
     """
     Connects to live camera devices or edge video feeds and evaluates
-    real-time fall status & unresponsiveness using custom-trained YOLOv8.
+    real-time fall status, biomechanics, prolonged inactivity (3-5 mins),
+    and conversational voice check-in wake-ups.
     """
     def __init__(
         self,
         model_path: Optional[str] = None,
         backend_url: str = "http://localhost:8000",
-        unresponsive_threshold_sec: float = 4.0
+        unresponsive_threshold_sec: float = 180.0,  # 3 minutes default (180s - 300s clinical range)
+        simulation_speedup_factor: float = 1.0,     # Accelerates immobility timer for test runs
+        zone: str = "living_room"
     ):
         self.backend_url = backend_url.rstrip("/")
         self.unresponsive_threshold_sec = unresponsive_threshold_sec
+        self.simulation_speedup_factor = max(1.0, float(simulation_speedup_factor))
+        self.zone = zone
         self.model = None
         self.model_type = "yolov8"
+
+        # Adaptive daily activity routine learner
+        if get_activity_learner is not None:
+            self.activity_learner = get_activity_learner()
+        elif DailyActivityRoutineLearner is not None:
+            self.activity_learner = DailyActivityRoutineLearner()
+        else:
+            self.activity_learner = None
+
+        # Clinical response analyzer for spoken voice feedback
+        self.response_analyzer = ResponseAnalyzer() if ResponseAnalyzer else None
 
         # State tracking
         self.current_state = STATE_NORMAL
         self.last_detection_time = time.time()
+        self.last_frame_time = time.time()
         self.fall_start_time: Optional[float] = None
-        self.unresponsive_start_time: Optional[float] = None
+        self.accumulated_motionless_sec = 0.0
+        self.motionless_start_time: Optional[float] = None
         self.last_centroid: Optional[Tuple[float, float]] = None
         self.last_motion_rate = 0.0
         self.last_alert_sent_time = 0.0
         self.consecutive_fall_frames = 0
         self.consecutive_normal_frames = 0
         self.prev_gray: Optional[np.ndarray] = None
+
+        # Voice Wake-Up & Interactive Alarm
+        self.alarm_active = False
+        self.alarm_prompt: Optional[str] = None
+        self.alarm_reason: Optional[str] = None
+        self.voice_interaction_status: Optional[str] = None
+        self.last_voice_transcript: Optional[str] = None
+
+        # Centroid motion history for biomechanical fall velocity
+        self.centroid_history: List[Tuple[float, float, float]] = []
 
         # Model path resolution
         live_dir = Path(__file__).resolve().parent
@@ -85,22 +134,29 @@ class LiveVisionTracker:
         self.resolved_model_path = next((p for p in candidate_paths if p and os.path.exists(p)), None)
 
     def reset(self):
-        """Resets state machine and counters when stream stops or starts."""
+        """Resets state machine, alarm, and counters when stream stops or starts."""
         self.current_state = STATE_NORMAL
         self.fall_start_time = None
-        self.unresponsive_start_time = None
+        self.accumulated_motionless_sec = 0.0
+        self.motionless_start_time = None
         self.last_centroid = None
         self.last_motion_rate = 0.0
         self.consecutive_fall_frames = 0
         self.consecutive_normal_frames = 0
         self.prev_gray = None
+        self.alarm_active = False
+        self.alarm_prompt = None
+        self.alarm_reason = None
+        self.voice_interaction_status = None
+        self.last_voice_transcript = None
+        self.centroid_history.clear()
+        self.last_frame_time = time.time()
 
     def initialize_model(self):
         """Loads trained YOLOv8 model if ultralytics is installed."""
         try:
             from ultralytics import YOLO
 
-            # Refresh resolution in case training just completed
             live_dir = Path(__file__).resolve().parent
             custom_model = live_dir / "nira_fall_model.pt"
             if custom_model.exists():
@@ -110,31 +166,39 @@ class LiveVisionTracker:
                 self.model = YOLO(self.resolved_model_path)
                 logger.info(f"Loaded YOLOv8 model from {self.resolved_model_path}")
             else:
-                logger.warning("No existing model weights found; attempting YOLO('yolov8n.pt')")
+                logger.warning("No custom weights found; loading standard YOLOv8n")
                 self.model = YOLO("yolov8n.pt")
                 self.resolved_model_path = "yolov8n.pt"
         except Exception as e:
             logger.warning(f"Ultralytics model initialization error: {e}. Running optical fallback mode.")
             self.model = None
 
-    def evaluate_frame(self, frame: np.ndarray) -> Dict[str, Any]:
+    def evaluate_frame(self, frame: np.ndarray, location: Optional[str] = None) -> Dict[str, Any]:
         """
-        Runs inference on single image/frame and computes:
-        - state: NORMAL_MOVEMENT | FALL_DETECTED | UNRESPONSIVENESS
-        - detected_class: Fall Detected | Walking | Sitting | Normal Movement | Fall / Collapse Detected
-        - boxes: list of detections [x1, y1, x2, y2]
-        - unresponsive_seconds: seconds stationary on ground/desk
+        Runs comprehensive real-time inference on a video/webcam frame:
+          1. Measures optical motion displacement (detects absence of movement).
+          2. Runs YOLOv8 object & posture proposal detection.
+          3. Evaluates biomechanical velocity and floor proximity.
+          4. Tracks prolonged inactivity against learned circadian baseline (3-5 mins).
+          5. Triggers alarm & speech inquiry prompt when threshold is exceeded.
         """
         now = time.time()
+        dt = max(0.01, min(1.0, now - self.last_frame_time))
+        self.last_frame_time = now
+
+        current_zone = location or self.zone
+
         if frame is None or not hasattr(frame, "shape"):
             return {
                 "state": self.current_state,
                 "detected_class": "Normal Movement",
                 "confidence": 0.95,
-                "unresponsive_seconds": 0.0,
-                "is_unresponsive": False,
+                "unresponsive_seconds": round(self.accumulated_motionless_sec, 1),
+                "is_unresponsive": (self.current_state in [STATE_UNRESPONSIVE, STATE_PROLONGED_INACTIVITY]),
                 "motion_displacement": 0.0,
                 "boxes": [],
+                "alarm_active": self.alarm_active,
+                "alarm_prompt": self.alarm_prompt,
                 "timestamp": now
             }
 
@@ -155,10 +219,10 @@ class LiveVisionTracker:
         raw_candidates = []
         yolo_normal = False
         yolo_fall = False
+        current_centroid: Optional[Tuple[float, float]] = None
 
         if self.model is not None:
             try:
-                # Run YOLO proposal generation with conf=0.35 to catch candidate boxes
                 results = self.model(frame, verbose=False, conf=0.35)
                 if results and len(results) > 0 and len(results[0].boxes) > 0:
                     for box in results[0].boxes:
@@ -172,19 +236,19 @@ class LiveVisionTracker:
                         area_ratio = box_area / frame_area
                         aspect_ratio = bw / max(1.0, float(bh))
 
-                        # Reject full-screen hallucinations (>85% of entire frame) and micro-noise
                         if area_ratio > 0.85 or area_ratio < 0.005 or bw < 20 or bh < 20:
                             continue
 
                         label = CLASS_NAMES.get(cls_id, f"Class {cls_id}")
+                        cx = (xyxy[0] + xyxy[2]) / 2.0
+                        cy = (xyxy[1] + xyxy[3]) / 2.0
+                        current_centroid = (cx, cy)
 
-                        # Confidence and posture validation for Fall Detected
+                        # Biomechanical posture check:
                         if cls_id == 0 or "fall" in label.lower():
                             if conf < 0.50:
                                 continue
 
-                            # Biomechanical posture check:
-                            # A real fall is horizontal (aspect_ratio >= 0.70) or in the lower half of frame
                             is_horizontal = aspect_ratio >= 0.70
                             is_low_in_frame = xyxy[3] > 0.48 * fh
                             if not (is_horizontal or is_low_in_frame):
@@ -203,13 +267,29 @@ class LiveVisionTracker:
                             "label": label,
                             "confidence": round(conf, 2),
                             "box": xyxy,
-                            "centroid": ((xyxy[0] + xyxy[2]) / 2.0, (xyxy[1] + xyxy[3]) / 2.0)
+                            "aspect_ratio": round(aspect_ratio, 2),
+                            "centroid": (cx, cy)
                         })
 
             except Exception as e:
                 logger.error(f"Inference error: {e}")
 
-        # 2. Cross-class Non-Maximum Suppression (resolve Sitting vs Fall overlap on same person)
+        # 2. Centroid velocity calculation (Biomechanics of sudden drop)
+        is_high_velocity_drop = False
+        if current_centroid:
+            self.centroid_history.append((now, current_centroid[0], current_centroid[1]))
+            # Keep only last 1.5 seconds of history
+            self.centroid_history = [p for p in self.centroid_history if (now - p[0]) <= 1.5]
+            if len(self.centroid_history) >= 2:
+                t_old, _, y_old = self.centroid_history[0]
+                t_new, _, y_new = self.centroid_history[-1]
+                time_span = max(0.05, t_new - t_old)
+                downward_speed = (y_new - y_old) / time_span
+                # Rapid downward drop exceeds 120 pixels/sec normalized
+                if downward_speed > 120.0 and y_new > (fh * 0.50):
+                    is_high_velocity_drop = True
+
+        # 3. Cross-class Non-Maximum Suppression
         def _compute_iou(b1, b2):
             x1 = max(b1[0], b2[0])
             y1 = max(b1[1], b2[1])
@@ -227,7 +307,7 @@ class LiveVisionTracker:
                 continue
             filtered_boxes.append(cand)
 
-        # 3. Determine frame-level detection
+        # 4. Primary detection determination
         primary_class = "Normal Movement"
         primary_conf = 0.95
         is_fall_candidate = False
@@ -236,18 +316,17 @@ class LiveVisionTracker:
             best = filtered_boxes[0]
             primary_class = best["label"]
             primary_conf = best["confidence"]
-            if best["class_id"] == 0 or "fall" in best["label"].lower():
+            if best["class_id"] == 0 or "fall" in best["label"].lower() or is_high_velocity_drop:
                 is_fall_candidate = True
 
-        # 4. Postural Slump / Head-Down Collapse (Webcam Close-Up Fall Detection)
-        # If YOLO did not detect an upright standing/sitting resident, inspect visual mass distribution
+        # Fallback optical slump inspection
         if not yolo_normal and not is_fall_candidate and gray_curr is not None:
             top_h = int(fh * 0.45)
             dark_top = np.sum(gray_curr[:top_h, :] < 80)
             dark_bottom = np.sum(gray_curr[top_h:, :] < 80)
             total_dark = dark_top + dark_bottom
 
-            if total_dark > (fh * fw * 0.06): # Significant subject present
+            if total_dark > (fh * fw * 0.06):
                 bottom_ratio = dark_bottom / max(1, total_dark)
                 top_mean = np.mean(gray_curr[:top_h, :])
                 bottom_mean = np.mean(gray_curr[top_h:, :])
@@ -262,7 +341,7 @@ class LiveVisionTracker:
                         "box": [int(fw * 0.15), int(fh * 0.40), int(fw * 0.85), int(fh * 0.98)]
                     }]
 
-        # 5. Temporal debouncing (prevent single-frame flashes)
+        # 5. Temporal debouncing
         if is_fall_candidate:
             self.consecutive_fall_frames += 1
             self.consecutive_normal_frames = 0
@@ -270,48 +349,102 @@ class LiveVisionTracker:
             self.consecutive_fall_frames = 0
             self.consecutive_normal_frames += 1
 
-        # Fall confirmed after 2 consecutive detections
         is_fall_confirmed = (self.consecutive_fall_frames >= 2)
 
-        # 6. Update Fall & Unresponsiveness State Machine
-        unresponsive_seconds = 0.0
+        # 6. Prolonged Inactivity Tracking (3-5 Minutes or Learned Routine Baseline)
+        effective_thresh = self.unresponsive_threshold_sec
+        anomaly_diag: Dict[str, Any] = {}
+
+        if motion_rate < 6.0:
+            # Person is motionless: accumulate stillness
+            step_motionless = dt * self.simulation_speedup_factor
+            self.accumulated_motionless_sec += step_motionless
+
+            # Check with Adaptive Routine Learner
+            if self.activity_learner:
+                posture = "floor" if (is_fall_confirmed or is_fall_candidate) else ("sitting" if "sitting" in primary_class.lower() else "resting")
+                anomaly_diag = self.activity_learner.evaluate_inactivity_anomaly(
+                    zone=current_zone,
+                    motionless_seconds=self.accumulated_motionless_sec,
+                    posture=posture
+                )
+                effective_thresh = anomaly_diag.get("threshold_sec", self.unresponsive_threshold_sec)
+        else:
+            # Significant resident motion detected
+            if motion_rate >= 14.0:
+                # If resident was resting safely and stood up, record routine observation
+                if self.activity_learner and self.accumulated_motionless_sec > 30.0:
+                    self.activity_learner.record_activity_observation(
+                        zone=current_zone,
+                        motion_rate=motion_rate,
+                        duration_sec=self.accumulated_motionless_sec
+                    )
+                # If not locked in confirmed emergency, reset stillness
+                if self.current_state != STATE_UNRESPONSIVE:
+                    self.accumulated_motionless_sec = 0.0
+                    self.alarm_active = False
+
+        # 7. State Machine Evaluation & Voice Alarm Trigger
         is_unresponsive = False
+        inactivity_exceeded = (self.accumulated_motionless_sec >= effective_thresh)
 
         if is_fall_confirmed:
             if self.fall_start_time is None:
                 self.fall_start_time = now
                 self.current_state = STATE_FALL
-                logger.warning("Fall / Collapse detected in camera feed!")
-                self.dispatch_live_fall_alert(event_type="fall_detected", confidence=primary_conf)
+                logger.warning(f"Fall Detected in {current_zone}! Initiating immediate voice check-in.")
+                self.alarm_active = True
+                self.alarm_prompt = "NIRA safety alert: Are you okay? Please respond."
+                self.alarm_reason = "Sudden fall / collapse detected."
+                self.dispatch_live_fall_alert(
+                    event_type="fall_detected",
+                    confidence=primary_conf,
+                    location=current_zone,
+                    details={"alarm_prompt": self.alarm_prompt, "requires_voice_checkin": True}
+                )
 
-            # Check if resident remains motionless
-            fall_duration = now - self.fall_start_time
-            if motion_rate < 8.0:
-                unresponsive_seconds = fall_duration
-                if fall_duration >= self.unresponsive_threshold_sec:
-                    self.current_state = STATE_UNRESPONSIVE
-                    is_unresponsive = True
-                    if now - self.last_alert_sent_time > 10.0:
-                        self.last_alert_sent_time = now
-                        self.dispatch_live_fall_alert(
-                            event_type="unresponsiveness_detected",
-                            confidence=primary_conf,
-                            details={"motionless_seconds": round(fall_duration, 1)}
-                        )
-                else:
-                    self.current_state = STATE_FALL
-            else:
-                # Moderate/high movement post fall (e.g. resident recovered or stood up)
-                if motion_rate > 18.0 and fall_duration > 3.0:
-                    self.fall_start_time = None
-                    self.current_state = STATE_NORMAL
+            # Check for prolonged floor immobility post-fall
+            if self.accumulated_motionless_sec >= 15.0:
+                self.current_state = STATE_UNRESPONSIVE
+                is_unresponsive = True
+                if now - self.last_alert_sent_time > 8.0:
+                    self.last_alert_sent_time = now
+                    self.dispatch_live_fall_alert(
+                        event_type="unresponsiveness_detected",
+                        confidence=primary_conf,
+                        location=current_zone,
+                        details={"motionless_seconds": round(self.accumulated_motionless_sec, 1)}
+                    )
+
+        elif inactivity_exceeded:
+            # Person has stayed motionless without any movement for 3-5 mins (or exceeded learned limit)
+            if self.current_state != STATE_UNRESPONSIVE:
+                self.current_state = STATE_PROLONGED_INACTIVITY
+                is_unresponsive = True
+                self.alarm_active = True
+                self.alarm_prompt = anomaly_diag.get("suggested_question", "Are you okay? I noticed you haven't moved in a while.")
+                self.alarm_reason = anomaly_diag.get("reason", f"Resident motionless for {self.accumulated_motionless_sec:.1f}s.")
+
+                if now - self.last_alert_sent_time > 10.0:
+                    self.last_alert_sent_time = now
+                    self.dispatch_live_fall_alert(
+                        event_type="prolonged_inactivity_detected",
+                        confidence=0.92,
+                        location=current_zone,
+                        details={
+                            "motionless_seconds": round(self.accumulated_motionless_sec, 1),
+                            "threshold_sec": effective_thresh,
+                            "alarm_prompt": self.alarm_prompt,
+                            "requires_voice_checkin": True
+                        }
+                    )
         else:
-            # Resident is normal or clear
-            if self.consecutive_normal_frames >= 2 or primary_class in ["Walking", "Sitting"]:
+            # Normal movement or within safe learned resting tolerance
+            if self.consecutive_normal_frames >= 2 and not self.alarm_active:
                 self.fall_start_time = None
-                self.current_state = STATE_NORMAL
+                if self.current_state not in [STATE_UNRESPONSIVE, STATE_ALARM_INQUIRY]:
+                    self.current_state = STATE_NORMAL
 
-        # Output boxes without internal centroid field
         clean_boxes = [
             {
                 "class_id": b["class_id"],
@@ -326,11 +459,149 @@ class LiveVisionTracker:
             "state": self.current_state,
             "detected_class": primary_class,
             "confidence": round(primary_conf, 2),
-            "unresponsive_seconds": round(unresponsive_seconds, 1),
+            "unresponsive_seconds": round(self.accumulated_motionless_sec, 1),
+            "inactivity_threshold_sec": round(effective_thresh, 1),
             "is_unresponsive": is_unresponsive,
             "motion_displacement": round(motion_rate, 1),
             "boxes": clean_boxes,
+            "alarm_active": self.alarm_active,
+            "alarm_prompt": self.alarm_prompt,
+            "alarm_reason": self.alarm_reason,
+            "voice_status": self.voice_interaction_status,
+            "zone": current_zone,
+            "learned_routine": {
+                "suppressed_false_alarms": self.activity_learner.profile.get("suppressed_false_alarms", 0) if self.activity_learner else 0,
+                "total_learned_events": self.activity_learner.profile.get("total_learned_events", 0) if self.activity_learner else 0
+            },
             "timestamp": now
+        }
+
+    def handle_voice_response(
+        self,
+        transcript: str,
+        elderly_id: str = "resident_live",
+        location: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Receives and notes resident spoken response (e.g., 'Yes, I'm okay', 'Help me'):
+          1. Evaluates safety: SAFE, UNCERTAIN, RISK, or EMERGENCY.
+          2. If SAFE: suppresses alarm, resets state to NORMAL, and trains the
+             DailyActivityRoutineLearner to expand tolerance and prevent future false alarms!
+          3. If RISK / EMERGENCY: escalates to emergency workflow and alerts caregivers.
+        """
+        current_zone = location or self.zone
+        self.last_voice_transcript = transcript
+
+        if not self.response_analyzer:
+            logger.warning("Response analyzer not available; using basic keyword match.")
+            is_safe = any(w in transcript.lower() for w in ["okay", "fine", "good", "alright"])
+            status_val = "SAFE" if is_safe else "EMERGENCY"
+            urgency = "LOW" if is_safe else "CRITICAL"
+            reason = "Keyword matched safety response." if is_safe else "Emergency or uncertain voice."
+        else:
+            analysis = self.response_analyzer.analyze(transcript)
+            status_val = analysis.status.value if hasattr(analysis.status, "value") else str(analysis.status)
+            urgency = analysis.urgency.value if hasattr(analysis.urgency, "value") else str(analysis.urgency)
+            reason = analysis.reason
+
+        self.voice_interaction_status = status_val
+
+        # -------------------------------------------------------------------
+        # Branch 1: Resident confirms SAFE ("I'm okay", "I'm fine")
+        # -------------------------------------------------------------------
+        if status_val == "SAFE":
+            old_duration = self.accumulated_motionless_sec
+            self.current_state = STATE_NORMAL
+            self.alarm_active = False
+            self.fall_start_time = None
+            self.accumulated_motionless_sec = 0.0
+
+            # Self-learning routine update: Prevent future unnecessary alarms!
+            learned_info = {}
+            if self.activity_learner:
+                learned_info = self.activity_learner.reinforce_dismissed_alarm(
+                    zone=current_zone,
+                    inactivity_duration_sec=max(180.0, old_duration),
+                    feedback=f"Resident spoken confirmation: '{transcript}'"
+                )
+
+            self.dispatch_live_fall_alert(
+                event_type="false_alarm_cleared_by_voice",
+                confidence=1.0,
+                location=current_zone,
+                details={
+                    "transcript": transcript,
+                    "resolution": "SAFE",
+                    "routine_updated": True,
+                    "learned_threshold": learned_info.get("new_threshold_sec")
+                }
+            )
+
+            return {
+                "success": True,
+                "status": "SAFE",
+                "urgency": urgency,
+                "action": "ALARM_DISMISSED",
+                "message": "Resident confirmed safe. Alarm dismissed and daily routine updated to prevent future false alarms.",
+                "transcript": transcript,
+                "learned_update": learned_info
+            }
+
+        # -------------------------------------------------------------------
+        # Branch 2: Resident in EMERGENCY ("Help me", "I fell down", "Can't move")
+        # -------------------------------------------------------------------
+        elif status_val == "EMERGENCY":
+            self.current_state = STATE_UNRESPONSIVE
+            self.alarm_active = True
+
+            self.dispatch_live_fall_alert(
+                event_type="voice_confirmed_emergency",
+                confidence=1.0,
+                location=current_zone,
+                details={
+                    "transcript": transcript,
+                    "resolution": "EMERGENCY",
+                    "reason": reason
+                }
+            )
+
+            return {
+                "success": True,
+                "status": "EMERGENCY",
+                "urgency": "CRITICAL",
+                "action": "ESCALATE_EMERGENCY_CAD",
+                "message": "Critical emergency confirmed via resident voice. Caregivers and emergency dispatch alerted.",
+                "transcript": transcript,
+                "reason": reason
+            }
+
+        # -------------------------------------------------------------------
+        # Branch 3: Resident at RISK or UNCERTAIN ("I'm feeling dizzy", mumbled)
+        # -------------------------------------------------------------------
+        else:
+            self.alarm_active = True
+            if status_val == "RISK":
+                self.current_state = "RISK_CONFIRMED"
+                action = "CREATE_INCIDENT"
+            else:
+                self.current_state = STATE_ALARM_INQUIRY
+                action = "REPEAT_CHECK_IN"
+
+            return {
+                "success": True,
+                "status": status_val,
+                "urgency": urgency,
+                "action": action,
+                "message": reason,
+                "transcript": transcript
+            }
+
+    def simulate_inactivity(self, seconds: float):
+        """Allows testing prolonged inactivity alarms directly without waiting real minutes."""
+        self.accumulated_motionless_sec = max(0.0, float(seconds))
+        return {
+            "accumulated_motionless_sec": self.accumulated_motionless_sec,
+            "threshold_sec": self.unresponsive_threshold_sec
         }
 
     def dispatch_live_fall_alert(
@@ -346,7 +617,7 @@ class LiveVisionTracker:
             "source": "live_webcam_detector",
             "confidence": confidence,
             "location": location,
-            "movement_after_event": "none" if event_type == "unresponsiveness_detected" else "slow",
+            "movement_after_event": "none" if event_type in ["unresponsiveness_detected", "prolonged_inactivity_detected"] else "slow",
             "details": details or {
                 "detector": "yolov8-kaggle-fall",
                 "mode": "live_physical_model"
@@ -396,10 +667,13 @@ if __name__ == "__main__":
         # Status HUD
         hud_text = f"STATE: {state} | {res['detected_class']} ({res['confidence']})"
         if res["unresponsive_seconds"] > 0:
-            hud_text += f" | IMMOBILE: {res['unresponsive_seconds']}s"
+            hud_text += f" | IMMOBILE: {res['unresponsive_seconds']}s / {res['inactivity_threshold_sec']}s"
 
         cv2.putText(frame, hud_text, (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.75, color, 2)
-        cv2.imshow("NIRA Live Vision - Fall & Unresponsiveness", frame)
+        if res["alarm_active"]:
+            cv2.putText(frame, f"ALARM: {res['alarm_prompt']}", (20, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+
+        cv2.imshow("NIRA Live Vision - Fall & Inactivity Guardian", frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break

@@ -115,6 +115,14 @@ app.include_router(mcp_server.router)
 app.include_router(demo_api.router)
 app.include_router(live_api.router)
 
+# Mount Live Voice Interaction Router
+try:
+    from Live.api.voice_routes import router as live_voice_router
+    app.include_router(live_voice_router)
+except Exception as e:
+    import logging
+    logging.getLogger("NIRA").warning(f"Could not mount live_voice_router: {e}")
+
 
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse

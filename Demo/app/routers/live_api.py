@@ -62,6 +62,17 @@ class FramePayload(BaseModel):
     location: Optional[str] = "living_room"
 
 
+class VoiceResponsePayload(BaseModel):
+    transcript: str
+    elderly_id: Optional[str] = "resident_live"
+    location: Optional[str] = "living_room"
+
+
+class InactivitySimPayload(BaseModel):
+    seconds: float = 180.0
+    location: Optional[str] = "living_room"
+
+
 class ProfilePayload(BaseModel):
     full_name: str
     age: int
@@ -180,7 +191,7 @@ async def process_camera_frame(payload: FramePayload):
         else:
             frame = None
 
-        result = tracker.evaluate_frame(frame)
+        result = tracker.evaluate_frame(frame, location=payload.location)
         return result
     except Exception as e:
         logger.error(f"Error processing webcam frame: {e}")
@@ -194,6 +205,64 @@ async def process_camera_frame(payload: FramePayload):
             "boxes": [],
             "error": str(e)
         }
+
+
+@router.post("/camera/voice-response", summary="Process Resident Spoken Response to Alarm Inquiry")
+async def process_camera_voice_response(payload: VoiceResponsePayload):
+    """
+    Evaluates resident voice response (e.g. 'I'm okay', 'Help me') when alarm is triggered:
+    - If SAFE: Dismisses alarm, resets state to NORMAL, and trains the Activity Routine
+      model to expand tolerance for this zone/hour to prevent future false alarms!
+    - If EMERGENCY / RISK: Escalates to critical care protocol.
+    """
+    tracker = get_live_tracker()
+    if not tracker:
+        return {"status": "SAFE", "action": "NO_OP", "message": "Tracker not active"}
+
+    res = tracker.handle_voice_response(
+        transcript=payload.transcript,
+        elderly_id=payload.elderly_id or "resident_live",
+        location=payload.location or "living_room"
+    )
+    return res
+
+
+@router.post("/camera/simulate-inactivity", summary="Simulate Inactivity Duration for Rapid Testing")
+async def simulate_camera_inactivity(payload: InactivitySimPayload):
+    """
+    Sets accumulated stillness duration (e.g., 180s - 300s) to evaluate the
+    prolonged inactivity alarm and voice check-in prompt without waiting real minutes.
+    """
+    tracker = get_live_tracker()
+    if not tracker:
+        return {"error": "Tracker not active"}
+    return tracker.simulate_inactivity(payload.seconds)
+
+
+@router.get("/activity-routine", summary="Get Learned Daily Activity Baseline & Routine Stats")
+async def get_learned_activity_routine():
+    """
+    Returns current status of the self-learning circadian activity baseline,
+    hourly thresholds per room, and false alarm suppression metrics.
+    """
+    tracker = get_live_tracker()
+    learner = getattr(tracker, "activity_learner", None)
+    if learner:
+        return learner.get_summary()
+    return {"message": "Learner not initialized"}
+
+
+@router.post("/activity-routine/train", summary="Train Activity Baseline from History")
+async def train_activity_routine(records: List[Dict[str, Any]]):
+    """
+    Calibrates / trains the circadian activity model from historical telemetry records.
+    """
+    tracker = get_live_tracker()
+    learner = getattr(tracker, "activity_learner", None)
+    if learner:
+        count = learner.train_from_history(records)
+        return {"status": "trained", "records_processed": count, "summary": learner.get_summary()}
+    return {"error": "Learner not initialized"}
 
 
 @router.get("/profile", summary="Get Live Resident Profile")

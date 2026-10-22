@@ -1,0 +1,1209 @@
+{
+  "version": "2.0.0",
+  "resident_id": "resident_live",
+  "total_learned_events": 0,
+  "suppressed_false_alarms": 1,
+  "hourly_zones": {
+    "0": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 1800.0,
+        "max_observed_safe_sec": 1800.0,
+        "tolerated_threshold_sec": 1800.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 1800.0,
+        "max_observed_safe_sec": 1800.0,
+        "tolerated_threshold_sec": 1800.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "1": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 1800.0,
+        "max_observed_safe_sec": 1800.0,
+        "tolerated_threshold_sec": 1800.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 1800.0,
+        "max_observed_safe_sec": 1800.0,
+        "tolerated_threshold_sec": 1800.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "2": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 1800.0,
+        "max_observed_safe_sec": 1800.0,
+        "tolerated_threshold_sec": 1800.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 1800.0,
+        "max_observed_safe_sec": 1800.0,
+        "tolerated_threshold_sec": 1800.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "3": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 1800.0,
+        "max_observed_safe_sec": 1800.0,
+        "tolerated_threshold_sec": 1800.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 1800.0,
+        "max_observed_safe_sec": 1800.0,
+        "tolerated_threshold_sec": 1800.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "4": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 1800.0,
+        "max_observed_safe_sec": 1800.0,
+        "tolerated_threshold_sec": 1800.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 1800.0,
+        "max_observed_safe_sec": 1800.0,
+        "tolerated_threshold_sec": 1800.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "5": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 1800.0,
+        "max_observed_safe_sec": 1800.0,
+        "tolerated_threshold_sec": 1800.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 1800.0,
+        "max_observed_safe_sec": 1800.0,
+        "tolerated_threshold_sec": 1800.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "6": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 1800.0,
+        "max_observed_safe_sec": 1800.0,
+        "tolerated_threshold_sec": 1800.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 1800.0,
+        "max_observed_safe_sec": 1800.0,
+        "tolerated_threshold_sec": 1800.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "7": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "8": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "9": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "10": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "11": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "12": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "13": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 600.0,
+        "max_observed_safe_sec": 600.0,
+        "tolerated_threshold_sec": 600.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 600.0,
+        "max_observed_safe_sec": 600.0,
+        "tolerated_threshold_sec": 600.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "14": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 600.0,
+        "max_observed_safe_sec": 600.0,
+        "tolerated_threshold_sec": 600.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 600.0,
+        "max_observed_safe_sec": 600.0,
+        "tolerated_threshold_sec": 600.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "15": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 600.0,
+        "max_observed_safe_sec": 600.0,
+        "tolerated_threshold_sec": 600.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 600.0,
+        "max_observed_safe_sec": 600.0,
+        "tolerated_threshold_sec": 600.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "16": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "17": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "18": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "19": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "20": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "21": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 300.0,
+        "max_observed_safe_sec": 300.0,
+        "tolerated_threshold_sec": 300.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "22": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 1800.0,
+        "max_observed_safe_sec": 1800.0,
+        "tolerated_threshold_sec": 1800.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 1800.0,
+        "max_observed_safe_sec": 1800.0,
+        "tolerated_threshold_sec": 1800.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    },
+    "23": {
+      "bathroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "hallway": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 180.0,
+        "max_observed_safe_sec": 180.0,
+        "tolerated_threshold_sec": 180.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "kitchen": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "living_room": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 1800.0,
+        "max_observed_safe_sec": 1800.0,
+        "tolerated_threshold_sec": 1800.0,
+        "dismissed_alarms_count": 1,
+        "last_updated": "2026-10-22T17:36:25.173957+00:00"
+      },
+      "bedroom": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 1800.0,
+        "max_observed_safe_sec": 1800.0,
+        "tolerated_threshold_sec": 1800.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      },
+      "general": {
+        "observations_count": 1,
+        "mean_inactivity_sec": 240.0,
+        "max_observed_safe_sec": 240.0,
+        "tolerated_threshold_sec": 240.0,
+        "dismissed_alarms_count": 0,
+        "last_updated": "2026-10-22T17:32:30.922096+00:00"
+      }
+    }
+  },
+  "created_at": "2026-10-22T17:32:30.922096+00:00"
+}

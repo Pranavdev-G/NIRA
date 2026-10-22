@@ -3630,22 +3630,44 @@ function renderLiveInferenceResult(res, canvas, video) {
     });
   }
 
-  // Handle unresponsiveness escalation from real camera model
-  if (state === "UNRESPONSIVENESS") {
-    window._liveIncident = {
-      id: "INC-LIVE-" + Date.now().toString().slice(-5),
-      type: "optical_unresponsiveness_alert",
-      risk: "CRITICAL",
-      confidence: res.confidence || 0.95,
-      timestamp: new Date().toISOString()
-    };
-    if (typeof renderLiveModeConsole === "function") {
-      renderLiveModeConsole(window.niraStore?.state);
-    }
-    if (!window._lastUnrespChime || Date.now() - window._lastUnrespChime > 8000) {
-      window._lastUnrespChime = Date.now();
+  // Handle alarm inquiry & unresponsiveness escalation from real camera model
+  if (res.alarm_active || state === "PROLONGED_INACTIVITY" || state === "FALL_DETECTED" || state === "UNRESPONSIVENESS") {
+    const alarmPrompt = res.alarm_prompt || "NIRA safety alert: Are you okay? Please respond.";
+
+    // Automatically trigger audio prompt & open mic if not already active
+    if (!window._lastAlarmPromptTime || Date.now() - window._lastAlarmPromptTime > 12000) {
+      window._lastAlarmPromptTime = Date.now();
       try { playChime("alert"); } catch (_) {}
-      showToast("🚨 <strong>CRITICAL UNRESPONSIVENESS:</strong> Resident immobile on floor. Triggering emergency protocol!");
+      showToast(`🚨 <strong>SAFETY INQUIRY:</strong> ${alarmPrompt}`);
+
+      // Voice synthesis for question prompt
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        try {
+          const u = new SpeechSynthesisUtterance(alarmPrompt);
+          u.rate = 0.95;
+          window.speechSynthesis.speak(u);
+        } catch (_) {}
+      }
+
+      // Automatically engage mic listening for resident verbal reply
+      if (typeof startLiveVoiceListening === "function" && !window.isLiveMicActive) {
+        setTimeout(() => {
+          try { startLiveVoiceListening(); } catch (_) {}
+        }, 1200);
+      }
+    }
+
+    if (state === "UNRESPONSIVENESS") {
+      window._liveIncident = {
+        id: "INC-LIVE-" + Date.now().toString().slice(-5),
+        type: "optical_unresponsiveness_alert",
+        risk: "CRITICAL",
+        confidence: res.confidence || 0.95,
+        timestamp: new Date().toISOString()
+      };
+      if (typeof renderLiveModeConsole === "function") {
+        renderLiveModeConsole(window.niraStore?.state);
+      }
     }
   } else if (state === "NORMAL_MOVEMENT" && window._liveIncident && window._liveIncident.risk !== "CRITICAL") {
     window._liveIncident = null;
@@ -3864,8 +3886,30 @@ async function handleLiveSpokenUtterance(text) {
   const room = (document.getElementById("liveRoomSelect") || {}).value || "living_room";
   const resName = (document.getElementById("liveResidentName") || {}).value || "Live Resident";
 
-  const isDistress = /help|fell|pain|fall|hurt|broken|can't get up|emergency|ayuda|caí|me caí|douleur|chute|hilfe|socorro|помогите|बचाओ|救命/i.test(text);
-  const isSafe = /ok|fine|good|glasses|dropped|alright|nothing|stand up|bien|estoy bien|vale|ça va|gut|alles gut|estou bem|все хорошо|ठीक|没事/i.test(text);
+  // Post to authoritative NIRA Live Voice & Activity Routine Learning Endpoint
+  let voiceResult = null;
+  try {
+    const vResp = await fetch("/api/v1/live/camera/voice-response", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        transcript: text,
+        location: room,
+        elderly_id: resName.toLowerCase().replace(/\s+/g, "_")
+      })
+    });
+    if (vResp.ok) {
+      voiceResult = await vResp.json();
+    }
+  } catch (err) {
+    console.warn("Live voice response API error:", err);
+  }
+
+  const isDistress = (voiceResult && voiceResult.status === "EMERGENCY") ||
+    /help|fell|pain|fall|hurt|broken|can't get up|emergency|ayuda|caí|me caí|douleur|chute|hilfe|socorro|помогите|बचाओ|救命/i.test(text);
+
+  const isSafe = (voiceResult && voiceResult.status === "SAFE") ||
+    (!isDistress && /ok|fine|good|glasses|dropped|alright|nothing|stand up|bien|estoy bien|vale|ça va|gut|alles gut|estou bem|все хорошо|ठीक|没事/i.test(text));
 
   if (isDistress) {
     if (intentEl) intentEl.innerHTML = `<span style="color: var(--accent-red); font-weight: 800;">CALL_FOR_HELP</span>`;
@@ -3910,7 +3954,10 @@ async function handleLiveSpokenUtterance(text) {
     if (confEl) confEl.textContent = "95%";
     if (phaseTag) phaseTag.textContent = "RESOLVED SAFE";
     playChime("success");
-    showToast("🟢 <strong>Resident Confirmed Safe!</strong> Incident resolved.");
+
+    const newThresh = voiceResult?.learned_update?.new_threshold_sec;
+    const threshMsg = newThresh ? `Routine learned: ${room} tolerance adapted to ${newThresh}s to prevent false alarms!` : `Daily routine updated to avoid unnecessary alarms.`;
+    showToast(`🟢 <strong>Resident Confirmed Safe!</strong> ${threshMsg}`);
 
     window._liveIncident = null;
     if (typeof renderLiveModeConsole === "function") {
@@ -3932,7 +3979,8 @@ async function handleLiveSpokenUtterance(text) {
         payload: {
           spoken_text: text,
           intent: "verified_safe",
-          resolved: true
+          resolved: true,
+          learned_routine: voiceResult?.learned_update
         }
       })
     });
@@ -3940,6 +3988,7 @@ async function handleLiveSpokenUtterance(text) {
   } else {
     if (intentEl) intentEl.textContent = "Ambiguous Utterance";
     if (confEl) confEl.textContent = "65%";
+    if (phaseTag) phaseTag.textContent = "UNCERTAIN / RE-CHECK";
   }
 }
 
@@ -3953,6 +4002,23 @@ function speakLivePrompt() {
     setTimeout(() => {
       window.voiceAudio.speak(prompt, "alexa");
     }, 400);
+  }
+}
+
+async function testSimulateInactivity() {
+  const room = (document.getElementById("liveRoomSelect") || {}).value || "living_room";
+  try {
+    const res = await fetch("/api/v1/live/camera/simulate-inactivity", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ seconds: 185.0, location: room })
+    });
+    if (res.ok) {
+      showToast("⏱️ <strong>Inactivity Simulated (185s):</strong> Evaluating against learned circadian routine...");
+      if (typeof playChime === "function") playChime("alert");
+    }
+  } catch (e) {
+    console.warn("simulate-inactivity error:", e);
   }
 }
 
