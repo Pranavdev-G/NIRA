@@ -1370,11 +1370,19 @@ function switchTab(tabId) {
     'assistant': 'voiceassistant',
     'dailycheckin': 'dailycheckin',
     'checkin': 'dailycheckin',
+    'demovideo': 'demovideo',
+    'video': 'demovideo',
+    'demo': 'demovideo',
+    'guide': 'demovideo',
+    'tutorial': 'demovideo',
     'falldetection': 'falldetection',
     'fall': 'falldetection',
     'falldetect': 'falldetection',
     'emergencyalert': 'emergencyalert',
     'alert': 'emergencyalert',
+    'ambulance': 'emergencyalert',
+    'cad': 'emergencyalert',
+    'medic14': 'emergencyalert',
     'locationmap': 'locationmap',
     'map': 'locationmap',
     'hospitals': 'locationmap',
@@ -1399,6 +1407,7 @@ function switchTab(tabId) {
     { id: 'medicationreminders', btn: 'tabBtnMedicationReminders', panel: 'panelMedicationReminders' },
     { id: 'voiceassistant', btn: 'tabBtnVoiceAssistant', panel: 'panelVoiceAssistant' },
     { id: 'dailycheckin', btn: 'tabBtnDailyCheckin', panel: 'panelDailyCheckin' },
+    { id: 'demovideo', btn: 'tabBtnDemoVideo', panel: 'panelDemoVideo' },
     { id: 'falldetection', btn: 'tabBtnFallDetection', panel: 'panelFallDetection' },
     { id: 'emergencyalert', btn: 'tabBtnEmergencyAlert', panel: 'panelEmergencyAlert' },
     { id: 'locationmap', btn: 'tabBtnLocationMap', panel: 'panelLocationMap' },
@@ -1433,6 +1442,11 @@ function switchTab(tabId) {
       }
     }
   });
+
+  // If switched to demovideo, trigger video player initialization or playback
+  if (canonical === 'demovideo' && window.demoVideoController) {
+    window.demoVideoController.play();
+  }
 
   // If switched to vision tab, trigger camera canvas resize to fit viewport
   if (canonical === 'vision' && window.cameraSim) {
@@ -1890,42 +1904,23 @@ function enterSystemMode(mode) {
       appWorkspace.removeAttribute("aria-hidden");
     }
 
-    // Call backend systems based on mode
-    if (mode === "demo") {
-      fetch("/api/v1/demo/launch", { method: "POST" })
-        .then(res => res.json())
-        .then(data => {
-          console.log("Demo system connected:", data);
-          if (typeof showToast === "function") {
-            showToast("🎮 <strong>Demo System Engaged</strong>: Calling Demo/ simulators");
-          }
-        })
-        .catch(err => console.warn("Demo launch ping error:", err));
-    } else if (mode === "live") {
-      fetch("/api/v1/live/launch", { method: "POST" })
-        .then(res => res.json())
-        .then(data => {
-          console.log("Live model system connected:", data);
-          if (typeof showToast === "function") {
-            showToast("⚡ <strong>Live Model System Engaged</strong>: Calling Live/ models");
-          }
-        })
-        .catch(err => console.warn("Live launch ping error:", err));
-    }
+    // In Demo model, always activate demo backend system
+    fetch("/api/v1/demo/launch", { method: "POST" })
+      .then(res => res.json())
+      .then(data => {
+        console.log("Demo system connected:", data);
+      })
+      .catch(err => console.warn("Demo launch ping error:", err));
 
-    switchSystemMode(mode, false);
+    switchSystemMode("demo", false);
     try {
-      playChime(mode === "live" ? "success" : "info");
+      playChime("info");
     } catch (audioErr) {
       // AudioContext policy fallback
     }
 
-    if (typeof showToast === "function") {
-      showToast(`Entered <strong>${mode === 'live' ? 'Live Model Workspace' : 'Complete Demo System'}</strong>`);
-    }
-
     if (window.history && window.history.replaceState) {
-      window.history.replaceState(null, null, "#" + mode);
+      window.history.replaceState(null, null, "#demo");
     }
   } catch (err) {
     console.error("enterSystemMode error:", err);
@@ -1966,11 +1961,13 @@ if (typeof window !== "undefined") {
     const parts = raw.split('/');
     const mode = parts[0];
     const subTab = parts[1];
-    if (mode === "demo" || mode === "live") {
-      enterSystemMode(mode);
-      if (mode === "demo" && subTab) {
-        setTimeout(() => switchTab(subTab), 120);
-      }
+    
+    // Always enter Demo mode
+    enterSystemMode("demo");
+    if (mode === "demo" && subTab) {
+      setTimeout(() => switchTab(subTab), 120);
+    } else if (mode && mode !== "demo" && mode !== "live") {
+      setTimeout(() => switchTab(mode), 120);
     }
   };
   if (document.readyState === "loading") {
@@ -1991,36 +1988,16 @@ function switchSystemMode(mode, notify = true) {
   const secDemo = document.getElementById("sectionDemoMode");
   const secLive = document.getElementById("sectionLiveMode");
 
-  if (!btnDemo || !btnLive || !secDemo || !secLive) return;
+  // In Demo model, sectionDemoMode is always active, sectionLiveMode is always hidden
+  if (secDemo) secDemo.style.setProperty("display", "block", "important");
+  if (secLive) secLive.style.setProperty("display", "none", "important");
+  if (btnDemo) { btnDemo.classList.add("active"); btnDemo.setAttribute("aria-checked", "true"); }
+  if (btnLive) { btnLive.classList.remove("active"); btnLive.setAttribute("aria-checked", "false"); }
 
-  if (mode === "live") {
-    btnLive.classList.add("active");
-    btnLive.setAttribute("aria-checked", "true");
-    btnDemo.classList.remove("active");
-    btnDemo.setAttribute("aria-checked", "false");
-
-    secLive.style.display = "block";
-    secDemo.style.display = "none";
-
-    localStorage.setItem("nira_system_mode", "live");
-    if (notify) {
-      playChime("success");
-      showToast("⚡ Switched to <strong>Live Mode</strong> — Real-time sensor pipeline & device pairing.");
-    }
-  } else {
-    btnDemo.classList.add("active");
-    btnDemo.setAttribute("aria-checked", "true");
-    btnLive.classList.remove("active");
-    btnLive.setAttribute("aria-checked", "false");
-
-    secDemo.style.display = "block";
-    secLive.style.display = "none";
-
-    localStorage.setItem("nira_system_mode", "demo");
-    if (notify) {
-      playChime("info");
-      showToast("🎮 Switched to <strong>Demo Mode</strong> — Hackathon interactive scenario showcase.");
-    }
+  localStorage.setItem("nira_system_mode", "demo");
+  if (notify) {
+    playChime("info");
+    showToast("🎮 Active in <strong>Demo Mode</strong> — Person 2 Interactive Safety Showcase.");
   }
 
   // Ensure dashboard components re-render correctly
