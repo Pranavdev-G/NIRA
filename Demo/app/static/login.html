@@ -355,28 +355,31 @@
   <script>
     const USER_PROFILES = {
       admin_son: {
+        key: "admin_son",
         name: "David Vance (Son • Family Admin)",
         role: "Family Primary Admin",
         email: "david.vance@example.com",
         password: "admin123",
         avatar: "👨‍💼",
-        redirect: "/admin"
+        redirect: "/#profile=admin"
       },
       senior_home: {
+        key: "senior_home",
         name: "Eleanor & Family (Home View)",
         role: "Senior / Family View",
         email: "family@beaconhill.care",
         password: "family123",
         avatar: "👵",
-        redirect: "/#demo"
+        redirect: "/#profile=senior"
       },
       ems: {
+        key: "ems",
         name: "Medic 14 (Boston EMS First Responder)",
         role: "First Responder / Dispatch",
         email: "medic14@bostonems.gov",
         password: "medic123",
         avatar: "🚑",
-        redirect: "/#demo/emergencyalert"
+        redirect: "/#profile=ems"
       }
     };
 
@@ -408,6 +411,7 @@
 
     function submitUserSession(userObj) {
       localStorage.setItem("aegis_auth_user", JSON.stringify(userObj));
+      localStorage.setItem("nira_active_profile", userObj.key || "senior_home");
       const btn = document.getElementById("btnLogin");
       btn.innerHTML = '<span>Authenticating...</span>';
       btn.style.opacity = "0.7";
