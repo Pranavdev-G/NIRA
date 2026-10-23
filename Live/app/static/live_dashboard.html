@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NIRA — Live Ambient AI Safety System</title>
+  <meta name="description" content="NIRA Real-Time Multi-Room Vision Fall Detector, Automatic Microphone Check-In, TextBEE Emergency Dispatch, Medical Reminders, and Wearable Heartbeat Monitoring.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Leaflet CSS for Live Ambulance Tracking -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <style>
+    :root {
+      --font-display: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --bg-dark: #050b14;
+      --bg-panel: rgba(13, 23, 42, 0.75);
+      --bg-card: rgba(15, 28, 54, 0.65);
+      --border-glow: rgba(0, 229, 255, 0.22);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --cyan-neon: #00e5ff;
+      --cyan-gradient: linear-gradient(135deg, #00e5ff 0%, #0284c7 50%, #2563eb 100%);
+      --emerald-neon: #10b981;
+      --red-alert: #ef4444;
+      --amber-warn: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 10% 15%, rgba(0, 229, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 85%, rgba(37, 99, 235, 0.08) 0%, transparent 45%);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Header */
+    .live-header {
+      background: rgba(5, 11, 20, 0.90);
+      border-bottom: 1px solid var(--border-glow);
+      backdrop-filter: blur(20px);
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--cyan-neon);
+      box-shadow: 0 0 16px rgba(0, 229, 255, 0.25);
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 1.25rem;
+      letter-spacing: 0.06em;
+      background: linear-gradient(135deg, #fff 40%, #7dd3fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+      animation: pulse 1.4s infinite ease-in-out;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.4); } }
+
+    .header-badges-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-badge {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 0.78rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-badge strong { color: var(--cyan-neon); }
+
+    .btn-nav-exit {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-muted);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .btn-nav-exit:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+
+    /* Dashboard Main Container */
+    .main-workspace {
+      flex: 1;
+      padding: 24px 28px;
+      max-width: 1720px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Main Grid: Left Column (Vision Camera & Audio) + Right Column (Tracking, Reminders, Vitals) */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 20px;
+    }
+    @media (max-width: 1200px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    .card-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-glow);
+      backdrop-filter: blur(16px);
+      border-radius: 20px;
+      padding: 20px 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .panel-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+    }
+
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-title span.icon { color: var(--cyan-neon); }
+
+    /* Multi-Room Camera Switcher Strip */
+    .room-tabs {
+      display: flex;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.8);
+      padding: 4px;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      margin-bottom: 14px;
+    }
+
+    .room-chip {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.80rem;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .room-chip.active {
+      background: var(--cyan-gradient);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(0, 229, 255, 0.25);
+    }
+
+    /* Video & Pose Canvas Area */
+    .camera-viewport-box {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      background: #020617;
+      border-radius: 16px;
+      border: 1px solid rgba(0, 229, 255, 0.2);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #visionCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .camera-hud-overlay {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+
+    .hud-tag {
+      background: rgba(0, 0, 0, 0.65);
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--cyan-neon);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hud-alert-banner {
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      right: 14px;
+      background: rgba(239, 68, 68, 0.92);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 0.85rem;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
+      animation: alertPulse 1.2s infinite alternate;
+    }
+    @keyframes alertPulse { from { opacity: 0.95; } to { opacity: 1; transform: scale(1.01); } }
+
+    /* Simulation Control Toolbar for Evaluators */
+    .sim-toolbar {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn-sim {
+      padding: 9px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.04);
+      color: #e2e8f0;
+      font-family: var(--font-display);
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn-sim:hover { background: rgba(0, 229, 255, 0.12); border-color: var(--cyan-neon); color: #fff; }
+    .btn-sim.danger { border-color: rgba(239, 68, 68, 0.4); color: #fca5a5; }
+    .btn-sim.danger:hover { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #fff; }
+
+    /* Automatic Mic & Speech Section */
+    .mic-live-section {
+      background: rgba(15, 28, 54, 0.7);
+      border: 1.5px solid rgba(0, 229, 255, 0.25);
+      border-radius: 16px;
+      padding: 18px 20px;
+      margin-top: 18px;
+    }
+
+    .mic-status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .mic-indicator-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+    .mic-indicator-pill.listening {
+      background: rgba(0, 229, 255, 0.2);
+      border-color: #00e5ff;
+      color: #00e5ff;
+      box-shadow: 0 0 16px rgba(0, 229, 255, 0.4);
+    }
+
+    .transcript-box {
+      background: rgba(2, 6, 23, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px 16px;
+      min-height: 52px;
+      font-size: 0.88rem;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Right Column Cards */
+    .right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Ambulance Live Tracking Map */
+    .map-box {
+      height: 220px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+      margin-bottom: 12px;
+    }
+
+    .tracking-stats-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .track-col {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 8px 12px;
+      text-align: center;
+    }
+    .track-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+    .track-val { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; color: #fff; margin-top: 2px; }
+
+    .door-lock-badge {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #a7f3d0;
+      font-size: 0.80rem;
+      font-weight: 700;
+    }
+    .door-lock-badge.unlocked {
+      background: rgba(0, 229, 255, 0.15);
+      border-color: #00e5ff;
+      color: #00e5ff;
+      box-shadow: 0 0 16px rgba(0, 229, 255, 0.3);
+    }
+
+    /* Medical Reminder Card */
+    .med-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+    .med-info-group div:first-child { font-weight: 700; font-size: 0.88rem; color: #fff; }
+    .med-info-group div:last-child { font-size: 0.74rem; color: var(--text-muted); }
+
+    .med-status-chip {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .med-status-chip.taken { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .med-status-chip.pending { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .med-status-chip.missed { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    /* Wearable Heartbeat & Vitals */
+    .wearable-device-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 229, 255, 0.06);
+      border: 1px solid rgba(0, 229, 255, 0.2);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      font-size: 0.78rem;
+    }
+    .wearable-title { font-weight: 700; color: #fff; }
+    .wearable-sub { font-size: 0.70rem; color: var(--text-muted); }
+
+    .vitals-meter-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .vital-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+    .vital-num {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #fff;
+    }
+    .vital-label { font-size: 0.70rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-top: 2px; }
+
+    #ecgCanvas {
+      width: 100%;
+      height: 60px;
+      background: rgba(2, 6, 23, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="live-header">
+    <a href="/" class="brand-group" title="Back to NIRA Dual Gateway">
+      <div class="brand-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">NIRA LIVE AMBIENT CARE</div>
+        <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: -2px;">Real-Time AI Vision &bull; Auto-Mic Speech &bull; TextBEE Gateway</div>
+      </div>
+    </a>
+
+    <div class="header-badges-right">
+      <div class="live-indicator">
+        <span class="pulse-dot"></span>
+        <span>LIVE INGESTION ACTIVE</span>
+      </div>
+
+      <div class="header-badge">
+        <span>Caretaker: <strong id="lblCaretakerName">Dharaneesh N</strong></span>
+        <span>&bull;</span>
+        <span id="lblCaretakerPhone">📱 9489240892</span>
+      </div>
+
+      <div class="header-badge">
+        <span>Resident: <strong id="lblResidentName">Eleanor Vance (Age 79)</strong></span>
+      </div>
+
+      <a href="/" class="btn-nav-exit">← Gateway</a>
+    </div>
+  </header>
+
+  <!-- Main Dashboard Workspace -->
+  <main class="main-workspace">
+
+    <div class="dashboard-grid">
+
+      <!-- ============================================================ -->
+      <!-- LEFT COLUMN: Multi-Room Vision Camera & Automatic Voice Mic  -->
+      <!-- ============================================================ -->
+      <div class="left-col" style="display: flex; flex-direction: column; gap: 20px;">
+
+        <!-- Panel 1: Multi-Room Vision & Fall Detector -->
+        <div class="card-panel">
+          <div class="panel-header-row">
+            <div class="panel-title">
+              <span class="icon">📹</span>
+              <span id="roomTitleText">Living Room (Main Area) — Live Pose Estimation &amp; Movement Tracker</span>
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 0.74rem; color: var(--cyan-neon);">
+              FPS: <span id="cameraFps">28.5</span> &bull; 1080p
+            </div>
+          </div>
+
+          <!-- Room Switcher Strip -->
+          <div class="room-tabs">
+            <button class="room-chip active" onclick="switchRoomView('living_room', this)">🛋️ Living Room</button>
+            <button class="room-chip" onclick="switchRoomView('bathroom', this)">🚿 Bathroom (Slip Risk)</button>
+            <button class="room-chip" onclick="switchRoomView('bedroom', this)">🛏️ Bedroom</button>
+            <button class="room-chip" onclick="switchRoomView('kitchen', this)">🍳 Kitchen</button>
+          </div>
+
+          <!-- Camera Screen Viewport -->
+          <div class="camera-viewport-box">
+            <canvas id="visionCanvas" width="760" height="380"></canvas>
+            
+            <div class="camera-hud-overlay">
+              <div class="hud-tag">
+                <span class="pulse-dot" style="background:#10b981;"></span>
+                <span id="hudStateTag">STATE: NORMAL_MOVEMENT</span>
+              </div>
+              <div class="hud-tag">
+                <span>INACTIVITY: </span>
+                <strong id="hudInactivityTag">0m 45s / 5m MAX</strong>
+              </div>
+            </div>
+
+            <div class="hud-alert-banner" id="hudAlertBanner">
+              <span id="hudAlertText">🚨 FALL DETECTED IN LIVING ROOM — VOCAL WELLNESS CHECK ACTIVE</span>
+              <span style="font-family: var(--font-mono); font-size: 0.74rem;">MIC AUTO-ON 🎙️</span>
+            </div>
+          </div>
+
+          <!-- Interactive Anomaly Simulation Buttons for Evaluator Testing -->
+          <div class="sim-toolbar">
+            <span style="font-size: 0.72rem; color: var(--text-muted); align-self: center; font-weight: 700;">Simulate Trigger:</span>
+            <button class="btn-sim danger" onclick="triggerSimulationEvent('fall')">💥 Simulate Fall Collapse</button>
+            <button class="btn-sim" style="border-color:#f59e0b; color:#fbbf24;" onclick="triggerSimulationEvent('inactivity')">⏳ Simulate 5-10m Inactivity</button>
+            <button class="btn-sim" style="border-color:#10b981; color:#34d399;" onclick="triggerSimulationEvent('normal')">✅ Reset to Normal Movement</button>
+          </div>
+
+          <!-- Section: Automatic Voice Wellness & Always-On Mic -->
+          <div class="mic-live-section">
+            <div class="mic-status-row">
+              <div style="font-family: var(--font-display); font-weight: 800; font-size: 0.92rem; color: #fff; display: flex; align-items: center; gap: 8px;">
+                <span>🎙️</span>
+                <span>Automatic Voice Wellness Check &amp; Always-On Mic</span>
+              </div>
+              <div class="mic-indicator-pill listening" id="micStatusPill">
+                <span class="pulse-dot"></span>
+                <span id="micStatusText">AUTOMATIC MIC ON: LISTENING</span>
+              </div>
+            </div>
+
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">
+              System speaks automatically upon fall or 5-10m inactivity. Microphone turns on with <strong>zero manual button presses</strong>:
+            </div>
+
+            <div class="transcript-box">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="color: var(--cyan-neon); font-weight: 700;">Speech Transcript:</span>
+                <span id="txtUserTranscript">"Listening for senior resident vocal response..."</span>
+              </div>
+              <div id="badgeSpeechClassification" style="font-size: 0.72rem; font-family: var(--font-mono); padding: 3px 8px; border-radius: 6px; background: rgba(255,255,255,0.06); color: var(--text-muted);">
+                STANDBY
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+              <button class="btn-sim" onclick="simulateSpokenVoice('I am okay, I just dropped my glasses')">🗣️ Speak: "I'm okay" (Safe)</button>
+              <button class="btn-sim danger" onclick="simulateSpokenVoice('Help me, I fell and my hip hurts')">🗣️ Speak: "Help me, I fell" (Emergency)</button>
+              <button class="btn-sim" style="border-color:#ef4444; color:#f87171;" onclick="simulateSilenceTimeout()">🔇 Silence / No Answer (15s Timeout)</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- ============================================================ -->
+      <!-- RIGHT COLUMN: Ambulance Tracking, Meds, Wearable Heartbeat   -->
+      <!-- ============================================================ -->
+      <div class="right-col">
+
+        <!-- Card 2: Live Emergency Ambulance Tracking & Auto-Door Unlock -->
+        <div class="card-panel">
+          <div class="panel-header-row">
+            <div class="panel-title">
+              <span class="icon">🚑</span>
+              <span>Live Emergency Ambulance Tracking &amp; Smart Door Lock</span>
+            </div>
+            <button class="btn-sim danger" style="padding: 4px 10px; font-size: 0.72rem;" onclick="testTextBeeEmergencySMS()">
+              💬 Test TextBEE SMS
+            </button>
+          </div>
+
+          <!-- Live Ambulance Radar Map -->
+          <div class="map-box" id="ambulanceMap"></div>
+
+          <div class="tracking-stats-strip">
+            <div class="track-col">
+              <div class="track-label">CAD Unit</div>
+              <div class="track-val" id="trackUnitId">Medic-14</div>
+            </div>
+            <div class="track-col">
+              <div class="track-label">ETA to Home</div>
+              <div class="track-val" style="color: #fbbf24;" id="trackEtaVal">3.8 mins</div>
+            </div>
+            <div class="track-col">
+              <div class="track-label">Distance</div>
+              <div class="track-val" id="trackDistVal">1.45 km</div>
+            </div>
+          </div>
+
+          <!-- Smart Door Lock Status -->
+          <div class="door-lock-badge" id="doorLockBadge">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="doorLockIcon">🔒</span>
+              <span>Main Entrance Door: <strong id="doorLockStatusText">LOCKED (Armed)</strong></span>
+            </div>
+            <span style="font-family: var(--font-mono); font-size: 0.72rem;">PIN: 8492</span>
+          </div>
+          <div style="font-size: 0.70rem; color: var(--text-muted); margin-top: 6px;">
+            Door lock unlocks automatically when ambulance CAD arrives within &lt;50m.
+          </div>
+        </div>
+
+        <!-- Card 3: Medical Reminder System -->
+        <div class="card-panel">
+          <div class="panel-header-row">
+            <div class="panel-title">
+              <span class="icon">💊</span>
+              <span>Medical Pill Reminder System (Voice Adherence)</span>
+            </div>
+            <button class="btn-sim" style="padding: 4px 10px; font-size: 0.72rem;" onclick="triggerMedicationVoiceReminder('med_lisinopril')">
+              🔊 Trigger Pill Reminder
+            </button>
+          </div>
+
+          <div id="medicationListContainer">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+            <button class="btn-sim" onclick="submitMedVoiceResponse('med_lisinopril', 'Yes, I took my 10mg pill')">🗣️ Speak: "Yes, I took it"</button>
+            <button class="btn-sim danger" onclick="submitMedVoiceResponse('med_lisinopril', 'No, I forgot to take it')">🗣️ Speak: "No, I forgot" (Alert Caretaker)</button>
+          </div>
+
+          <div style="font-size: 0.70rem; color: var(--text-muted); margin-top: 8px;">
+            System speaks reminder aloud with pill amount and dosage. If missed, caretaker is alerted via SMS.
+          </div>
+        </div>
+
+        <!-- Card 4: Continuous Wearable Heartbeat Monitoring -->
+        <div class="card-panel">
+          <div class="panel-header-row">
+            <div class="panel-title">
+              <span class="icon">💓</span>
+              <span>Continuous Wearable Heartbeat &amp; Vitals Monitoring</span>
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 0.74rem; color: #34d399;">
+              BLE 5.3 STREAMING
+            </div>
+          </div>
+
+          <!-- Displaying the Wearable which the Person Wears -->
+          <div class="wearable-device-strip">
+            <div>
+              <div class="wearable-title" id="lblWearableName">⌚ Aegis Pulse Band Pro (Bio-Sensing Edition)</div>
+              <div class="wearable-sub">Worn by: Eleanor Vance &bull; Battery: 88% (Optimal) &bull; RSSI: -56 dBm</div>
+            </div>
+            <span style="font-family: var(--font-mono); font-size: 0.70rem; color: var(--cyan-neon);">50 Hz PPG</span>
+          </div>
+
+          <div class="vitals-meter-row">
+            <div class="vital-box">
+              <div class="vital-num" id="lblHeartBpm" style="color: #34d399;">74</div>
+              <div class="vital-label">Live Heart Rate (BPM)</div>
+            </div>
+            <div class="vital-box">
+              <div class="vital-num" id="lblBloodPressure">124/78</div>
+              <div class="vital-label">Blood Pressure (mmHg)</div>
+            </div>
+          </div>
+
+          <!-- ECG Waveform Canvas -->
+          <canvas id="ecgCanvas" width="460" height="60"></canvas>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- FULL WIDTH BOTTOM STRIP: Nearby Emergency Care Systems & Direct Ambulance Numbers -->
+    <div class="card-panel" style="margin-top: 18px; border-color: rgba(239, 68, 68, 0.35);">
+      <div class="panel-header-row" style="margin-bottom: 12px;">
+        <div class="panel-title">
+          <span class="icon">🏥</span>
+          <span style="color: #f87171;">Emergency Care Systems Located Near Residence</span>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 0.74rem; color: #fbbf24;" id="lblLiveCoordsTag">
+          📍 GPS: 42.3601° N, -71.0589° W
+        </div>
+      </div>
+      <div style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 14px;">
+        Direct local trauma centers, ambulance dispatch CAD stations, and emergency telephone lines for immediate escalation:
+      </div>
+      <div class="nearby-grid" id="dashboardNearbyGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
+        <!-- Populated dynamically via GPS /api/v1/live/location/live -->
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // Global State
+    let activeRoom = 'living_room';
+    let isEmergency = false;
+    let leafMap = null;
+    let ambMarker = null;
+    let resMarker = null;
+    let trackingInterval = null;
+    let speechRecognition = null;
+
+    // -------------------------------------------------------------
+    // Initialization
+    // -------------------------------------------------------------
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSession();
+      initVisionCanvas();
+      initAmbulanceMap();
+      initEcgCanvas();
+      loadMedications();
+      setupContinuousSpeechRecognition();
+      loadDashboardNearbyEmergency();
+    });
+
+    function loadSession() {
+      const cgStr = localStorage.getItem('nira_caregiver');
+      if (cgStr) {
+        try {
+          const cg = JSON.parse(cgStr);
+          document.getElementById('lblCaretakerName').textContent = cg.name || cg.caretaker_name || 'Dharaneesh N';
+          document.getElementById('lblCaretakerPhone').textContent = `📱 ${cg.mobile || cg.mobile_number || '9489240892'}`;
+        } catch(e) {}
+      }
+    }
+
+    async function loadDashboardNearbyEmergency() {
+      try {
+        const resp = await fetch('/api/v1/live/location/live');
+        const data = await resp.json();
+        if (data.success) {
+          if (data.latitude && data.longitude) {
+            const coordTag = document.getElementById('lblLiveCoordsTag');
+            if (coordTag) coordTag.textContent = `📍 GPS: ${data.latitude.toFixed(4)}°, ${data.longitude.toFixed(4)}°`;
+          }
+          if (data.nearby_emergency_care) {
+            const grid = document.getElementById('dashboardNearbyGrid');
+            if (grid) {
+              grid.innerHTML = data.nearby_emergency_care.map(u => `
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; justify-content: space-between;">
+                  <div>
+                    <div style="font-size: 0.84rem; font-weight: 700; color: #fff;">${u.name}</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">${u.type} &bull; ${u.address}</div>
+                  </div>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
+                    <span style="font-family: var(--font-mono); font-size: 0.72rem; color: #fbbf24;">📍 ${u.distance_km} km away</span>
+                    <a href="tel:${u.phone}" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 4px 10px; border-radius: 8px; font-size: 0.74rem; font-weight: 700; text-decoration: none;">
+                      <span>📞</span>
+                      <span>${u.phone}</span>
+                    </a>
+                  </div>
+                </div>
+              `).join('');
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Dashboard emergency units fetch note:', e);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Multi-Room Camera & Skeleton Pose Canvas
+    // -------------------------------------------------------------
+    function switchRoomView(room, btn) {
+      activeRoom = room;
+      document.querySelectorAll('.room-chip').forEach(c => c.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+
+      const roomNames = {
+        living_room: "Living Room (Main Area)",
+        bathroom: "Primary Bathroom (Slip & Fall Zone)",
+        bedroom: "East Wing Bedroom",
+        kitchen: "Kitchen & Pantry"
+      };
+      document.getElementById('roomTitleText').textContent = `${roomNames[room] || room} — Live Pose Estimation & Movement Tracker`;
+    }
+
+    function initVisionCanvas() {
+      const cvs = document.getElementById('visionCanvas');
+      const ctx = cvs.getContext('2d');
+      let angle = 0;
+
+      function renderFrame() {
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(0, 0, cvs.width, cvs.height);
+
+        // Draw Room Grid Lines (3D perspective)
+        ctx.strokeStyle = 'rgba(0, 229, 255, 0.08)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < cvs.width; x += 40) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, cvs.height); ctx.stroke();
+        }
+        for (let y = 0; y < cvs.height; y += 40) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cvs.width, y); ctx.stroke();
+        }
+
+        // Draw Room Name watermark
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.font = '700 13px Outfit, sans-serif';
+        ctx.fillText(`CAM-01 • ${activeRoom.toUpperCase()}`, 20, cvs.height - 18);
+
+        // Draw Human Skeleton Pose Estimation
+        if (isEmergency) {
+          // Fallen on floor (horizontal pose skeleton)
+          drawSkeleton(ctx, 380, 290, true);
+        } else {
+          // Standing / moving upright
+          const bob = Math.sin(angle) * 6;
+          drawSkeleton(ctx, 380, 200 + bob, false);
+          angle += 0.04;
+        }
+
+        requestAnimationFrame(renderFrame);
+      }
+      renderFrame();
+    }
+
+    function drawSkeleton(ctx, cx, cy, isFallen) {
+      ctx.strokeStyle = isFallen ? '#ef4444' : '#00e5ff';
+      ctx.lineWidth = 3;
+      ctx.fillStyle = isFallen ? '#ef4444' : '#00e5ff';
+
+      if (isFallen) {
+        // Horizontal skeleton on floor
+        // Head
+        ctx.beginPath(); ctx.arc(cx - 90, cy + 10, 14, 0, Math.PI * 2); ctx.fill();
+        // Spine
+        ctx.beginPath(); ctx.moveTo(cx - 76, cy + 12); ctx.lineTo(cx + 40, cy + 18); ctx.stroke();
+        // Arms
+        ctx.beginPath(); ctx.moveTo(cx - 50, cy + 14); ctx.lineTo(cx - 30, cy + 38); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx - 50, cy + 14); ctx.lineTo(cx - 70, cy - 10); ctx.stroke();
+        // Legs
+        ctx.beginPath(); ctx.moveTo(cx + 40, cy + 18); ctx.lineTo(cx + 90, cy + 10); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx + 40, cy + 18); ctx.lineTo(cx + 100, cy + 30); ctx.stroke();
+
+        // Bounding Box
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.7)';
+        ctx.strokeRect(cx - 115, cy - 20, 230, 70);
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.15)';
+        ctx.fillRect(cx - 115, cy - 20, 230, 70);
+
+        ctx.fillStyle = '#ef4444';
+        ctx.font = '700 11px JetBrains Mono';
+        ctx.fillText('FALL DETECTED (CONF: 98.4% | ANGLE: 84°)', cx - 110, cy - 26);
+      } else {
+        // Upright skeleton
+        // Head
+        ctx.beginPath(); ctx.arc(cx, cy - 70, 16, 0, Math.PI * 2); ctx.fill();
+        // Torso
+        ctx.beginPath(); ctx.moveTo(cx, cy - 54); ctx.lineTo(cx, cy + 20); ctx.stroke();
+        // Arms
+        ctx.beginPath(); ctx.moveTo(cx, cy - 40); ctx.lineTo(cx - 35, cy - 5); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy - 40); ctx.lineTo(cx + 35, cy - 5); ctx.stroke();
+        // Legs
+        ctx.beginPath(); ctx.moveTo(cx, cy + 20); ctx.lineTo(cx - 25, cy + 85); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy + 20); ctx.lineTo(cx + 25, cy + 85); ctx.stroke();
+
+        // Bounding Box
+        ctx.strokeStyle = 'rgba(0, 229, 255, 0.4)';
+        ctx.strokeRect(cx - 45, cy - 95, 90, 190);
+        ctx.fillStyle = '#00e5ff';
+        ctx.font = '700 11px JetBrains Mono';
+        ctx.fillText('RESIDENT (UPRIGHT 14°)', cx - 45, cy - 102);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Voice Synthesis & Automatic Microphone Activation
+    // -------------------------------------------------------------
+    function speakAloud(text, onComplete) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.onend = () => { if (onComplete) onComplete(); };
+        window.speechSynthesis.speak(utterance);
+      } else {
+        if (onComplete) onComplete();
+      }
+    }
+
+    function setupContinuousSpeechRecognition() {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRec) {
+        speechRecognition = new SpeechRec();
+        speechRecognition.continuous = true;
+        speechRecognition.interimResults = true;
+        speechRecognition.lang = 'en-US';
+
+        speechRecognition.onresult = (evt) => {
+          let transcript = '';
+          for (let i = evt.resultIndex; i < evt.results.length; ++i) {
+            transcript += evt.results[i][0].transcript;
+          }
+          if (transcript) {
+            handleResidentSpeechDetected(transcript.trim());
+          }
+        };
+
+        speechRecognition.onerror = (e) => {
+          console.warn('SpeechRec note:', e.error);
+        };
+      }
+    }
+
+    function startAutomaticMicrophone() {
+      const pill = document.getElementById('micStatusPill');
+      const text = document.getElementById('micStatusText');
+      pill.className = 'mic-indicator-pill listening';
+      text.textContent = 'AUTOMATIC MIC ON: LISTENING TO RESIDENT';
+
+      if (speechRecognition) {
+        try { speechRecognition.start(); } catch(e) {}
+      }
+    }
+
+    let activeMedicationPrompt = null;
+
+    function handleResidentSpeechDetected(transcript) {
+      document.getElementById('txtUserTranscript').textContent = `"${transcript}"`;
+      const badge = document.getElementById('badgeSpeechClassification');
+
+      // If waiting for medication answer, route to med adherence
+      if (activeMedicationPrompt) {
+        submitMedVoiceResponse(activeMedicationPrompt, transcript);
+        return;
+      }
+
+      const lower = transcript.toLowerCase();
+      if (lower.includes('okay') || lower.includes('fine') || lower.includes('safe') || lower.includes('alright')) {
+        badge.textContent = 'SAFE VERIFIED';
+        badge.style.background = 'rgba(16, 185, 129, 0.2)';
+        badge.style.color = '#34d399';
+        triggerSimulationEvent('normal');
+        speakAloud("Thank you Eleanor. I am relieved you are safe. Normal ambient monitoring resumed.");
+      } else if (lower.includes('help') || lower.includes('fell') || lower.includes('hurt') || lower.includes('pain')) {
+        badge.textContent = 'EMERGENCY CONFIRMED';
+        badge.style.background = 'rgba(239, 68, 68, 0.25)';
+        badge.style.color = '#f87171';
+        speakAloud("Help is on the way Eleanor. Alerting emergency medical services and your caretaker now.");
+        escalateSevereEmergency();
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Simulation Triggers (Fall, Inactivity, Normal)
+    // -------------------------------------------------------------
+    function triggerSimulationEvent(eventType) {
+      const banner = document.getElementById('hudAlertBanner');
+      const stateTag = document.getElementById('hudStateTag');
+      const inactTag = document.getElementById('hudInactivityTag');
+
+      if (eventType === 'fall') {
+        isEmergency = true;
+        banner.style.display = 'flex';
+        banner.style.background = 'rgba(239, 68, 68, 0.95)';
+        document.getElementById('hudAlertText').textContent = '🚨 FALL DETECTED IN LIVING ROOM — VOCAL WELLNESS CHECK ACTIVE';
+        stateTag.textContent = 'STATE: FALL_DETECTED (CRITICAL)';
+        stateTag.style.color = '#ef4444';
+        inactTag.textContent = '0m 35s IMMOBILE';
+
+        // 1. Voice prompt speaks aloud: "Are you okay?"
+        speakAloud("Are you okay Eleanor? Please let me know if you need help.", () => {
+          // 2. Microphone turns on AUTOMATICALLY with NO manual button press!
+          startAutomaticMicrophone();
+        });
+
+      } else if (eventType === 'inactivity') {
+        isEmergency = true;
+        banner.style.display = 'flex';
+        banner.style.background = 'rgba(245, 158, 11, 0.95)';
+        document.getElementById('hudAlertText').textContent = '⏳ PROLONGED INACTIVITY (5-10 MIN) DETECTED — CHECKING IN';
+        stateTag.textContent = 'STATE: PROLONGED_INACTIVITY';
+        stateTag.style.color = '#fbbf24';
+        inactTag.textContent = '6m 12s / 5m CAP';
+
+        speakAloud("Eleanor, you have been sitting motionless for over six minutes. Are you feeling alright?", () => {
+          startAutomaticMicrophone();
+        });
+
+      } else {
+        isEmergency = false;
+        banner.style.display = 'none';
+        stateTag.textContent = 'STATE: NORMAL_MOVEMENT';
+        stateTag.style.color = '#00e5ff';
+        inactTag.textContent = '0m 45s / 5m MAX';
+        document.getElementById('badgeSpeechClassification').textContent = 'STANDBY';
+        document.getElementById('badgeSpeechClassification').style.background = 'rgba(255,255,255,0.06)';
+        document.getElementById('badgeSpeechClassification').style.color = 'var(--text-muted)';
+        document.getElementById('txtUserTranscript').textContent = '"Listening for senior resident vocal response..."';
+      }
+    }
+
+    function simulateSpokenVoice(phrase) {
+      handleResidentSpeechDetected(phrase);
+    }
+
+    function simulateSilenceTimeout() {
+      document.getElementById('txtUserTranscript').textContent = '"[15s SILENCE - NO VOCAL RESPONSE]"';
+      const badge = document.getElementById('badgeSpeechClassification');
+      badge.textContent = 'UNRESPONSIVE';
+      badge.style.background = 'rgba(239, 68, 68, 0.3)';
+      badge.style.color = '#f87171';
+      speakAloud("No verbal response detected. Escalating emergency CAD dispatch to Boston EMS and notifying caretaker.");
+      escalateSevereEmergency();
+    }
+
+    function escalateSevereEmergency() {
+      // 1. Dispatch real TextBEE SMS
+      testTextBeeEmergencySMS();
+      // 2. Trigger live ambulance GPS tracking & door unlock
+      fetch('/api/v1/live/emergency/trigger-cad', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+        .then(r => r.json())
+        .then(data => {
+          startAmbulanceTracking();
+        });
+    }
+
+    // -------------------------------------------------------------
+    // TextBEE SMS Dispatch
+    // -------------------------------------------------------------
+    async function testTextBeeEmergencySMS() {
+      try {
+        const resp = await fetch('/api/v1/live/emergency/send-sms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            incident_id: 'INC-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+            severity: 'CRITICAL SEVERE',
+            state_description: 'Severe Traumatic Fall Confirmed in Living Room. Resident unresponsive to voice check.',
+            needed_actions: 'AMBULANCE / EMS CAD UNIT MEDIC-14 DISPATCHED. Front door smart lock UNLOCKED (PIN: 8492).'
+          })
+        });
+        const res = await resp.json();
+        if (res.success) {
+          alert(`🚨 TextBEE EMERGENCY SMS DISPATCHED!\n\nTarget Caretaker: ${res.recipient}\nBatch ID: ${res.batch_id || 'TXB-QUEUED'}\nState: Unresponsive Fall Detected\nNeeded: Ambulance Dispatched\nPhoto Snapshot: Attached`);
+        } else {
+          alert(`TextBEE Dispatch Note: ${res.error || 'SMS queued in TextBEE.'}`);
+        }
+      } catch (e) {
+        alert('SMS API Error: ' + e.message);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Live Ambulance GPS Tracking & Smart Door Lock
+    // -------------------------------------------------------------
+    function initAmbulanceMap() {
+      const mapEl = document.getElementById('ambulanceMap');
+      if (!mapEl) return;
+
+      const resLat = 42.3601;
+      const resLon = -71.0589;
+
+      leafMap = L.map('ambulanceMap', { zoomControl: false }).setView([resLat, resLon], 14);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(leafMap);
+
+      // Resident marker
+      const resIcon = L.divIcon({
+        className: 'custom-map-marker',
+        html: `<div style="background:#00e5ff; width:16px; height:16px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 14px #00e5ff;"></div>`,
+        iconSize: [16, 16]
+      });
+      resMarker = L.marker([resLat, resLon], { icon: resIcon }).addTo(leafMap)
+        .bindPopup('<strong>Resident: Eleanor Vance</strong><br>Unit 4B - Beacon Hill');
+
+      // Ambulance marker
+      const ambIcon = L.divIcon({
+        className: 'custom-map-marker',
+        html: `<div style="background:#ef4444; width:22px; height:22px; border-radius:50%; border:2px solid #fff; display:flex; align-items:center; justify-content:center; font-size:12px; box-shadow:0 0 16px #ef4444;">🚑</div>`,
+        iconSize: [22, 22]
+      });
+      ambMarker = L.marker([resLat + 0.0085, resLon - 0.0092], { icon: ambIcon }).addTo(leafMap)
+        .bindPopup('<strong>EMS Medic-14</strong><br>En Route');
+    }
+
+    function startAmbulanceTracking() {
+      if (trackingInterval) clearInterval(trackingInterval);
+      trackingInterval = setInterval(async () => {
+        try {
+          const res = await fetch('/api/v1/live/emergency/tracking');
+          const data = await res.json();
+          if (data && data.tracking) {
+            const t = data.tracking;
+            document.getElementById('trackEtaVal').textContent = `${t.eta_mins} mins`;
+            document.getElementById('trackDistVal').textContent = `${t.distance_km} km`;
+
+            if (ambMarker && t.current_lat && t.current_lon) {
+              ambMarker.setLatLng([t.current_lat, t.current_lon]);
+            }
+
+            // Check door lock status
+            const doorBadge = document.getElementById('doorLockBadge');
+            const doorText = document.getElementById('doorLockStatusText');
+            const doorIcon = document.getElementById('doorLockIcon');
+
+            if (t.door_status.includes('UNLOCKED')) {
+              doorBadge.className = 'door-lock-badge unlocked';
+              doorText.textContent = 'UNLOCKED (Auto-Opened for Paramedics)';
+              doorIcon.textContent = '🔓';
+            }
+          }
+        } catch(e) {}
+      }, 1500);
+    }
+
+    // -------------------------------------------------------------
+    // Medical Pill Reminder System
+    // -------------------------------------------------------------
+    async function loadMedications() {
+      try {
+        const resp = await fetch('/api/v1/live/reminders');
+        const data = await resp.json();
+        const container = document.getElementById('medicationListContainer');
+        if (data && data.medications) {
+          container.innerHTML = data.medications.map(m => `
+            <div class="med-item-row">
+              <div class="med-info-group">
+                <div>${m.name} ${m.dose}</div>
+                <div>${m.condition} &bull; Scheduled: ${m.schedule_time}</div>
+              </div>
+              <div class="med-status-chip ${m.status.toLowerCase()}">${m.status}</div>
+            </div>
+          `).join('');
+        }
+      } catch(e) {}
+    }
+
+    function triggerMedicationVoiceReminder(medId = 'med_lisinopril') {
+      activeMedicationPrompt = medId;
+      speakAloud("Eleanor, it is time for your afternoon medicine: Lisinopril 10mg with a glass of water. Have you taken your pills?", () => {
+        startAutomaticMicrophone();
+      });
+    }
+
+    async function submitMedVoiceResponse(medId, spokenText) {
+      document.getElementById('txtUserTranscript').textContent = `"${spokenText}"`;
+      try {
+        const resp = await fetch('/api/v1/live/reminders/respond', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ medication_id: medId, user_spoken_response: spokenText })
+        });
+        const res = await resp.json();
+        if (res.success) {
+          const badge = document.getElementById('badgeSpeechClassification');
+          if (res.status === 'TAKEN') {
+            badge.textContent = 'MED TAKEN';
+            badge.style.background = 'rgba(16, 185, 129, 0.2)';
+            badge.style.color = '#34d399';
+          } else {
+            badge.textContent = 'MED MISSED - SMS SENT';
+            badge.style.background = 'rgba(239, 68, 68, 0.25)';
+            badge.style.color = '#f87171';
+            alert(`🚨 Caretaker Notified via TextBEE:\n${res.sms_alert || 'Missed medication alert dispatched.'}`);
+          }
+          speakAloud(res.system_response);
+          loadMedications();
+        }
+      } catch (e) {
+        console.error('Med response error:', e);
+      }
+      activeMedicationPrompt = null;
+    }
+
+    // -------------------------------------------------------------
+    // Continuous Wearable Heartbeat Monitoring & ECG Wave Canvas
+    // -------------------------------------------------------------
+    function initEcgCanvas() {
+      const cvs = document.getElementById('ecgCanvas');
+      const ctx = cvs.getContext('2d');
+      let offset = 0;
+
+      function renderEcg() {
+        ctx.fillStyle = 'rgba(2, 6, 23, 0.4)';
+        ctx.fillRect(0, 0, cvs.width, cvs.height);
+
+        ctx.strokeStyle = isEmergency ? '#ef4444' : '#10b981';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+
+        const step = 4;
+        for (let x = 0; x < cvs.width; x += step) {
+          const t = (x + offset) * 0.05;
+          let y = cvs.height / 2 + Math.sin(t) * 4;
+          // Pulse QRS Spike
+          const mod = (x + offset) % 120;
+          if (mod > 50 && mod < 56) y -= 24;
+          else if (mod >= 56 && mod < 62) y += 12;
+
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        offset += isEmergency ? 4.5 : 2.5;
+
+        requestAnimationFrame(renderEcg);
+      }
+      renderEcg();
+
+      // Poll vitals telemetry
+      setInterval(async () => {
+        try {
+          const res = await fetch(`/api/v1/live/heartbeat/live?emergency=${isEmergency}`);
+          const data = await res.json();
+          if (data && data.bpm) {
+            document.getElementById('lblHeartBpm').textContent = Math.round(data.bpm);
+            document.getElementById('lblHeartBpm').style.color = data.status_color || '#34d399';
+            document.getElementById('lblBloodPressure').textContent = data.blood_pressure || '124/78';
+          }
+        } catch(e) {}
+      }, 2000);
+    }
+  </script>
+</body>
+</html>

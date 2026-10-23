@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "resident_id": "resident_live",
   "total_learned_events": 0,
-  "suppressed_false_alarms": 0,
+  "suppressed_false_alarms": 1,
   "hourly_zones": {
     "0": {
       "bathroom": {
@@ -933,9 +933,9 @@
         "observations_count": 1,
         "mean_inactivity_sec": 180.0,
         "max_observed_safe_sec": 180.0,
-        "tolerated_threshold_sec": 180.0,
-        "dismissed_alarms_count": 0,
-        "last_updated": "2026-10-22T18:15:09.033091+00:00"
+        "tolerated_threshold_sec": 207.0,
+        "dismissed_alarms_count": 1,
+        "last_updated": "2026-10-23T12:38:05.026565+00:00"
       },
       "bedroom": {
         "observations_count": 1,
