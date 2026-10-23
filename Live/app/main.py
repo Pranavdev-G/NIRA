@@ -19,6 +19,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
+from Live.app.config import settings
+from Live.app.routers.core_api import router as core_router
 from Live.app.routers.auth import router as auth_router
 from Live.app.routers.location import router as location_router
 from Live.app.routers.reminders import router as reminders_router
@@ -35,10 +37,10 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# Enable CORS
+# Enable Configurable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -49,6 +51,7 @@ if STATIC_DIR.exists():
     app.mount("/live/static", StaticFiles(directory=str(STATIC_DIR)), name="live_static")
 
 # Include Routers
+app.include_router(core_router)
 app.include_router(auth_router)
 app.include_router(location_router)
 app.include_router(reminders_router)

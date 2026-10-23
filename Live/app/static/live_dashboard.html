@@ -781,6 +781,7 @@
       loadMedications();
       setupContinuousSpeechRecognition();
       loadDashboardNearbyEmergency();
+      initCoreRealtimeBus();
     });
 
     function loadSession() {
@@ -826,6 +827,81 @@
         }
       } catch (e) {
         console.warn('Dashboard emergency units fetch note:', e);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Authoritative Live Safety Core Real-time Stream
+    // -------------------------------------------------------------
+    function initCoreRealtimeBus() {
+      if (!window.EventSource) return;
+      try {
+        const es = new EventSource('/api/v1/live/core/events/stream');
+        es.addEventListener('state_update', (e) => {
+          try {
+            const data = JSON.parse(e.data).data;
+            updateDashboardFromAuthoritativeState(data);
+          } catch(err) {}
+        });
+        es.addEventListener('incident_created', (e) => {
+          try {
+            const inc = JSON.parse(e.data).data;
+            showIncidentAlert(inc);
+          } catch(err) {}
+        });
+        es.addEventListener('incident_resolved', (e) => {
+          try {
+            const inc = JSON.parse(e.data).data;
+            hideIncidentAlert(inc);
+          } catch(err) {}
+        });
+        es.addEventListener('wellness_check_started', (e) => {
+          try {
+            const data = JSON.parse(e.data).data;
+            speakAloud(data.prompt, () => startAutomaticMicrophone());
+          } catch(err) {}
+        });
+        es.addEventListener('cad_dispatched', (e) => {
+          startAmbulanceTracking();
+        });
+      } catch (err) {
+        console.warn('Realtime bus init note:', err);
+      }
+    }
+
+    function updateDashboardFromAuthoritativeState(state) {
+      if (!state) return;
+      const stateTag = document.getElementById('hudStateTag');
+      if (stateTag && state.safety_state) {
+        stateTag.textContent = `STATE: ${state.safety_state}`;
+        if (state.safety_state === 'NORMAL') stateTag.style.color = '#00e5ff';
+        else if (state.safety_state.includes('ESCALATION') || state.safety_state.includes('DISPATCH')) stateTag.style.color = '#ef4444';
+        else stateTag.style.color = '#fbbf24';
+      }
+      if (state.vitals && state.vitals.heart_rate_bpm) {
+        const bpmEl = document.getElementById('lblHeartBpm');
+        if (bpmEl) bpmEl.textContent = state.vitals.heart_rate_bpm;
+      }
+    }
+
+    function showIncidentAlert(inc) {
+      isEmergency = true;
+      const banner = document.getElementById('hudAlertBanner');
+      if (banner) {
+        banner.style.display = 'flex';
+        banner.style.background = inc.severity === 'CRITICAL' ? 'rgba(239, 68, 68, 0.95)' : 'rgba(245, 158, 11, 0.95)';
+        document.getElementById('hudAlertText').textContent = `🚨 ${inc.severity} SAFETY INCIDENT DETECTED IN ${inc.location ? inc.location.zone.toUpperCase() : 'RESIDENCE'}`;
+      }
+    }
+
+    function hideIncidentAlert(inc) {
+      isEmergency = false;
+      const banner = document.getElementById('hudAlertBanner');
+      if (banner) banner.style.display = 'none';
+      const stateTag = document.getElementById('hudStateTag');
+      if (stateTag) {
+        stateTag.textContent = 'STATE: NORMAL_MOVEMENT';
+        stateTag.style.color = '#00e5ff';
       }
     }
 
@@ -988,7 +1064,7 @@
 
     let activeMedicationPrompt = null;
 
-    function handleResidentSpeechDetected(transcript) {
+    async function handleResidentSpeechDetected(transcript) {
       document.getElementById('txtUserTranscript').textContent = `"${transcript}"`;
       const badge = document.getElementById('badgeSpeechClassification');
 
@@ -997,6 +1073,15 @@
         submitMedVoiceResponse(activeMedicationPrompt, transcript);
         return;
       }
+
+      // Notify Authoritative Safety Core of resident voice response
+      try {
+        fetch('/api/v1/live/core/wellness/response', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ response_text: transcript })
+        }).catch(() => {});
+      } catch(e) {}
 
       const lower = transcript.toLowerCase();
       if (lower.includes('okay') || lower.includes('fine') || lower.includes('safe') || lower.includes('alright')) {
@@ -1017,7 +1102,7 @@
     // -------------------------------------------------------------
     // Simulation Triggers (Fall, Inactivity, Normal)
     // -------------------------------------------------------------
-    function triggerSimulationEvent(eventType) {
+    async function triggerSimulationEvent(eventType) {
       const banner = document.getElementById('hudAlertBanner');
       const stateTag = document.getElementById('hudStateTag');
       const inactTag = document.getElementById('hudInactivityTag');
@@ -1030,6 +1115,21 @@
         stateTag.textContent = 'STATE: FALL_DETECTED (CRITICAL)';
         stateTag.style.color = '#ef4444';
         inactTag.textContent = '0m 35s IMMOBILE';
+
+        // Ingest into Authoritative Core
+        try {
+          fetch('/api/v1/live/core/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              event_type: 'fall_detected',
+              source: 'vision_camera',
+              zone: activeRoom,
+              confidence: 0.96,
+              payload: { room: activeRoom, posture: 'ground_impact' }
+            })
+          }).catch(() => {});
+        } catch(e) {}
 
         // 1. Voice prompt speaks aloud: "Are you okay?"
         speakAloud("Are you okay Eleanor? Please let me know if you need help.", () => {
@@ -1046,6 +1146,21 @@
         stateTag.style.color = '#fbbf24';
         inactTag.textContent = '6m 12s / 5m CAP';
 
+        // Ingest into Authoritative Core
+        try {
+          fetch('/api/v1/live/core/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              event_type: 'immobility_alert',
+              source: 'vision_camera',
+              zone: activeRoom,
+              confidence: 0.92,
+              payload: { duration_seconds: 372 }
+            })
+          }).catch(() => {});
+        } catch(e) {}
+
         speakAloud("Eleanor, you have been sitting motionless for over six minutes. Are you feeling alright?", () => {
           startAutomaticMicrophone();
         });
@@ -1060,6 +1175,20 @@
         document.getElementById('badgeSpeechClassification').style.background = 'rgba(255,255,255,0.06)';
         document.getElementById('badgeSpeechClassification').style.color = 'var(--text-muted)';
         document.getElementById('txtUserTranscript').textContent = '"Listening for senior resident vocal response..."';
+
+        // Resolve or normal motion in core
+        try {
+          fetch('/api/v1/live/core/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              event_type: 'posture_upright',
+              source: 'vision_camera',
+              zone: activeRoom,
+              confidence: 0.98
+            })
+          }).catch(() => {});
+        } catch(e) {}
       }
     }
 
@@ -1067,12 +1196,22 @@
       handleResidentSpeechDetected(phrase);
     }
 
-    function simulateSilenceTimeout() {
+    async function simulateSilenceTimeout() {
       document.getElementById('txtUserTranscript').textContent = '"[15s SILENCE - NO VOCAL RESPONSE]"';
       const badge = document.getElementById('badgeSpeechClassification');
       badge.textContent = 'UNRESPONSIVE';
       badge.style.background = 'rgba(239, 68, 68, 0.3)';
       badge.style.color = '#f87171';
+
+      // Notify core backend of silence timeout to trigger FSM escalation
+      try {
+        fetch('/api/v1/live/core/wellness/silence-timeout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        }).catch(() => {});
+      } catch(e) {}
+
       speakAloud("No verbal response detected. Escalating emergency CAD dispatch to Boston EMS and notifying caretaker.");
       escalateSevereEmergency();
     }

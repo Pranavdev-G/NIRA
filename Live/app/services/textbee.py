@@ -57,14 +57,14 @@ class LiveTextBeeService:
         target_phone = recipient_phone or settings.DEFAULT_EMERGENCY_RECIPIENT
         formatted_phone = format_phone_e164(target_phone)
 
-        # Skip real network call for simulated unit test numbers
-        if "555" in formatted_phone:
+        # Skip real network call for unconfigured gateway or simulated unit test numbers
+        if not settings.is_textbee_configured() or "555" in formatted_phone:
             return {
                 "success": True,
                 "status": "simulated",
                 "batch_id": f"TXB-SIM-{uuid.uuid4().hex[:6].upper()}",
                 "recipient": formatted_phone,
-                "message": "Simulated emergency SMS (test harness)"
+                "message": "Simulated emergency SMS (gateway unconfigured or test recipient)"
             }
 
         snapshot_url = image_url or f"{settings.PUBLIC_BASE_URL}/live/static/fall_snapshot.jpg"

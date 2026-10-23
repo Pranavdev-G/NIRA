@@ -43,6 +43,8 @@ except Exception as e:
     demo_app = None
     print(f"[NIRA] Demo app import note: {e}")
 
+from Live.app.config import settings
+
 # Master Unified Application
 app = FastAPI(
     title="NIRA — Unified Ambient AI Safety Platform",
@@ -52,7 +54,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -67,23 +69,6 @@ app.mount("/live-engine", live_app)
 # Mount Demo App if available under /demo (Untouched Demo/ folder)
 if demo_app is not None:
     app.mount("/demo", demo_app)
-    try:
-        from Demo.app.routers import (
-            health as demo_health,
-            incidents_api as demo_incidents,
-            events_api as demo_events,
-            risk_api as demo_risk,
-            demo_api as demo_demo,
-            live_api as demo_live
-        )
-        app.include_router(demo_health.router)
-        app.include_router(demo_incidents.router)
-        app.include_router(demo_events.router)
-        app.include_router(demo_risk.router)
-        app.include_router(demo_demo.router)
-        app.include_router(demo_live.router)
-    except Exception as de:
-        print(f"[NIRA] Demo router forward notice: {de}")
 
 
 # ---------------------------------------------------------------------------
@@ -124,6 +109,7 @@ for route in live_app.routes:
         pass
 
 # Also include the routers directly on root app for direct access /api/v1/live/*
+from Live.app.routers.core_api import router as live_core_router
 from Live.app.routers.auth import router as live_auth_router
 from Live.app.routers.location import router as live_location_router
 from Live.app.routers.reminders import router as live_reminders_router
@@ -132,6 +118,7 @@ from Live.app.routers.emergency import router as live_emergency_router
 from Live.app.routers.vision import router as live_vision_router
 from Live.api.voice_routes import router as live_voice_router
 
+app.include_router(live_core_router)
 app.include_router(live_auth_router)
 app.include_router(live_location_router)
 app.include_router(live_reminders_router)

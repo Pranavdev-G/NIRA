@@ -1,0 +1,117 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NIRA Authoritative Incident Contract",
+  "description": "Standardized schema for incident records and emergency workflows in NIRA Live.",
+  "type": "object",
+  "required": [
+    "incident_id",
+    "resident_id",
+    "state",
+    "severity",
+    "risk_score",
+    "start_time",
+    "last_updated",
+    "location",
+    "trigger_event",
+    "timeline"
+  ],
+  "properties": {
+    "incident_id": { "type": "string" },
+    "resident_id": { "type": "string" },
+    "state": {
+      "type": "string",
+      "enum": [
+        "NORMAL",
+        "DETECTED",
+        "VERIFYING",
+        "WELLNESS_CHECK",
+        "WAITING_FOR_RESPONSE",
+        "RESPONSIVE",
+        "CAREGIVER_ESCALATION",
+        "EMERGENCY_ESCALATION",
+        "DISPATCH_READY",
+        "RESOLVED"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+    },
+    "risk_score": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+    "start_time": { "type": "string", "format": "date-time" },
+    "last_updated": { "type": "string", "format": "date-time" },
+    "resolved_at": { "type": ["string", "null"], "format": "date-time" },
+    "location": {
+      "type": "object",
+      "required": ["zone"],
+      "properties": {
+        "zone": { "type": "string" },
+        "address": { "type": ["string", "null"] },
+        "latitude": { "type": ["number", "null"] },
+        "longitude": { "type": ["number", "null"] }
+      }
+    },
+    "trigger_event": { "type": "object" },
+    "supporting_evidence": { "type": "array", "items": { "type": "object" } },
+    "voice_interaction": {
+      "type": ["object", "null"],
+      "properties": {
+        "prompt": { "type": "string" },
+        "prompt_timestamp": { "type": "string" },
+        "resident_response": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "duration_sec": { "type": ["number", "null"] }
+      }
+    },
+    "caregiver_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "action_type": { "type": "string" },
+          "caregiver_name": { "type": "string" },
+          "phone": { "type": "string" },
+          "timestamp": { "type": "string" },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "emergency_dispatch": {
+      "type": ["object", "null"],
+      "properties": {
+        "service_type": { "type": "string" },
+        "unit_id": { "type": "string" },
+        "cad_incident_number": { "type": "string" },
+        "dispatched_at": { "type": "string" },
+        "eta_mins": { "type": "number" },
+        "status": { "type": "string" },
+        "smart_door_status": { "type": "string" }
+      }
+    },
+    "resolution_summary": {
+      "type": ["object", "null"],
+      "properties": {
+        "resolved_by": { "type": "string" },
+        "reason": { "type": "string" },
+        "outcome": { "type": "string", "enum": ["SAFE_CONFIRMED", "FALSE_ALARM_LEARNED", "PARAMEDIC_TREATED", "MANUALLY_CLEARED"] },
+        "notes": { "type": "string" }
+      }
+    },
+    "timeline": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["timestamp", "state", "action", "description", "actor"],
+        "properties": {
+          "timestamp": { "type": "string", "format": "date-time" },
+          "state": { "type": "string" },
+          "action": { "type": "string" },
+          "description": { "type": "string" },
+          "actor": { "type": "string" },
+          "metadata": { "type": "object" }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
