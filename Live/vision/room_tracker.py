@@ -278,8 +278,14 @@ class RoomTracker:
         posture = PostureType.STANDING
         activity = "WALKING" if movement_velocity > 0.25 else "STANDING"
 
+        kpts_list = []
         if keypoints is not None and hasattr(keypoints, "data") and len(keypoints.data) > 0:
-            kpts = keypoints.data[0].cpu().numpy()
+            kpts_raw = keypoints.data[0]
+            kpts = kpts_raw.cpu().numpy() if hasattr(kpts_raw, "cpu") else np.array(kpts_raw)
+            try:
+                kpts_list = [[round(float(p[0]), 1), round(float(p[1]), 1), round(float(p[2]), 2)] for p in kpts]
+            except Exception:
+                pass
             # 5: left shoulder, 6: right shoulder, 11: left hip, 12: right hip
             if len(kpts) >= 13:
                 ls, rs = kpts[5], kpts[6]
@@ -360,8 +366,11 @@ class RoomTracker:
             "movement_rate": round(movement_velocity, 3),
             "dwell_sec": round(dwell_sec, 1),
             "inactivity_sec": round(inactivity_sec, 1),
+            "torso_angle_deg": round(torso_angle_deg, 1),
             "baseline_deviation": self.state.baseline_deviation,
             "behavior_state": self.state.behavior_state,
+            "boxes": [{"box": [round(x1, 1), round(y1, 1), round(x2, 1), round(y2, 1)], "confidence": round(conf, 2), "label": posture.value}],
+            "keypoints": kpts_list,
             "room_state": self.state.model_dump()
         }
 

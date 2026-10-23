@@ -19,6 +19,13 @@ from typing import Optional, Union, Dict, Any, Tuple
 import numpy as np
 import torch
 
+try:
+    from huggingface_hub import InferenceClient
+    HAS_HF_HUB = True
+except ImportError:
+    InferenceClient = None
+    HAS_HF_HUB = False
+
 HAS_TRANSFORMERS = None
 HAS_OPENAI_WHISPER = None
 
@@ -29,6 +36,65 @@ from .audio import AudioPreprocessor, TARGET_SAMPLE_RATE
 logger = logging.getLogger("NIRA.WhisperEngine")
 
 DEFAULT_MODEL_ID = "openai/whisper-large-v3-turbo"
+DEFAULT_HF_MODEL_ID = "openai/whisper-large-v3"
+DEFAULT_HF_TOKEN = os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACE_API_KEY")
+
+
+def transcribe_via_hf_inference(
+    audio_input: Union[str, np.ndarray],
+    model: str = DEFAULT_HF_MODEL_ID,
+    api_key: Optional[str] = None
+) -> Optional[str]:
+    """
+    Transcribes audio using huggingface_hub InferenceClient (openai/whisper-large-v3).
+    Supports token from parameter, HF_TOKEN, HUGGINGFACE_API_KEY, or fallback.
+    """
+    if not HAS_HF_HUB:
+        return None
+
+    token = api_key or DEFAULT_HF_TOKEN
+    if not token:
+        return None
+
+    temp_path = None
+    if isinstance(audio_input, np.ndarray):
+        import wave
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
+            temp_path = f.name
+        with wave.open(temp_path, "wb") as wf:
+            wf.setnchannels(1)
+            wf.setsampwidth(2)
+            wf.setframerate(TARGET_SAMPLE_RATE)
+            int16_data = (np.clip(audio_input, -1.0, 1.0) * 32767).astype(np.int16)
+            wf.writeframes(int16_data.tobytes())
+        file_to_send = temp_path
+    else:
+        file_to_send = str(audio_input)
+
+    if not os.path.exists(file_to_send):
+        return None
+
+    try:
+        client = InferenceClient(
+            provider="hf-inference",
+            api_key=token
+        )
+        output = client.automatic_speech_recognition(file_to_send, model=model)
+        if isinstance(output, dict):
+            return output.get("text", "").strip()
+        elif hasattr(output, "text"):
+            return getattr(output, "text", "").strip()
+        return str(output).strip()
+    except Exception as e:
+        logger.info(f"HuggingFace InferenceClient ({model}) notice: {e}. Falling back to local Whisper.")
+        return None
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.unlink(temp_path)
+            except Exception:
+                pass
 
 
 class WhisperModelUnavailableError(Exception):
@@ -312,6 +378,19 @@ class WhisperSpeechToText(SpeechToText):
             audio_input = audio
             audio_duration = 0.0
 
+        # Attempt HuggingFace InferenceClient (openai/whisper-large-v3) if configured
+        hf_text = transcribe_via_hf_inference(audio_input)
+        if hf_text:
+            return TranscriptionResult(
+                transcript=hf_text,
+                language=language or "en",
+                duration_sec=audio_duration,
+                processing_time_sec=round(time.perf_counter() - t_start, 3),
+                model="openai/whisper-large-v3 (HuggingFace InferenceClient)",
+                transcription_quality="high",
+                metrics={"provider": "hf-inference", "model": DEFAULT_HF_MODEL_ID}
+            )
+
         # Ensure model is loaded
         if not self.is_loaded():
             self.manager.load_model()
@@ -382,3 +461,12 @@ class WhisperSpeechToText(SpeechToText):
             transcription_quality=quality,
             metrics=metrics
         )
+
+    def transcribe_hf(
+        self,
+        audio: Union[str, np.ndarray],
+        model: str = DEFAULT_HF_MODEL_ID,
+        api_key: Optional[str] = None
+    ) -> Optional[str]:
+        """Direct transcription using HuggingFace InferenceClient (openai/whisper-large-v3)."""
+        return transcribe_via_hf_inference(audio, model=model, api_key=api_key)

@@ -1134,15 +1134,36 @@ if __name__ == "__main__":
     tracker = LiveVisionTracker()
     tracker.initialize_model()
     print("Opening live webcam feed (press 'q' to quit)...")
-    cap = cv2.VideoCapture(0)
+    # On Windows, DirectShow (CAP_DSHOW) avoids MSMF lock error -1072875772
+    cap = None
+    if hasattr(cv2, "CAP_DSHOW"):
+        cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        if not cap.isOpened():
+            cap.release()
+            cap = None
+
+    if cap is None or not cap.isOpened():
+        cap = cv2.VideoCapture(0)
+
     if not cap.isOpened():
-        print("Could not open camera 0.")
+        print("Could not open camera 0. Trying camera 1...")
+        cap = cv2.VideoCapture(1, cv2.CAP_DSHOW) if hasattr(cv2, "CAP_DSHOW") else cv2.VideoCapture(1)
+
+    if not cap.isOpened():
+        print("Could not access any physical webcam device.")
         sys.exit(1)
 
+    read_failures = 0
     while True:
         ret, frame = cap.read()
         if not ret:
-            break
+            read_failures += 1
+            if read_failures > 30:
+                print("Webcam frame read timeout. Exiting.")
+                break
+            time.sleep(0.03)
+            continue
+        read_failures = 0
 
         res = tracker.evaluate_frame(frame)
         state = res["state"]

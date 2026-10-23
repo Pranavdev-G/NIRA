@@ -545,8 +545,13 @@
               <span class="icon">📹</span>
               <span id="roomTitleText">Living Room (Main Area) — Live Pose Estimation &amp; Movement Tracker</span>
             </div>
-            <div style="font-family: var(--font-mono); font-size: 0.74rem; color: var(--cyan-neon);">
-              FPS: <span id="cameraFps">28.5</span> &bull; 1080p
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <button id="webcamToggleBtn" class="btn-sim" style="border-color: var(--cyan-neon); color: var(--cyan-neon); padding: 5px 12px; font-size: 0.76rem;" onclick="toggleLiveWebcam()">
+                <span id="webcamBtnIcon">📹</span> <span id="webcamBtnText">Start Live Webcam</span>
+              </button>
+              <div style="font-family: var(--font-mono); font-size: 0.74rem; color: var(--cyan-neon);">
+                FPS: <span id="cameraFps">28.5</span> &bull; 1080p
+              </div>
             </div>
           </div>
 
@@ -560,7 +565,24 @@
 
           <!-- Camera Screen Viewport -->
           <div class="camera-viewport-box">
+            <video id="liveWebcamVideo" playsinline autoplay muted style="display:none;"></video>
             <canvas id="visionCanvas" width="760" height="380"></canvas>
+
+            <!-- Prominent Click to Start Live Camera Overlay -->
+            <div id="cameraStartOverlay" style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(2, 6, 23, 0.82); z-index: 8; cursor: pointer; backdrop-filter: blur(4px);" onclick="toggleLiveWebcam()">
+              <div style="background: rgba(0, 229, 255, 0.15); border: 2px solid var(--cyan-neon); border-radius: 50%; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 0 25px rgba(0, 229, 255, 0.5); margin-bottom: 12px;">
+                📹
+              </div>
+              <div style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: #fff; margin-bottom: 6px;">
+                Click to Start Live Camera Tracking
+              </div>
+              <div style="font-family: var(--font-body); font-size: 0.82rem; color: var(--text-muted); max-width: 420px; text-align: center; line-height: 1.4;">
+                Connects your live camera with real-time YOLOv8 pose estimation, posture angles, and automated fall detection.
+              </div>
+              <button class="btn-sim" style="margin-top: 14px; border-color: var(--cyan-neon); color: #fff; background: var(--cyan-gradient); font-weight: 800; padding: 8px 20px; box-shadow: 0 4px 14px rgba(0, 229, 255, 0.35);">
+                ▶ Enable Live Camera
+              </button>
+            </div>
             
             <div class="camera-hud-overlay">
               <div class="hud-tag">
@@ -922,44 +944,306 @@
       document.getElementById('roomTitleText').textContent = `${roomNames[room] || room} — Live Pose Estimation & Movement Tracker`;
     }
 
+    // -------------------------------------------------------------
+    // Live Webcam & Real-Time YOLO Pose / Fall Inference
+    // -------------------------------------------------------------
+    let isWebcamActive = false;
+    let webcamStream = null;
+    let lastInferenceResult = null;
+    let isInferenceInFlight = false;
+    let lastInferenceTime = 0;
+    const roomCameraMap = {
+      living_room: "CAM-01-LIVING",
+      bathroom: "CAM-02-BATH",
+      bedroom: "CAM-03-BED",
+      kitchen: "CAM-04-KITCHEN",
+      hallway: "CAM-05-HALL"
+    };
+
+    async function toggleLiveWebcam() {
+      const btn = document.getElementById('webcamToggleBtn');
+      const icon = document.getElementById('webcamBtnIcon');
+      const txt = document.getElementById('webcamBtnText');
+      const video = document.getElementById('liveWebcamVideo');
+
+      if (!isWebcamActive) {
+        try {
+          txt.textContent = 'Connecting...';
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 640 }, height: { ideal: 360 } },
+            audio: false
+          });
+          webcamStream = stream;
+          video.srcObject = stream;
+          await video.play();
+          isWebcamActive = true;
+          icon.textContent = '🛑';
+          txt.textContent = 'Stop Live Webcam';
+          btn.style.borderColor = '#ef4444';
+          btn.style.color = '#ef4444';
+          const overlay = document.getElementById('cameraStartOverlay');
+          if (overlay) overlay.style.display = 'none';
+          showToast('Live Camera active! Running real YOLO pose & fall detection.', 'success');
+        } catch (err) {
+          console.error('Webcam access error:', err);
+          isWebcamActive = false;
+          icon.textContent = '📹';
+          txt.textContent = 'Start Live Webcam';
+          btn.style.borderColor = 'var(--cyan-neon)';
+          btn.style.color = 'var(--cyan-neon)';
+          const overlay = document.getElementById('cameraStartOverlay');
+          if (overlay) overlay.style.display = 'flex';
+          showToast('Camera note: ' + (err.message || 'Permission needed'), 'error');
+        }
+      } else {
+        if (webcamStream) {
+          webcamStream.getTracks().forEach(track => track.stop());
+          webcamStream = null;
+        }
+        if (video) video.srcObject = null;
+        isWebcamActive = false;
+        lastInferenceResult = null;
+        icon.textContent = '📹';
+        txt.textContent = 'Start Live Webcam';
+        btn.style.borderColor = 'var(--cyan-neon)';
+        btn.style.color = 'var(--cyan-neon)';
+        const overlay = document.getElementById('cameraStartOverlay');
+        if (overlay) overlay.style.display = 'flex';
+        showToast('Live Camera stopped. Standing by.', 'info');
+      }
+    }
+
+    async function sendFrameForInference(canvas) {
+      if (!isWebcamActive || isInferenceInFlight) return;
+      const now = Date.now();
+      if (now - lastInferenceTime < 280) return; // ~3.5 FPS inference rate
+      isInferenceInFlight = true;
+      lastInferenceTime = now;
+
+      try {
+        const frameData = canvas.toDataURL('image/jpeg', 0.60);
+        const camId = roomCameraMap[activeRoom] || "CAM-01-LIVING";
+        const res = await fetch(`/api/v1/live/vision/cameras/${camId}/frame`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image_base64: frameData,
+            timestamp: new Date().toISOString(),
+            resident_id: 'resident_eleanor_vance',
+            room_id: activeRoom,
+            camera_id: camId
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          lastInferenceResult = data;
+          handleLiveInferenceResults(data);
+        }
+      } catch (e) {
+        console.debug('Frame inference notice:', e);
+      } finally {
+        isInferenceInFlight = false;
+      }
+    }
+
+    function handleLiveInferenceResults(data) {
+      if (!data) return;
+
+      const posture = data.posture || (data.room_state && data.room_state.current_posture) || "NORMAL";
+      const evType = data.event_type || "";
+      const torsoAngle = data.torso_angle_deg || 0;
+      const inactivitySec = data.inactivity_sec || 0;
+      const behaviorState = data.behavior_state || "";
+      const isFall = (evType === "fall_detected") || (posture === "LYING_FLOOR") || (torsoAngle > 65.0);
+      const isUnresponsive = (behaviorState === "INACTIVITY_DETECTED") || (inactivitySec >= 300);
+
+      const stateTag = document.getElementById('hudStateTag');
+      const inactTag = document.getElementById('hudInactivityTag');
+      const banner = document.getElementById('hudAlertBanner');
+      const alertText = document.getElementById('hudAlertText');
+
+      if (inactTag) {
+        const m = Math.floor(inactivitySec / 60);
+        const s = Math.floor(inactivitySec % 60);
+        inactTag.textContent = `${m}m ${s < 10 ? '0' : ''}${s}s / 5m MAX`;
+      }
+
+      if (isFall) {
+        isEmergency = true;
+        activeTriggerType = 'fall';
+        if (stateTag) {
+          stateTag.textContent = `STATE: FALL_DETECTED (${Math.round(torsoAngle)}° Torso)`;
+          stateTag.parentElement.querySelector('.pulse-dot').style.background = '#ef4444';
+        }
+        if (banner) {
+          banner.style.display = 'flex';
+          banner.style.background = 'rgba(239, 68, 68, 0.95)';
+          if (alertText) alertText.textContent = `🚨 REAL FALL DETECTED IN ${activeRoom.toUpperCase()} (${Math.round(torsoAngle)}° KINEMATICS) — CHECKING IN`;
+        }
+        triggerVoiceInquiry("Eleanor, are you okay? Please respond.");
+      } else if (isUnresponsive) {
+        activeTriggerType = 'inactivity';
+        if (stateTag) {
+          stateTag.textContent = `STATE: UNRESPONSIVE / PROLONGED INACTIVITY (${Math.floor(inactivitySec / 60)}m)`;
+          stateTag.parentElement.querySelector('.pulse-dot').style.background = '#f59e0b';
+        }
+        if (banner) {
+          banner.style.display = 'flex';
+          banner.style.background = 'rgba(245, 158, 11, 0.95)';
+          if (alertText) alertText.textContent = `⏳ PROLONGED UNRESPONSIVENESS (${Math.floor(inactivitySec / 60)} MIN) DETECTED IN ${activeRoom.toUpperCase()}`;
+        }
+      } else {
+        if (isEmergency && !isFall && !isUnresponsive) {
+          isEmergency = false;
+        }
+        if (stateTag) {
+          stateTag.textContent = data.person_present ? `STATE: NORMAL (UPRIGHT ${Math.round(torsoAngle)}°)` : 'STATE: NO RESIDENT IN VIEW';
+          stateTag.parentElement.querySelector('.pulse-dot').style.background = '#10b981';
+        }
+        if (banner && !isEmergency) {
+          banner.style.display = 'none';
+        }
+      }
+    }
+
     function initVisionCanvas() {
       const cvs = document.getElementById('visionCanvas');
       const ctx = cvs.getContext('2d');
       let angle = 0;
 
       function renderFrame() {
-        ctx.fillStyle = '#020617';
-        ctx.fillRect(0, 0, cvs.width, cvs.height);
+        const video = document.getElementById('liveWebcamVideo');
 
-        // Draw Room Grid Lines (3D perspective)
-        ctx.strokeStyle = 'rgba(0, 229, 255, 0.08)';
-        ctx.lineWidth = 1;
-        for (let x = 0; x < cvs.width; x += 40) {
-          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, cvs.height); ctx.stroke();
-        }
-        for (let y = 0; y < cvs.height; y += 40) {
-          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cvs.width, y); ctx.stroke();
-        }
+        if (isWebcamActive && video && video.readyState >= 2) {
+          // Draw Live Video stream from user's camera
+          ctx.drawImage(video, 0, 0, cvs.width, cvs.height);
 
-        // Draw Room Name watermark
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-        ctx.font = '700 13px Outfit, sans-serif';
-        ctx.fillText(`CAM-01 • ${activeRoom.toUpperCase()}`, 20, cvs.height - 18);
+          // Cyan telemetry grid lines
+          ctx.strokeStyle = 'rgba(0, 229, 255, 0.12)';
+          ctx.lineWidth = 1;
+          for (let x = 0; x < cvs.width; x += 60) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, cvs.height); ctx.stroke();
+          }
+          for (let y = 0; y < cvs.height; y += 60) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cvs.width, y); ctx.stroke();
+          }
 
-        // Draw Human Skeleton Pose Estimation
-        if (isEmergency) {
-          // Fallen on floor (horizontal pose skeleton)
-          drawSkeleton(ctx, 380, 290, true);
+          // Draw real YOLO detections if available
+          if (lastInferenceResult) {
+            drawLiveDetections(ctx, cvs.width, cvs.height, lastInferenceResult);
+          }
+
+          // Live watermark
+          ctx.fillStyle = 'rgba(0, 229, 255, 0.95)';
+          ctx.font = '700 12px Outfit, sans-serif';
+          ctx.fillText(`LIVE WEBCAM • YOLO POSE & FALL DETECTOR (${activeRoom.toUpperCase()})`, 18, cvs.height - 18);
+
+          // Trigger background asynchronous frame inference
+          sendFrameForInference(cvs);
+
         } else {
-          // Standing / moving upright
-          const bob = Math.sin(angle) * 6;
-          drawSkeleton(ctx, 380, 200 + bob, false);
-          angle += 0.04;
+          // Clean Standby Simulation
+          ctx.fillStyle = '#020617';
+          ctx.fillRect(0, 0, cvs.width, cvs.height);
+
+          // Room Grid Lines
+          ctx.strokeStyle = 'rgba(0, 229, 255, 0.08)';
+          ctx.lineWidth = 1;
+          for (let x = 0; x < cvs.width; x += 40) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, cvs.height); ctx.stroke();
+          }
+          for (let y = 0; y < cvs.height; y += 40) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cvs.width, y); ctx.stroke();
+          }
+
+          // Draw prompt watermark
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+          ctx.font = '600 12px Outfit, sans-serif';
+          ctx.fillText(`CAM-01 • ${activeRoom.toUpperCase()} • Click "Start Live Webcam" for Real Camera Feed`, 20, cvs.height - 18);
+
+          // Draw Simulated Pose Skeleton
+          if (isEmergency) {
+            drawSkeleton(ctx, 380, 290, true);
+          } else {
+            const bob = Math.sin(angle) * 6;
+            drawSkeleton(ctx, 380, 200 + bob, false);
+            angle += 0.04;
+          }
         }
 
         requestAnimationFrame(renderFrame);
       }
       renderFrame();
+
+      // Proactively request camera on page load if supported
+      setTimeout(() => {
+        if (!isWebcamActive && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          toggleLiveWebcam();
+        }
+      }, 700);
+    }
+
+    function drawLiveDetections(ctx, w, h, result) {
+      if (!result) return;
+      const isFall = result.event_type === 'fall_detected' || result.posture === 'LYING_FLOOR' || (result.torso_angle_deg > 65);
+      const isUnresponsive = result.behavior_state === 'INACTIVITY_DETECTED';
+      const color = isFall ? '#ef4444' : (isUnresponsive ? '#f59e0b' : '#00e5ff');
+
+      // Draw bounding boxes
+      if (result.boxes && result.boxes.length > 0) {
+        result.boxes.forEach(b => {
+          const box = b.box;
+          if (box && box.length >= 4) {
+            const sx = w / 640;
+            const sy = h / 360;
+            const bx = box[0] * sx;
+            const by = box[1] * sy;
+            const bw = (box[2] - box[0]) * sx;
+            const bh = (box[3] - box[1]) * sy;
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.5;
+            ctx.strokeRect(bx, by, bw, bh);
+
+            ctx.fillStyle = color;
+            ctx.font = '700 11px JetBrains Mono';
+            const lbl = `${b.label || result.posture || 'PERSON'} (${Math.round(result.torso_angle_deg || 0)}° Torso)`;
+            ctx.fillText(lbl, bx, Math.max(20, by - 8));
+          }
+        });
+      }
+
+      // Draw keypoints skeleton if present
+      if (result.keypoints && result.keypoints.length > 0) {
+        const sx = w / 640;
+        const sy = h / 360;
+        ctx.fillStyle = color;
+        result.keypoints.forEach(k => {
+          if (k.length >= 2 && k[0] > 0 && k[1] > 0) {
+            ctx.beginPath();
+            ctx.arc(k[0] * sx, k[1] * sy, 4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+
+        // Skeleton connections
+        const pairs = [[5,6], [5,11], [6,12], [11,12], [11,13], [12,14], [13,15], [14,16], [5,7], [7,9], [6,8], [8,10]];
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        pairs.forEach(([i, j]) => {
+          if (result.keypoints[i] && result.keypoints[j]) {
+            const p1 = result.keypoints[i];
+            const p2 = result.keypoints[j];
+            if (p1[0] > 0 && p1[1] > 0 && p2[0] > 0 && p2[1] > 0) {
+              ctx.beginPath();
+              ctx.moveTo(p1[0] * sx, p1[1] * sy);
+              ctx.lineTo(p2[0] * sx, p2[1] * sy);
+              ctx.stroke();
+            }
+          }
+        });
+      }
     }
 
     function drawSkeleton(ctx, cx, cy, isFallen) {
@@ -1264,9 +1548,21 @@
       const resLon = -71.0589;
 
       leafMap = L.map('ambulanceMap', { zoomControl: false }).setView([resLat, resLon], 14);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap'
-      }).addTo(leafMap);
+      const maptilerTileUrl = 'https://api.maptiler.com/maps/openstreetmap/{z}/{x}/{y}.jpg?key=XtY4Bvc3fXWmf1tU3H3S';
+      const osmTileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+      const mapLayer = L.tileLayer(maptilerTileUrl, {
+        tileSize: 512,
+        zoomOffset: -1,
+        minZoom: 1,
+        maxZoom: 19,
+        crossOrigin: true,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://www.maptiler.com/">MapTiler</a>'
+      });
+      mapLayer.on('tileerror', function() {
+        mapLayer.setUrl(osmTileUrl);
+      });
+      mapLayer.addTo(leafMap);
 
       // Resident marker
       const resIcon = L.divIcon({
