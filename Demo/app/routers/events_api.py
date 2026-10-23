@@ -15,16 +15,16 @@ Endpoints:
 import json
 import asyncio
 from datetime import datetime, timezone
-from typing import List, Optional, Union, Dict, Any
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Request, status, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
 from app.database.models import TelemetryEventModel
 from app.models.event_contracts import (
-    UnifiedEvent, ResidentStateSnapshot, EventIngestResult, SafetyState
+    UnifiedEvent, ResidentStateSnapshot, EventIngestResult
 )
 from app.services.event_pipeline import global_pipeline
 

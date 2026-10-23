@@ -3,7 +3,6 @@ Unit and Integration Tests for Aegis Fall Detection & Mock Event Emitter.
 Amazon Developer Hackathon 2026.
 """
 
-import os
 import sys
 from pathlib import Path
 
@@ -14,7 +13,7 @@ import json
 import pytest
 import numpy as np
 
-from app.vision.fall_detector import AegisFallDetector, FallEvent, DetectorState
+from app.vision.fall_detector import AegisFallDetector, FallEvent
 from fall_detector import generate_synthetic_frame
 from mock_event_emitter import SCENARIOS, build_payload
 

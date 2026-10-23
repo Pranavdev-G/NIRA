@@ -26,24 +26,29 @@ Scenarios Implemented:
 
 import sys
 import time
-import json
 import uuid
 import logging
-from typing import Dict, Any, List, Optional
-from datetime import datetime, timezone
+from typing import Dict, Any, List
 
 try:
-    from demo.wearable_simulator import WearableSimulator
-    from demo.environment_simulator import EnvironmentSimulator
-    from demo.radar_simulator import RadarSimulator
-    from demo.vision_simulator import VisionSimulator
-    from demo.voice_simulator import VoiceSimulator
-except ImportError:
-    from wearable_simulator import WearableSimulator
-    from environment_simulator import EnvironmentSimulator
-    from radar_simulator import RadarSimulator
-    from vision_simulator import VisionSimulator
-    from voice_simulator import VoiceSimulator
+    from .wearable_simulator import WearableSimulator
+    from .environment_simulator import EnvironmentSimulator
+    from .radar_simulator import RadarSimulator
+    from .vision_simulator import VisionSimulator
+    from .voice_simulator import VoiceSimulator
+except (ImportError, ValueError):
+    try:
+        from Demo.wearable_simulator import WearableSimulator
+        from Demo.environment_simulator import EnvironmentSimulator
+        from Demo.radar_simulator import RadarSimulator
+        from Demo.vision_simulator import VisionSimulator
+        from Demo.voice_simulator import VoiceSimulator
+    except ImportError:
+        from wearable_simulator import WearableSimulator
+        from environment_simulator import EnvironmentSimulator
+        from radar_simulator import RadarSimulator
+        from vision_simulator import VisionSimulator
+        from voice_simulator import VoiceSimulator
 
 # Ensure UTF-8 output on Windows consoles
 if hasattr(sys.stdout, "reconfigure"):
@@ -166,7 +171,7 @@ class ScenarioSimulator:
 
         # Step 2: Acoustic thud / minor stumble
         print("1. Emitting minor stumble / impact event (conf 0.65)...")
-        vis_res = self.vision.emit_event(preset="minor_stumble", room_id="living_room", correlation_id=corr_id)
+        self.vision.emit_event(preset="minor_stumble", room_id="living_room", correlation_id=corr_id)
         self._sleep()
 
         # Step 3: Radar confirms resident remained upright
@@ -202,7 +207,7 @@ class ScenarioSimulator:
 
         # Step 1: Camera detects fall with crawling movement
         print("1. Camera detects fall with crawling movement (conf 0.89)...")
-        vis_res = self.vision.emit_event(preset="fall_impact_crawling", room_id="living_room", correlation_id=corr_id)
+        self.vision.emit_event(preset="fall_impact_crawling", room_id="living_room", correlation_id=corr_id)
         self._sleep()
 
         # Step 2: Radar confirms target on floor
@@ -322,7 +327,7 @@ class ScenarioSimulator:
         # Step 1: Wearable disconnects (off-wrist)
         print("1. Wearable emits disconnect / off-wrist event (0 bpm)...")
         self.wearable.disconnect()
-        drop_res = self.wearable.emit_event(preset="disconnected", room_id="living_room", correlation_id=corr_id)
+        self.wearable.emit_event(preset="disconnected", room_id="living_room", correlation_id=corr_id)
         self._sleep()
 
         # Step 2: Radar confirms resident is safe and walking in living room
@@ -372,12 +377,12 @@ class ScenarioSimulator:
 
         # Step 2: Radar detects resident walking down hallway towards bathroom
         print("2. Hallway radar tracks resident approaching bathroom entry...")
-        rad_res = self.radar.emit_event(preset="upright_walking", room_id="hallway", correlation_id=corr_id)
+        self.radar.emit_event(preset="upright_walking", room_id="hallway", correlation_id=corr_id)
         self._sleep()
 
         # Step 3: Wearable reports normal baseline vitals (resident has NOT fallen)
         print("3. Wearable reports normal vitals (no trauma yet)...")
-        wear_res = self.wearable.emit_event(preset="walking_normal", room_id="hallway", correlation_id=corr_id)
+        self.wearable.emit_event(preset="walking_normal", room_id="hallway", correlation_id=corr_id)
         self._sleep()
 
         hazard_state = env_res.get("response", {}).get("safety_state") if env_res else "ANOMALY"

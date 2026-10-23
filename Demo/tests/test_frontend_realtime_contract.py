@@ -11,7 +11,6 @@ Validates that:
 6. Voice state transitions (/api/v1/incidents/{id}/respond-voice) correctly update incident status.
 """
 
-import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 

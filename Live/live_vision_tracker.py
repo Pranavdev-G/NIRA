@@ -7,9 +7,7 @@ and hardware edge sensor inputs into the NIRA backend.
 """
 
 import os
-import sys
 import time
-import json
 import logging
 from typing import Dict, Any, Optional
 

@@ -10,12 +10,27 @@
 let currentScenario = "silent";
 let isPlayingAnimation = false;
 
+// User interaction state tracker for Web Audio policy compliance
+let userHasInteracted = false;
+if (typeof window !== "undefined") {
+  const markInteraction = () => { userHasInteracted = true; };
+  window.addEventListener("pointerdown", markInteraction, { once: true, passive: true });
+  window.addEventListener("keydown", markInteraction, { once: true, passive: true });
+}
+
 // Audio Chime Generator via Web Audio API (Zero external assets needed)
 function playChime(type = "info") {
+  // Respect browser autoplay policy - only trigger audio after user gesture
+  if (!userHasInteracted && !(typeof navigator !== "undefined" && navigator.userActivation && navigator.userActivation.hasBeenActive)) {
+    return;
+  }
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
     const ctx = new AudioCtx();
+    if (ctx.state === "suspended") {
+      return;
+    }
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
@@ -1380,23 +1395,27 @@ function switchTab(tabId) {
     'history': 'incidenthistory',
     'incidents': 'incidenthistory',
     'overview': 'overview',
+    'medications': 'medications',
+    'medication': 'medications',
+    'meds': 'medications',
     'vision': 'vision',
     'voice': 'voice',
     'dispatch': 'dispatch'
   };
 
-  const canonical = (tabId && aliasMap[tabId.toLowerCase()]) ? aliasMap[tabId.toLowerCase()] : (tabId ? tabId.toLowerCase() : 'voiceassistant');
+  const canonical = (tabId && aliasMap[tabId.toLowerCase()]) ? aliasMap[tabId.toLowerCase()] : (tabId ? tabId.toLowerCase() : 'overview');
 
   const allTabs = [
+    { id: 'overview', btn: 'tabBtnOverview', panel: 'panelOverview' },
     { id: 'voiceassistant', btn: 'tabBtnVoiceAssistant', panel: 'panelVoiceAssistant' },
     { id: 'dailycheckin', btn: 'tabBtnDailyCheckin', panel: 'panelDailyCheckin' },
+    { id: 'medications', btn: 'tabBtnMedicationReminders', panel: 'panelMedicationReminders' },
     { id: 'demovideo', btn: 'tabBtnDemoVideo', panel: 'panelDemoVideo' },
     { id: 'falldetection', btn: 'tabBtnFallDetection', panel: 'panelFallDetection' },
     { id: 'emergencyalert', btn: 'tabBtnEmergencyAlert', panel: 'panelEmergencyAlert' },
     { id: 'locationmap', btn: 'tabBtnLocationMap', panel: 'panelLocationMap' },
     { id: 'notificationcenter', btn: 'tabBtnNotificationCenter', panel: 'panelNotificationCenter' },
     { id: 'incidenthistory', btn: 'tabBtnIncidentHistory', panel: 'panelIncidentHistory' },
-    { id: 'overview', btn: 'tabBtnOverview', panel: 'panelOverview' },
     { id: 'vision', btn: 'tabBtnVision', panel: 'panelVision' },
     { id: 'voice', btn: 'tabBtnVoice', panel: 'panelVoice' },
     { id: 'dispatch', btn: 'tabBtnDispatch', panel: 'panelDispatch' }
@@ -1925,6 +1944,20 @@ function returnToLandingGateway() {
 window.enterSystemMode = enterSystemMode;
 window.returnToLandingGateway = returnToLandingGateway;
 window.switchSystemMode = switchSystemMode;
+
+function openAmbulanceDriverPortal() {
+  enterSystemMode("demo");
+  if (window.person2DemoStore && !window.person2DemoStore.getActiveIncident()) {
+    window.person2DemoStore.simulateFall();
+  }
+  window.location.hash = "#demo/emergencyalert";
+  setTimeout(() => {
+    if (typeof switchTab === "function") {
+      switchTab("emergencyalert");
+    }
+  }, 80);
+}
+window.openAmbulanceDriverPortal = openAmbulanceDriverPortal;
 
 // Check URL hash immediately on boot or navigation
 if (typeof window !== "undefined") {

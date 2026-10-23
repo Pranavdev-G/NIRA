@@ -1040,13 +1040,52 @@
       const inc = demoStore.getActiveIncident();
       if (!inc) {
         card.innerHTML = `
-          <div class="demo-standby-card">
-            <div class="standby-icon">🛡️</div>
-            <h3>No Active Emergency</h3>
-            <p>Eleanor Vance is safe and all biometric sensors indicate normal baseline activity.</p>
-            <div style="margin-top: 18px;">
-              <button class="btn-demo-primary" onclick="window.switchTab('falldetect')">Go to Fall Simulation &rarr;</button>
-              <button class="btn-demo-secondary" onclick="window.switchTab('history')">View Incident History &rarr;</button>
+          <!-- Ambulance CAD Dispatch Mode Banner -->
+          <div class="ambulance-cad-hud" style="background: linear-gradient(135deg, rgba(225, 29, 72, 0.22) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1.5px solid rgba(244, 63, 94, 0.55); border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; box-shadow: 0 10px 30px rgba(244, 63, 94, 0.25);">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(244, 63, 94, 0.25); border: 1.5px solid rgba(244, 63, 94, 0.6); display: flex; align-items: center; justify-content: center; font-size: 1.6rem;">🚑</div>
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <span style="font-size: 1.05rem; font-weight: 800; color: #ffffff; letter-spacing: -0.01em;">Boston EMS Medic 14 &bull; Ambulance CAD Driver Portal</span>
+                  <span class="pill-badge pill-green">CAD LINK ONLINE &bull; READY</span>
+                </div>
+                <div style="font-size: 0.82rem; color: #cbd5e1; margin-top: 4px;">
+                  MDT Terminal ID: <strong>CAD-BOS-02108</strong> &bull; Sector: <strong>Beacon Hill District</strong> &bull; Primary Trauma Center: <strong>Mass General Hospital</strong>
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; background: rgba(0, 0, 0, 0.45); padding: 10px 18px; border-radius: 12px; border: 1.5px dashed rgba(244, 63, 94, 0.55);">
+              <div>
+                <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #fda4af; font-weight: 800;">Smart Door Token</div>
+                <div style="font-size: 1.45rem; font-weight: 900; color: #34d399; font-family: monospace; letter-spacing: 0.16em;">8492</div>
+              </div>
+              <span class="pill-badge pill-green" style="font-size: 0.68rem;">FIRST RESPONDER OVERRIDE</span>
+            </div>
+          </div>
+
+          <!-- Standby CAD Patrol Monitor Card -->
+          <div class="demo-standby-card" style="border: 1px solid rgba(244, 63, 94, 0.3); background: rgba(15, 23, 42, 0.85); border-radius: 16px; padding: 28px 24px; text-align: center;">
+            <div class="standby-icon" style="background: rgba(244, 63, 94, 0.15); border: 1.5px solid rgba(244, 63, 94, 0.4); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto;">🚑</div>
+            <h3 style="color: #fff; margin-top: 14px; font-size: 1.25rem;">Ambulance CAD Dispatcher Active</h3>
+            <p style="color: #94a3b8; max-width: 580px; margin: 8px auto 18px; font-size: 0.88rem;">Boston EMS Medic 14 is linked to Eleanor Vance's Beacon Hill Unit 4B ambient sensor array. All telemetry is streaming in real time.</p>
+            
+            <div style="background: rgba(0, 0, 0, 0.35); border-radius: 12px; padding: 16px 22px; max-width: 560px; margin: 0 auto 22px; text-align: left; font-size: 0.84rem; color: #cbd5e1; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; border: 1px solid rgba(255, 255, 255, 0.08);">
+              <div>👤 <strong>Patient:</strong> Eleanor Vance (Age 79)</div>
+              <div>📍 <strong>Address:</strong> Unit 4B - Beacon Hill</div>
+              <div>🔑 <strong>Door Deadbolt:</strong> PIN 8492 Armed</div>
+              <div>🏥 <strong>Hospital:</strong> Mass General ER (1.2 mi)</div>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+              <button class="btn-demo-primary" onclick="window.person2DemoStore.simulateFall()" style="background: linear-gradient(135deg, #e11d48, #be123c); border-color: #f43f5e; box-shadow: 0 4px 16px rgba(244,63,94,0.4); padding: 10px 20px; font-size: 0.88rem;">
+                🚨 Simulate Live CAD Fall Dispatch &rarr;
+              </button>
+              <button class="btn-demo-secondary" onclick="window.switchTab('map')" style="padding: 10px 18px; font-size: 0.88rem;">
+                🗺️ Open GPS CAD Route Map &rarr;
+              </button>
+              <button class="btn-demo-secondary" onclick="window.switchTab('history')" style="padding: 10px 18px; font-size: 0.88rem;">
+                📜 CAD Incident History &rarr;
+              </button>
             </div>
           </div>
         `;
@@ -1136,25 +1175,32 @@
           <div class="em-controls-row">
             ${!isAcknowledged ? `
               <button class="btn-demo-primary" id="btnAckEmergency" onclick="window.person2DemoStore.acknowledgeIncident('${inc.id}')">
-                ✅ Acknowledge Incident
+                ✅ Acknowledge Incident (Medic 14)
               </button>
             ` : `
               <button class="btn-demo-primary" disabled style="opacity: 0.7;">
-                ✓ Acknowledged by Guardian
+                ✓ Acknowledged by First Responder
               </button>
             `}
-            <button class="btn-demo-secondary" id="btnCancelEmergency" onclick="window.person2DemoStore.cancelIncident('${inc.id}', 'Guardian cancelled false alarm')">
+            <button class="btn-demo-primary" onclick="window.EmergencyAlertController.markOnScene()" style="background: linear-gradient(135deg, #10b981, #059669); border-color: #10b981;">
+              🚑 Mark On-Scene (Arrived)
+            </button>
+            <button class="btn-demo-secondary" id="btnCancelEmergency" onclick="window.person2DemoStore.cancelIncident('${inc.id}', 'First Responder cancelled false alarm')">
               ✖ Cancel Incident (False Alarm)
             </button>
             <button class="btn-demo-secondary" onclick="window.switchTab('map')">
-              🗺️ View on Map
+              🗺️ Open CAD GPS Map
             </button>
             <button class="btn-demo-secondary" onclick="window.switchTab('history')">
-              📜 View Full History
+              📜 View CAD History
             </button>
           </div>
         </div>
       `;
+    },
+
+    markOnScene() {
+      demoStore.showToast("🚑 Boston EMS Medic 14 marked ON-SCENE at Beacon Hill Unit 4B. Smart Lock PIN 8492 verified.", "success");
     }
   };
 
@@ -1572,6 +1618,66 @@
     }
   };
 
+  window.openResidentProfileModal = function() {
+    const modal = document.getElementById('residentProfileModal');
+    if (modal) {
+      modal.style.display = 'flex';
+      modal.setAttribute('aria-hidden', 'false');
+    }
+  };
+
+  window.closeResidentProfileModal = function() {
+    const modal = document.getElementById('residentProfileModal');
+    if (modal) {
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden', 'true');
+    }
+  };
+
+  window.toggleMedicationDose = function(medId) {
+    const badge = document.getElementById('medStatus_' + medId);
+    const btn = document.getElementById('btnMedAction_' + medId);
+    const overviewBadge = document.getElementById('overviewCoq10Badge');
+
+    const isTaken = badge ? badge.getAttribute('data-taken') === 'true' : false;
+
+    if (!isTaken) {
+      if (badge) {
+        badge.setAttribute('data-taken', 'true');
+        badge.className = 'pill-badge pill-green';
+        badge.innerHTML = '✓ Taken Just Now';
+      }
+      if (btn) {
+        btn.className = 'btn-demo-secondary';
+        btn.innerHTML = 'Undo / Mark Pending';
+      }
+      if (overviewBadge) {
+        overviewBadge.className = 'pill-badge pill-green';
+        overviewBadge.innerHTML = '✓ Taken';
+      }
+      if (window.person2DemoStore) {
+        window.person2DemoStore.showToast("💊 CoQ10 100mg recorded as taken. Caregiver portal synced.", "success");
+      }
+    } else {
+      if (badge) {
+        badge.setAttribute('data-taken', 'false');
+        badge.className = 'pill-badge pill-amber';
+        badge.innerHTML = '⏳ Pending (Due 7:00 PM)';
+      }
+      if (btn) {
+        btn.className = 'btn-demo-primary';
+        btn.innerHTML = 'Take Dose Now &rarr;';
+      }
+      if (overviewBadge) {
+        overviewBadge.className = 'pill-badge pill-amber';
+        overviewBadge.innerHTML = 'Pending';
+      }
+      if (window.person2DemoStore) {
+        window.person2DemoStore.showToast("Medication status reset to Pending.", "info");
+      }
+    }
+  };
+
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
@@ -1608,7 +1714,7 @@
     voiceNarrationEnabled: false,
     currentTime: 0,
     captionsVisible: true,
-    viewMode: 'split',
+    viewMode: 'video', // Default to official Gemini-generated video
     reelInstance: null,
 
     scenes: [
@@ -1760,16 +1866,33 @@
     setViewMode(mode) {
       this.viewMode = mode;
       const stage = document.getElementById("geminiStageContainer");
-      if (stage) {
-        stage.className = "gemini-stage-container" + 
-          (mode === "human" ? " view-human-only" : (mode === "3d" ? " view-3d-only" : ""));
+      const videoPane = document.getElementById("geminiVideoFilePane");
+      const realVid = document.getElementById("geminiRealVideoPlayer");
+
+      if (mode === "video") {
+        if (stage) stage.style.display = "none";
+        if (videoPane) videoPane.style.display = "flex";
+        if (realVid && this.isPlaying) {
+          realVid.play().catch(() => {});
+        }
+      } else {
+        if (videoPane) {
+          videoPane.style.display = "none";
+          if (realVid) realVid.pause();
+        }
+        if (stage) {
+          stage.style.display = "grid";
+          stage.className = "gemini-stage-container" + 
+            (mode === "human" ? " view-human-only" : (mode === "3d" ? " view-3d-only" : ""));
+        }
       }
+
       const btns = document.querySelectorAll(".gemini-view-toggles .view-mode-btn");
       btns.forEach(b => {
         const isTarget = b.getAttribute("data-mode") === mode;
         b.classList.toggle("active-view-mode", isTarget);
       });
-      if (this.reelInstance) {
+      if (this.reelInstance && mode !== "video") {
         setTimeout(() => {
           this.reelInstance.resize();
         }, 60);
@@ -1780,13 +1903,18 @@
       if (this.isPlaying) return;
       this.isPlaying = true;
       this.updateControlsUI();
-      this.speakNarration(this.scenes[this.currentScene].caption);
-      this.startTimer();
-      if (this.reelInstance) {
-        this.reelInstance.play();
+      const realVid = document.getElementById("geminiRealVideoPlayer");
+      if (this.viewMode === "video" && realVid) {
+        realVid.play().catch(() => {});
       } else {
-        this.init3DReel();
-        if (this.reelInstance) this.reelInstance.play();
+        this.speakNarration(this.scenes[this.currentScene].caption);
+        this.startTimer();
+        if (this.reelInstance) {
+          this.reelInstance.play();
+        } else {
+          this.init3DReel();
+          if (this.reelInstance) this.reelInstance.play();
+        }
       }
     },
 
@@ -1795,6 +1923,8 @@
       this.clearTimer();
       this.stopNarration();
       this.updateControlsUI();
+      const realVid = document.getElementById("geminiRealVideoPlayer");
+      if (realVid) realVid.pause();
       if (this.reelInstance) {
         this.reelInstance.pause();
       }
@@ -1887,16 +2017,27 @@
       this.currentTime = 0;
       this.currentScene = Math.max(0, Math.min(index, this.scenes.length - 1));
       this.render();
+
+      const realVid = document.getElementById("geminiRealVideoPlayer");
+      if (this.viewMode === "video" && realVid) {
+        const offsets = [0, 2.0, 4.0, 6.0, 8.0];
+        realVid.currentTime = offsets[this.currentScene] || 0;
+        if (this.isPlaying) realVid.play().catch(() => {});
+      }
+
       if (this.isPlaying || this.voiceNarrationEnabled) {
         this.speakNarration(this.scenes[this.currentScene].caption);
       }
-      if (this.isPlaying) this.startTimer();
+      if (this.isPlaying && this.viewMode !== "video") this.startTimer();
     },
 
     setSpeed(speed) {
       this.playbackSpeed = speed;
       this.clearTimer();
-      if (this.isPlaying) {
+      const realVid = document.getElementById("geminiRealVideoPlayer");
+      if (realVid) realVid.playbackRate = speed;
+
+      if (this.isPlaying && this.viewMode !== "video") {
         this.speakNarration(this.scenes[this.currentScene].caption);
         this.startTimer();
       }
@@ -1911,10 +2052,16 @@
       const rect = container.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
       const ratio = Math.max(0, Math.min(1, clickX / rect.width));
-      const current = this.scenes[this.currentScene];
-      this.currentTime = ratio * current.duration;
-      this.updateTimelineUI();
-      this.sync3DReel();
+
+      const realVid = document.getElementById("geminiRealVideoPlayer");
+      if (this.viewMode === "video" && realVid && realVid.duration) {
+        realVid.currentTime = ratio * realVid.duration;
+      } else {
+        const current = this.scenes[this.currentScene];
+        this.currentTime = ratio * current.duration;
+        this.updateTimelineUI();
+        this.sync3DReel();
+      }
     },
 
     toggleCaptions() {
@@ -2083,16 +2230,10 @@
               <span class="pill-badge pill-blue" id="videoPhasePill">${escapeHtml(sc.tag)}</span>
             </div>
 
-            <!-- 3D / Human Presenter View Switcher -->
+            <!-- Official Video Reel Mode -->
             <div class="gemini-view-toggles" role="group" aria-label="Explainer Presentation Mode">
-              <button class="view-mode-btn ${this.viewMode === 'split' ? 'active-view-mode' : ''}" data-mode="split" onclick="window.demoVideoController.setViewMode('split')" title="Side-by-side 3D Simulation and Human AI Presenter">
-                ✨ Split Studio Video
-              </button>
-              <button class="view-mode-btn ${this.viewMode === 'human' ? 'active-view-mode' : ''}" data-mode="human" onclick="window.demoVideoController.setViewMode('human')" title="Focused Human AI Presenter View">
-                👤 Human Presenter
-              </button>
-              <button class="view-mode-btn ${this.viewMode === '3d' ? 'active-view-mode' : ''}" data-mode="3d" onclick="window.demoVideoController.setViewMode('3d')" title="Focused 3D Digital Twin View">
-                🌐 3D Digital Twin
+              <button class="view-mode-btn active-view-mode" data-mode="video" onclick="window.demoVideoController.setViewMode('video')" title="Play Official Gemini AI Generated Video">
+                🎬 Official Gemini AI Video Reel
               </button>
             </div>
 
@@ -2115,7 +2256,7 @@
               <!-- Top Left Watermark Badge -->
               <div class="video-broadcast-watermark">
                 <span class="rec-pulse-dot"></span>
-                <span>🔴 LIVE GEMINI AI EXPLAINER &bull; 4K 60FPS</span>
+                <span>🔴 LIVE GEMINI AI EXPLAINER &bull; HD REEL</span>
               </div>
 
               <!-- Center Big Play Button Overlay (visible when paused) -->
@@ -2123,8 +2264,17 @@
                 <div class="video-center-play-btn" aria-label="Play Video">▶</div>
               </div>
 
+              <!-- Real Gemini-Generated Video Reel Pane -->
+              <div class="gemini-video-file-pane" id="geminiVideoFilePane" style="display: ${this.viewMode === 'video' ? 'flex' : 'none'}; width: 100%; min-height: 420px; background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); align-items: center; justify-content: center; position: relative; border-radius: 8px; overflow: hidden;">
+                <video id="geminiRealVideoPlayer" src="/static/gemini_generated_video.mp4" playsinline preload="auto" poster="/static/gemini_video_poster.jpg" style="max-width: 100%; max-height: 460px; width: 100%; object-fit: contain; display: block; border-radius: 8px; box-shadow: 0 12px 36px rgba(0,0,0,0.7);"></video>
+                <div style="position: absolute; bottom: 12px; left: 16px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 9999px; padding: 4px 12px; display: flex; align-items: center; gap: 8px; font-size: 0.72rem; color: #e2e8f0; pointer-events: none;">
+                  <span style="width: 8px; height: 8px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #38bdf8;"></span>
+                  <span>Official Gemini AI Generated Demo Video &bull; 720p HD</span>
+                </div>
+              </div>
+
               <!-- The Split Stage: 3D Simulation & Human Presenter -->
-              <div class="gemini-stage-container ${this.viewMode === 'human' ? 'view-human-only' : (this.viewMode === '3d' ? 'view-3d-only' : '')}" id="geminiStageContainer" style="margin: 0; border: none; min-height: 420px; border-radius: 0;">
+              <div class="gemini-stage-container ${this.viewMode === 'human' ? 'view-human-only' : (this.viewMode === '3d' ? 'view-3d-only' : '')}" id="geminiStageContainer" style="display: ${this.viewMode === 'video' ? 'none' : 'grid'}; margin: 0; border: none; min-height: 420px; border-radius: 0;">
                 
                 <!-- Left Pane: True 3D Three.js Animated WebGL Operational Canvas -->
                 <div class="gemini-simulation-pane">
@@ -2306,6 +2456,37 @@
 
       this.updateControlsUI();
       this.updateTimelineUI();
+
+      const realVid = document.getElementById("geminiRealVideoPlayer");
+      if (realVid && !realVid._hasNiraListeners) {
+        realVid._hasNiraListeners = true;
+        realVid.addEventListener("timeupdate", () => {
+          if (this.viewMode === "video" && realVid.duration) {
+            const fill = document.getElementById('videoProgressFill');
+            const timecode = document.getElementById('videoTimecodeText');
+            const pct = (realVid.currentTime / realVid.duration) * 100;
+            if (fill) fill.style.width = pct.toFixed(1) + '%';
+            if (timecode) {
+              const curSec = Math.floor(realVid.currentTime);
+              const durSec = Math.floor(realVid.duration);
+              timecode.innerHTML = `<strong>00:${curSec < 10 ? '0' : ''}${curSec}</strong> / 00:${durSec < 10 ? '0' : ''}${durSec}`;
+            }
+          }
+        });
+        realVid.addEventListener("play", () => {
+          this.isPlaying = true;
+          this.updateControlsUI();
+        });
+        realVid.addEventListener("pause", () => {
+          this.isPlaying = false;
+          this.updateControlsUI();
+        });
+        realVid.addEventListener("ended", () => {
+          this.isPlaying = false;
+          this.updateControlsUI();
+        });
+      }
+
       setTimeout(() => {
         this.init3DReel();
       }, 50);

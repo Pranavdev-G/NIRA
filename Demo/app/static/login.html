@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Aegis Ambient Care — Secure Portal Access</title>
   <meta name="description" content="Secure login portal for family members, sons, clinicians, and first responders.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -258,8 +259,9 @@
           <path d="M9 12l2 2 4-4"/>
         </svg>
       </div>
-      <h1>Aegis Ambient Care</h1>
-      <p>Secure Enterprise Portal &bull; Senior Safety & Telemetry</p>
+      <h1>NIRA</h1>
+      <p style="font-size: 0.95rem; font-weight: 700; color: #38bdf8; margin-top: 4px; letter-spacing: 0.05em; text-transform: uppercase;">Never Ignore Risk Assistant</p>
+      <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 4px;">Aegis Ambient Care &bull; Secure Enterprise Portal</p>
     </div>
 
     <form id="loginForm" onsubmit="handleLoginSubmit(event)">
@@ -272,6 +274,7 @@
           placeholder="e.g. david.vance@example.com" 
           required 
           value="david.vance@example.com"
+          autocomplete="username"
         >
       </div>
 
@@ -287,6 +290,7 @@
           placeholder="Enter password" 
           required 
           value="admin123"
+          autocomplete="current-password"
         >
       </div>
 
@@ -344,8 +348,8 @@
           </svg>
         </div>
         <div>
-          <div class="role-btn-title">Medic 14 (Boston EMS First Responder)</div>
-          <div class="role-btn-sub">Ambulance Mode &bull; Emergency CAD Dispatch &bull; Smart Door Token: 8492</div>
+          <div class="role-btn-title">Medic 14 (Ambulance Driver Portal)</div>
+          <div class="role-btn-sub">Ambulance CAD Dispatch &bull; Mobile Data Terminal &bull; Smart Door PIN: 8492</div>
         </div>
       </button>
     </div>
@@ -372,7 +376,7 @@
       },
       ems: {
         name: "Medic 14 (Boston EMS First Responder)",
-        role: "First Responder / Dispatch",
+        role: "Ambulance Driver / CAD First Responder",
         email: "medic14@bostonems.gov",
         password: "medic123",
         avatar: "🚑",

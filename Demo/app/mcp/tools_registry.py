@@ -3,12 +3,11 @@ Tool Registry and Dispatcher for Aegis MCP Tools.
 Complies with Model Context Protocol tools/list and tools/call interface.
 """
 
-import json
 import time
 from typing import Dict, Any, List
 from app.mcp.protocol import MCPToolDefinition, MCPToolInputSchema, MCPCallResult, MCPContentItem
 from app.models.schemas import (
-    Event, Context, Risk, AssessRiskRequest,
+    Event, Context,
     StartWellnessCheckRequest, WellnessCheckReplyRequest,
     NotifyCaregiverRequest, GenerateEmergencyPacketRequest,
     EscalateEmergencyRequest

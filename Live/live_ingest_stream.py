@@ -4,10 +4,8 @@ Directly interfaces live physical devices (smartwatches, radar boards, smart loc
 with the NIRA Event Pipeline.
 """
 
-import time
-import json
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 try:
     import requests

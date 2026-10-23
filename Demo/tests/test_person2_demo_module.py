@@ -12,7 +12,6 @@ Validates that:
 
 import sys
 from pathlib import Path
-import pytest
 from fastapi.testclient import TestClient
 
 # Ensure Demo directory is on sys.path for both IDE language servers and pytest runners
@@ -21,9 +20,9 @@ if str(_DEMO_DIR) not in sys.path:
     sys.path.insert(0, str(_DEMO_DIR))
 
 try:
-    from app.main import app
-except ImportError:
     from Demo.app.main import app
+except ImportError:
+    from app.main import app  # type: ignore
 
 client = TestClient(app)
 

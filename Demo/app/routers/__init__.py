@@ -1,4 +1,4 @@
 """Routers package."""
-from app.routers import health, tools_http, mcp_server, risk_api, incidents_api, events_api, demo_api
+from app.routers import health, tools_http, mcp_server, risk_api, incidents_api, events_api, demo_api, live_api, security_api
 
-__all__ = ["health", "tools_http", "mcp_server", "risk_api", "incidents_api", "events_api", "demo_api"]
+__all__ = ["health", "tools_http", "mcp_server", "risk_api", "incidents_api", "events_api", "demo_api", "live_api", "security_api"]

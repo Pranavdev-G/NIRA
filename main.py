@@ -28,6 +28,8 @@ for p in [ROOT_DIR, DEMO_DIR, LIVE_DIR]:
 # Import the core FastAPI application from Demo/app/main.py
 from Demo.app.main import app
 
+__all__ = ["app"]
+
 if __name__ == "__main__":
     import uvicorn
     print("\n==================================================================")

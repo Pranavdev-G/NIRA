@@ -730,6 +730,45 @@ function initVideoReel() {
   }
 }
 
+function switchModalVideoMode(mode) {
+  const vid = document.getElementById("modalGeminiVideoPlayer");
+  const canvas = document.getElementById("demoVideoCanvas");
+  const btnVid = document.getElementById("btnModalModeGeminiVideo");
+  const btn3D = document.getElementById("btnModalMode3DReel");
+  const controlsBar = document.querySelector("#videoDemoModal .video-controls-bar");
+  const subsBar = document.querySelector("#videoDemoModal .video-subtitles-bar");
+
+  if (mode === "video") {
+    if (vid) {
+      vid.style.display = "block";
+      vid.play().catch(() => {});
+    }
+    if (canvas) canvas.style.display = "none";
+    if (controlsBar) controlsBar.style.display = "none";
+    if (subsBar) subsBar.style.display = "none";
+    if (btnVid) btnVid.classList.add("active");
+    if (btn3D) btn3D.classList.remove("active");
+    if (videoReel) videoReel.pause();
+  } else {
+    if (vid) {
+      vid.pause();
+      vid.style.display = "none";
+    }
+    if (canvas) canvas.style.display = "block";
+    if (controlsBar) controlsBar.style.display = "block";
+    if (subsBar) subsBar.style.display = "block";
+    if (btnVid) btnVid.classList.remove("active");
+    if (btn3D) btn3D.classList.add("active");
+    initVideoReel();
+    if (videoReel) {
+      videoReel.resize();
+      videoReel.seek(0);
+      videoReel.play();
+    }
+  }
+}
+window.switchModalVideoMode = switchModalVideoMode;
+
 function openVideoDemoModal() {
   const modal = document.getElementById("videoDemoModal");
   if (modal) {
@@ -740,12 +779,7 @@ function openVideoDemoModal() {
         window.speechSynthesis.resume();
       }
     }
-    initVideoReel();
-    if (videoReel) {
-      videoReel.resize();
-      videoReel.seek(0);
-      videoReel.play();
-    }
+    switchModalVideoMode("video");
   }
 }
 
@@ -753,6 +787,8 @@ function closeVideoDemoModal() {
   const modal = document.getElementById("videoDemoModal");
   if (modal) {
     modal.style.display = "none";
+    const vid = document.getElementById("modalGeminiVideoPlayer");
+    if (vid) vid.pause();
     if (videoReel) videoReel.pause();
   }
 }

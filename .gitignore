@@ -26,3 +26,9 @@ htmlcov/
 Thumbs.db
 .vscode/
 .idea/
+
+# Large temporary assets and model weights
+scratch/
+output/
+*.webm
+*.pt

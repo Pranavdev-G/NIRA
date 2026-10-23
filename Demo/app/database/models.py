@@ -5,7 +5,7 @@ SQLAlchemy 2.0 ORM Models for PostgreSQL / SQLite.
 """
 
 from datetime import datetime, timezone
-from typing import List, Optional, Dict, Any
+
 from sqlalchemy import (
     Column, String, Integer, Float, Boolean,
     DateTime, ForeignKey, Text, JSON

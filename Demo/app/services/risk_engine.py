@@ -4,7 +4,7 @@ Optimized for ultra-low latency (<20ms execution) within Alexa+ budget.
 """
 
 from datetime import datetime, timezone
-from typing import List, Tuple
+from typing import List
 from app.models.enums import RiskLevel
 from app.models.schemas import Event, Context, Risk, AssessRiskResponse
 

@@ -8,12 +8,8 @@ Exposes endpoints for the Demo System:
 - GET  /api/v1/demo/reference: Provides structured file references and documentation for demo & live systems.
 """
 
-import os
-import asyncio
 import logging
-from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, HTTPException, BackgroundTasks, status
-from pydantic import BaseModel
 
 logger = logging.getLogger("NIRA.DemoAPI")
 router = APIRouter(prefix="/api/v1/demo", tags=["NIRA Demo System"])
@@ -83,7 +79,10 @@ async def get_system_reference():
 def _run_scenario_background(scenario_name: str):
     """Executes a scenario in the background using the demo package orchestrator."""
     try:
-        from demo.scenario_simulator import ScenarioSimulator
+        try:
+            from Demo.scenario_simulator import ScenarioSimulator
+        except ImportError:
+            from scenario_simulator import ScenarioSimulator
         sim = ScenarioSimulator(base_url="http://localhost:8000", resident_id="user_eleanor_vance", step_delay_sec=0.3)
         if scenario_name == "normal_day":
             sim.run_normal_day(slot_delay_sec=0.2)

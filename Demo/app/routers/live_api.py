@@ -9,12 +9,8 @@ Exposes endpoints for the Live Model System:
 - GET  /api/v1/live/status: Returns status of live model inference and physical feeds.
 """
 
-import os
-import sys
 import logging
-from typing import Dict, Any, Optional
-from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel
+from fastapi import APIRouter
 
 logger = logging.getLogger("NIRA.LiveAPI")
 router = APIRouter(prefix="/api/v1/live", tags=["NIRA Live Model System"])
@@ -86,7 +82,7 @@ async def get_live_status():
 @router.post("/camera/start", summary="Start Live Camera Detection")
 async def start_live_camera():
     """Activates live edge camera skeletal fall detection."""
-    tracker = get_live_tracker()
+    _ = get_live_tracker()
     return {
         "camera_active": True,
         "detector": "yolov8n-pose",

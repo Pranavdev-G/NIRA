@@ -16,7 +16,6 @@ All adapters strictly adhere to Principle 5 & 7:
 """
 
 import uuid
-import time
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timezone
 

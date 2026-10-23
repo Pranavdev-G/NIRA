@@ -3,6 +3,13 @@ NIRA Demo Systems Package.
 Contains all ambient sensor simulators, scenario runners, and event generators.
 """
 
+import os
+import sys
+
+_DEMO_DIR = os.path.dirname(os.path.abspath(__file__))
+if _DEMO_DIR not in sys.path:
+    sys.path.insert(0, _DEMO_DIR)
+
 try:
     from .wearable_simulator import WearableSimulator
     from .environment_simulator import EnvironmentSimulator

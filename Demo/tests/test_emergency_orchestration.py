@@ -30,11 +30,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
 
 from app.main import app
 from app.database.session import init_db, SessionLocal
-from app.database.models import IncidentModel, IncidentTimelineModel, UserModel
+from app.database.models import IncidentModel, IncidentTimelineModel
 from app.services.emergency_workflow import EmergencyWorkflowEngine, EmergencyWorkflowState
 from app.adapters.simulated_adapters import (
     default_cad_adapter,

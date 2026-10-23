@@ -31,7 +31,7 @@ import re
 import time
 import uuid
 from datetime import datetime, timezone
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 from pydantic import BaseModel, Field
 
 from app.models.enums import RiskLevel
@@ -252,11 +252,9 @@ class MultimodalRiskIntelligence:
 
         # Event & context string normalizations
         event_type = event.event_type.lower()
-        loc_str = event.location.lower()
         movement_str = event.movement_after_event.lower()
         wearable_str = context.wearable_status.lower()
         activity_str = context.activity.lower()
-        env_str = context.environment.lower()
 
         # -------------------------------------------------------------------
         # Dimension 1: Fall Detected (Vision / Radar / Acceleration)
@@ -509,6 +507,7 @@ class MultimodalRiskIntelligence:
         # Dimension 10 & 11: Conversational Voice Verification State
         # -------------------------------------------------------------------
         voice_intent = cls.parse_voice_intent(voice_response)
+        voice_transcript = voice_response.transcript if (voice_response and voice_response.transcript) else ""
         forced_override_level: Optional[str] = None
 
         if voice_intent == "safe":
@@ -519,9 +518,9 @@ class MultimodalRiskIntelligence:
             suppressors.insert(0, FactorContribution(
                 factor="verbal_safety_confirmation",
                 weight=-70.0,
-                description=f"User verbally confirmed safety ('{voice_response.transcript}'). Escalation sequence cancelled.",
+                description=f"User verbally confirmed safety ('{voice_transcript}'). Escalation sequence cancelled.",
                 evidence_source="alexa_voice",
-                metric_value=voice_response.transcript
+                metric_value=voice_transcript
             ))
 
         elif voice_intent == "timeout":
@@ -544,9 +543,9 @@ class MultimodalRiskIntelligence:
             contributors.insert(0, FactorContribution(
                 factor="voice_distress_call",
                 weight=weight,
-                description=f"Distress confirmed: User requested assistance during wellness check ('{voice_response.transcript}')",
+                description=f"Distress confirmed: User requested assistance during wellness check ('{voice_transcript}')",
                 evidence_source="alexa_voice",
-                metric_value=voice_response.transcript
+                metric_value=voice_transcript
             ))
             if (is_confirmed_fall and has_zero_movement) or has_abnormal_vitals:
                 forced_override_level = RiskLevel.CRITICAL.value

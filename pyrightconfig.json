@@ -1,0 +1,42 @@
+{
+  "include": [
+    "Demo",
+    "Live",
+    "."
+  ],
+  "exclude": [
+    "**/__pycache__",
+    ".git"
+  ],
+  "extraPaths": [
+    ".",
+    "Demo",
+    "Live"
+  ],
+  "executionEnvironments": [
+    {
+      "root": "Demo",
+      "extraPaths": [
+        ".",
+        "Demo",
+        "Live"
+      ]
+    },
+    {
+      "root": "Live",
+      "extraPaths": [
+        ".",
+        "Live",
+        "Demo"
+      ]
+    },
+    {
+      "root": ".",
+      "extraPaths": [
+        ".",
+        "Demo",
+        "Live"
+      ]
+    }
+  ]
+}

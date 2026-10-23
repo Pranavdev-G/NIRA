@@ -175,7 +175,7 @@ def emit_event(
     """Transmits payload via HTTP POST and logs server response and latency."""
     event = payload["event"]
     print("\n" + "=" * 65)
-    print(f"📡 TRANSMITTING STANDARDIZED SAFETY EVENT")
+    print("📡 TRANSMITTING STANDARDIZED SAFETY EVENT")
     print(f"Target Endpoint: {target_url}")
     print(f"Event: {event['event_type']} | Conf: {event['confidence']:.0%} | Loc: {event['location']} | Movement: {event['movement_after_event']}")
     print("-" * 65)

@@ -6,10 +6,10 @@ Simulates low-latency dispatch across Alexa Drop-In, Mobile Push, and SMS.
 import uuid
 import time
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import List
 from app.config import settings
 from app.models.schemas import (
-    Risk, Event, Context, NotifyCaregiverRequest,
+    NotifyCaregiverRequest,
     CaregiverNotificationResponse, CaregiverNotificationChannelResult
 )
 
@@ -26,7 +26,6 @@ class CaregiverService:
 
     @classmethod
     async def dispatch_notification(cls, request: NotifyCaregiverRequest) -> CaregiverNotificationResponse:
-        start = time.perf_counter()
         notification_id = f"notif_{uuid.uuid4().hex[:10]}"
         timestamp = datetime.now(timezone.utc).isoformat()
 

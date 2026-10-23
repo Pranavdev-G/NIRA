@@ -22,25 +22,19 @@ Validates:
   17. Simulator Integration (multi-device telemetry driving backend state)
 """
 
-import sys
-import json
 import uuid
 import asyncio
 from datetime import datetime, timezone, timedelta
-from typing import Dict, Any, List
-from unittest.mock import MagicMock, patch
+from typing import Dict, Any, Optional
+from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.config import settings
 from app.database.session import SessionLocal
-from app.database.models import IncidentModel, IncidentTimelineModel, TelemetryEventModel
-from app.models.event_contracts import (
-    UnifiedEvent, EventSource, EventType, SafetyState
-)
-from app.models.enums import RiskLevel
+from app.database.models import IncidentModel, TelemetryEventModel
+from app.models.event_contracts import UnifiedEvent
 from app.services.event_pipeline import global_pipeline
 from app.services.emergency_workflow import EmergencyWorkflowEngine, EmergencyWorkflowState
 from wearable_simulator import WearableSimulator
@@ -77,11 +71,11 @@ def make_valid_event(
     event_type: str = "wearable_telemetry",
     source: str = "wearable",
     room_id: str = "living_room",
-    payload: Dict[str, Any] = None,
+    payload: Optional[Dict[str, Any]] = None,
     confidence: float = 0.95,
-    timestamp: str = None,
-    correlation_id: str = None,
-    event_id: str = None
+    timestamp: Optional[str] = None,
+    correlation_id: Optional[str] = None,
+    event_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """Helper to generate a structurally valid UnifiedEvent dict."""
     now_iso = timestamp or datetime.now(timezone.utc).isoformat()

@@ -22,10 +22,8 @@ from pathlib import Path
 # Ensure project root is in sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-import json
 import uuid
 import pytest
-import asyncio
 from datetime import datetime, timezone, timedelta
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
@@ -33,10 +31,9 @@ from pydantic import ValidationError
 from app.main import app
 from app.database.session import init_db
 from app.models.event_contracts import (
-    UnifiedEvent, SafetyState, EventSource, EventType,
-    EvidenceItem, ResidentStateSnapshot, EventIngestResult
+    UnifiedEvent, SafetyState, EventSource, EventType
 )
-from app.services.event_pipeline import EventPipeline, global_pipeline
+from app.services.event_pipeline import EventPipeline
 
 # Initialize database schema
 init_db()

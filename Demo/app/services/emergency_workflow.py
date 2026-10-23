@@ -48,21 +48,14 @@ from datetime import datetime, timezone, timedelta
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 
-from app.database.models import IncidentModel, IncidentTimelineModel, UserModel, EmergencyPacketModel
+from app.database.models import IncidentModel, IncidentTimelineModel, EmergencyPacketModel
 from app.models.schemas import (
-    Event, Context, Risk, EmergencyPacket,
+    Event, Context, Risk,
     NotifyCaregiverRequest, EscalateEmergencyRequest
 )
 from app.models.enums import RiskLevel
 from app.services.emergency_service import EmergencyService
 from app.services.caregiver_service import CaregiverService
-from app.adapters.simulated_adapters import (
-    default_cad_adapter,
-    default_lock_adapter,
-    default_sms_adapter,
-    default_push_adapter,
-    default_alexa_adapter
-)
 
 logger = logging.getLogger("aegis.emergency_workflow")
 
