@@ -908,21 +908,21 @@
         <span>Incident History</span>
       </button>
 
-      <button class="tab-nav-btn" id="tabBtnVision" onclick="switchTab('vision')" role="tab" aria-selected="false" aria-controls="panelVision" tabindex="-1" style="display: none !important;">
+      <button class="tab-nav-btn" id="tabBtnVision" onclick="switchTab('vision')" role="tab" aria-selected="false" aria-controls="panelVision" tabindex="-1">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M23 7l-7 5 7 5V7z"/>
           <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
         </svg>
-        <span>Vision &amp; Radar</span>
+        <span>Digital Twin &amp; Radar</span>
       </button>
 
-      <button class="tab-nav-btn" id="tabBtnDispatch" onclick="switchTab('dispatch')" role="tab" aria-selected="false" aria-controls="panelDispatch" tabindex="-1" style="display: none !important;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <button class="tab-nav-btn" id="tabBtnDispatch" onclick="switchTab('dispatch')" role="tab" aria-selected="false" aria-controls="panelDispatch" tabindex="-1" style="border: 1px solid rgba(244, 63, 94, 0.45); background: rgba(244, 63, 94, 0.08);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" aria-hidden="true">
           <polygon points="12 2 2 7 12 12 22 7 12 2"/>
           <polyline points="2 17 12 22 22 17"/>
           <polyline points="2 12 12 17 22 12"/>
         </svg>
-        <span>CAD Command</span>
+        <span style="color: #fda4af;">Command Center (911 CAD)</span>
       </button>
     </nav>
 
@@ -1563,6 +1563,282 @@
         </div>
       </div>
 
+      <!-- Scenario Progression Lifecycle Banner (Populated and animated during 6 Predefined Scenarios) -->
+      <div id="scenarioProgressionBanner" style="display: none; margin-bottom: 20px;"></div>
+
+      <!-- ======================================================================
+           NIRA OPERATOR SIMULATION & COMMAND HUB
+           Provides:
+           1. 14-Step Presentation Stepper (0 to 13)
+           2. 6 Predefined End-to-End Scenarios
+           3. 13 Sensor Simulation Actions (Calls /api/v1/demo/simulate/{action})
+           4. Risk Intelligence & Explainability Breakdown
+           5. Sensor Health Matrix (All marked SIMULATED)
+           6. Voice Check & Wellness Interaction Card
+           ====================================================================== -->
+      <section class="operator-control-hub" aria-label="NIRA Operator Control & Simulation Hub">
+        <div class="operator-hub-header">
+          <div class="operator-hub-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+              <polyline points="2 17 12 22 22 17"/>
+              <polyline points="2 12 12 17 22 12"/>
+            </svg>
+            <h3>NIRA Command Center &bull; Operator Simulation Engine</h3>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span class="operator-hub-badge">Authoritative Demo Mode</span>
+            <span class="pill-badge pill-green" style="font-size: 0.65rem;">● Engine Active</span>
+          </div>
+        </div>
+
+        <!-- 14-Step Deterministic Presentation Stepper -->
+        <div class="flow-stepper-card">
+          <div class="flow-stepper-top">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="flow-counter-pill" id="flowStepCounter">Step 0 of 13</span>
+              <span style="font-size: 0.72rem; color: #94a3b8;">Keyboard: <kbd style="background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; color: #cbd5e1;">Alt + &rarr;</kbd> / <kbd style="background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; color: #cbd5e1;">Alt + &larr;</kbd></span>
+            </div>
+            <div class="flow-nav-group">
+              <button class="btn-flow-nav" id="btnFlowPrev" onclick="window.operatorConsole.prevFlowStep()" disabled>
+                &larr; Prev Step
+              </button>
+              <button class="btn-flow-nav primary" id="btnFlowNext" onclick="window.operatorConsole.nextFlowStep()">
+                Next Step ▶
+              </button>
+            </div>
+          </div>
+
+          <div class="flow-step-meta">
+            <h4 id="flowStepTitle">0. Demo Portal Login &amp; Role Setup</h4>
+            <div class="flow-sub" id="flowStepSubtitle">Secure role-aware authentication portal</div>
+            <div class="flow-desc" id="flowStepDesc">
+              Operator logs in via David Vance (Admin), Eleanor Vance (Resident Home View), or Medic 14 (Boston EMS Command). Demonstrates role-aware permissions and session persistence.
+            </div>
+          </div>
+
+          <!-- 14-Step Clickable Progress Bar -->
+          <div class="flow-progress-track" id="flowProgressTrack" title="Click any dot to jump directly to that presentation step">
+            <div class="flow-step-dot active" onclick="window.operatorConsole.jumpToFlowStep(0)" title="Step 0: Login"></div>
+            <div class="flow-step-dot" onclick="window.operatorConsole.jumpToFlowStep(1)" title="Step 1: Normal Monitoring"></div>
+            <div class="flow-step-dot" onclick="window.operatorConsole.jumpToFlowStep(2)" title="Step 2: Resident Baseline"></div>
+            <div class="flow-step-dot" onclick="window.operatorConsole.jumpToFlowStep(3)" title="Step 3: Trigger Fall"></div>
+            <div class="flow-step-dot" onclick="window.operatorConsole.jumpToFlowStep(4)" title="Step 4: Risk Evaluation"></div>
+            <div class="flow-step-dot" onclick="window.operatorConsole.jumpToFlowStep(5)" title="Step 5: Voice Wellness Check"></div>
+            <div class="flow-step-dot" onclick="window.operatorConsole.jumpToFlowStep(6)" title="Step 6: Voice Response/Silence"></div>
+            <div class="flow-step-dot" onclick="window.operatorConsole.jumpToFlowStep(7)" title="Step 7: Caregiver Alert"></div>
+            <div class="flow-step-dot" onclick="window.operatorConsole.jumpToFlowStep(8)" title="Step 8: Emergency Escalation"></div>
+            <div class="flow-step-dot" onclick="window.operatorConsole.jumpToFlowStep(9)" title="Step 9: Emergency Packet"></div>
+            <div class="flow-step-dot" onclick="window.operatorConsole.jumpToFlowStep(10)" title="Step 10: Ambulance Dispatch"></div>
+            <div class="flow-step-dot" onclick="window.operatorConsole.jumpToFlowStep(11)" title="Step 11: Smart Lock Unlock"></div>
+            <div class="flow-step-dot" onclick="window.operatorConsole.jumpToFlowStep(12)" title="Step 12: Ambulance Arrival"></div>
+            <div class="flow-step-dot" onclick="window.operatorConsole.jumpToFlowStep(13)" title="Step 13: Incident Resolution"></div>
+          </div>
+        </div>
+
+        <!-- 6 Predefined End-to-End Scenarios -->
+        <div style="margin-bottom: 16px;">
+          <div class="sensor-matrix-title">
+            <span>🎬 Predefined End-to-End Scenarios (7-Step Lifecycle Progression)</span>
+            <span style="color: #38bdf8; font-weight: 600;">Autonomous Event &rarr; Resolution</span>
+          </div>
+          <div class="scenarios-grid">
+            <button class="btn-scenario-card" onclick="window.operatorConsole.triggerScenario('false_alarm')">
+              <span class="scen-title">1. False Alarm Recovery</span>
+              <span class="scen-desc">Living room thud &bull; "I'm okay" reply &bull; Automatic de-escalation to baseline.</span>
+            </button>
+            <button class="btn-scenario-card" onclick="window.operatorConsole.triggerScenario('responsive_emergency')">
+              <span class="scen-title">2. Responsive Emergency</span>
+              <span class="scen-desc">Kitchen fall &bull; "Help me" response &bull; Priority Caregiver Echo Drop-In &amp; SMS.</span>
+            </button>
+            <button class="btn-scenario-card" onclick="window.operatorConsole.triggerScenario('silent_emergency')">
+              <span class="scen-title">3. Silent Emergency</span>
+              <span class="scen-desc">Bathroom fall on wet tile &bull; Silence timeout &bull; Boston EMS 911 CAD &amp; Door Unlock.</span>
+            </button>
+            <button class="btn-scenario-card" onclick="window.operatorConsole.triggerScenario('worsening_condition')">
+              <span class="scen-title">4. Worsening Condition</span>
+              <span class="scen-desc">Minor bedroom slip &bull; Inactivity 240s &bull; HR surge 142 BPM &bull; Auto-escalation.</span>
+            </button>
+            <button class="btn-scenario-card" onclick="window.operatorConsole.triggerScenario('environmental_hazard')">
+              <span class="scen-title">5. Environmental Hazard</span>
+              <span class="scen-desc">Standing water + dim lux &bull; Pre-fall warning &bull; Adaptive illumination.</span>
+            </button>
+            <button class="btn-scenario-card" onclick="window.operatorConsole.triggerScenario('medication_miss')">
+              <span class="scen-title">6. Medication Miss</span>
+              <span class="scen-desc">Evening Lisinopril delayed 120min &bull; Echo audio reminder &bull; Caregiver sync.</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 13 Core Sensor Simulation Actions Matrix -->
+        <div class="sensor-matrix-wrap">
+          <div class="sensor-matrix-title">
+            <span>⚡ 13 Authoritative Sensor Simulation Actions (Calls /api/v1/demo/simulate/*)</span>
+            <span style="color: #34d399; font-weight: 600;">Full Event Pipeline Integration</span>
+          </div>
+          <div class="sim-actions-flex">
+            <button class="btn-sim-action action-normal" onclick="window.operatorConsole.triggerSimulationAction('normal')">
+              <span>🌿 NORMAL BASELINE</span>
+            </button>
+            <button class="btn-sim-action action-fall" onclick="window.operatorConsole.triggerSimulationAction('fall')">
+              <span>🚨 FALL DETECTED</span>
+            </button>
+            <button class="btn-sim-action action-amber" onclick="window.operatorConsole.triggerSimulationAction('inactivity')">
+              <span>⏱️ INACTIVITY (240s)</span>
+            </button>
+            <button class="btn-sim-action action-fall" onclick="window.operatorConsole.triggerSimulationAction('high_heart_rate')">
+              <span>❤️ HIGH HEART RATE</span>
+            </button>
+            <button class="btn-sim-action action-amber" onclick="window.operatorConsole.triggerSimulationAction('low_movement')">
+              <span>🐢 LOW MOVEMENT</span>
+            </button>
+            <button class="btn-sim-action action-normal" onclick="window.operatorConsole.triggerSimulationAction('voice_safe')">
+              <span>🗣️ VOICE SAFE ("I'm OK")</span>
+            </button>
+            <button class="btn-sim-action action-amber" onclick="window.operatorConsole.triggerSimulationAction('voice_risk')">
+              <span>🗣️ VOICE RISK ("Dizzy")</span>
+            </button>
+            <button class="btn-sim-action action-fall" onclick="window.operatorConsole.triggerSimulationAction('voice_help')">
+              <span>🆘 VOICE HELP ("Help Me")</span>
+            </button>
+            <button class="btn-sim-action action-fall" onclick="window.operatorConsole.triggerSimulationAction('voice_silence')">
+              <span>🔇 VOICE SILENCE (Timeout)</span>
+            </button>
+            <button class="btn-sim-action action-amber" onclick="window.operatorConsole.triggerSimulationAction('environment_hazard')">
+              <span>💧 HAZARD (Wet Tile)</span>
+            </button>
+            <button class="btn-sim-action action-amber" onclick="window.operatorConsole.triggerSimulationAction('device_disconnect')">
+              <span>📡 DEVICE DISCONNECT</span>
+            </button>
+            <button class="btn-sim-action action-amber" onclick="window.operatorConsole.triggerSimulationAction('medication_missed')">
+              <span>💊 MEDICATION MISSED</span>
+            </button>
+            <button class="btn-sim-action action-normal" onclick="window.operatorConsole.triggerSimulationAction('recovery')">
+              <span>🔄 RECOVERY &amp; RESET</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Risk Intelligence & Explainability Breakdown (Section 6) -->
+        <div style="border-top: 1px solid rgba(255, 255, 255, 0.08); margin-top: 18px; padding-top: 16px;">
+          <div class="sensor-matrix-title">
+            <span>🧠 Risk Intelligence &amp; Multi-Signal Explainability</span>
+            <span style="color: #38bdf8;">Aegis Multimodal Fusion Engine</span>
+          </div>
+          <div class="risk-intel-grid">
+            <div class="risk-score-circle-card">
+              <div class="risk-big-score" id="riskScoreVal" style="color: #f43f5e;">94%</div>
+              <div class="risk-big-tier" id="riskScoreTier" style="color: #f43f5e;">CRITICAL RISK</div>
+              <div style="font-size: 0.68rem; color: #94a3b8; margin-top: 4px;">Confidence: <strong id="riskConfidenceVal" style="color: #38bdf8;">91%</strong></div>
+            </div>
+            <div>
+              <div style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; font-weight: 800;">Contributing Signals:</div>
+              <div class="risk-factors-list" id="riskSignalsList">
+                <div class="risk-factor-item">
+                  <span style="color: #fda4af;">🚨 High-impact fall velocity signature</span>
+                  <span style="color: #f43f5e; font-weight: 800;">+45%</span>
+                </div>
+                <div class="risk-factor-item">
+                  <span style="color: #fda4af;">⏱️ Post-impact inactivity &gt; 240 sec</span>
+                  <span style="color: #f43f5e; font-weight: 800;">+25%</span>
+                </div>
+                <div class="risk-factor-item">
+                  <span style="color: #fbbf24;">❤️ Acute tachycardia surge (138 BPM)</span>
+                  <span style="color: #fbbf24; font-weight: 800;">+15%</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; font-weight: 800;">Contextual Modifiers &amp; Trend:</div>
+              <div class="risk-factors-list" id="riskModifiersList">
+                <div class="risk-factor-item">
+                  <span style="color: #38bdf8;">📍 Bathroom context (Ceramic wet tile)</span>
+                  <span style="color: #38bdf8; font-weight: 800;">+Risk</span>
+                </div>
+                <div class="risk-factor-item">
+                  <span style="color: #38bdf8;">🌙 Nocturnal deviation (+4.2h sleep window)</span>
+                  <span style="color: #38bdf8; font-weight: 800;">+Risk</span>
+                </div>
+                <div class="risk-factor-item">
+                  <span style="color: #cbd5e1;">📈 Dynamic risk trajectory:</span>
+                  <span class="trend-tag rising" id="riskTrendHistory">&uarr; RISING</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sensor Health & Redundancy HUD (Section 14 - All Marked SIMULATED) -->
+        <div style="border-top: 1px solid rgba(255, 255, 255, 0.08); margin-top: 18px; padding-top: 16px;">
+          <div class="sensor-matrix-title">
+            <span>📡 Sensor Health &amp; Telemetry Status (All Sensors Simulated for Demo)</span>
+            <span style="color: #34d399;">7 of 7 Nodes Connected</span>
+          </div>
+          <div class="sensor-health-grid">
+            <div class="sensor-health-item">
+              <div class="s-name">📷 Camera (Vision AI)</div>
+              <span class="s-badge s-sim-online">SIMULATED ONLINE</span>
+              <div style="font-size: 0.65rem; color: #64748b; margin-top: 2px;">Privacy Filter: 100%</div>
+            </div>
+            <div class="sensor-health-item">
+              <div class="s-name">🎤 Microphone (Echo)</div>
+              <span class="s-badge s-sim-online">SIMULATED ONLINE</span>
+              <div style="font-size: 0.65rem; color: #64748b; margin-top: 2px;">Acoustic Model: Active</div>
+            </div>
+            <div class="sensor-health-item">
+              <div class="s-name">⌚ Wearable (Apple Watch)</div>
+              <span class="s-badge s-sim-online">SIMULATED ONLINE</span>
+              <div style="font-size: 0.65rem; color: #64748b; margin-top: 2px;">Battery: 84% &bull; BLE</div>
+            </div>
+            <div class="sensor-health-item">
+              <div class="s-name">📡 Radar (60GHz mmWave)</div>
+              <span class="s-badge s-sim-online">SIMULATED ONLINE</span>
+              <div style="font-size: 0.65rem; color: #64748b; margin-top: 2px;">Ceiling Pod: Bathroom</div>
+            </div>
+            <div class="sensor-health-item">
+              <div class="s-name">🌡️ Environment (IoT)</div>
+              <span class="s-badge s-sim-online">SIMULATED ONLINE</span>
+              <div style="font-size: 0.65rem; color: #64748b; margin-top: 2px;">22.4°C &bull; 78% RH</div>
+            </div>
+            <div class="sensor-health-item">
+              <div class="s-name">📍 GPS (Geofence)</div>
+              <span class="s-badge s-sim-online">SIMULATED ONLINE</span>
+              <div style="font-size: 0.65rem; color: #64748b; margin-top: 2px;">Unit 4B Beacon Hill</div>
+            </div>
+            <div class="sensor-health-item">
+              <div class="s-name">🌐 Network (SSE / REST)</div>
+              <span class="s-badge s-sim-online">SIMULATED ONLINE</span>
+              <div style="font-size: 0.65rem; color: #64748b; margin-top: 2px;">Latency: 18ms &bull; Stable</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ambient Voice Check & Conversational Triage (Section 8) -->
+        <div style="border-top: 1px solid rgba(255, 255, 255, 0.08); margin-top: 18px; padding-top: 16px;">
+          <div class="sensor-matrix-title">
+            <span>🗣️ Ambient Voice Check &amp; Backend Classification (Amazon Echo Show 15)</span>
+            <span id="voiceCheckClassificationBadge" class="voice-class-badge class-no_response">NO RESPONSE</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; background: rgba(2, 6, 23, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px 18px;">
+            <div>
+              <div style="font-size: 0.72rem; color: #38bdf8; font-weight: 800; text-transform: uppercase;">NIRA System Prompt:</div>
+              <div style="font-size: 0.85rem; color: #e2e8f0; margin-top: 4px; font-style: italic;">
+                "Eleanor, this is NIRA. I noticed a fall in the bathroom. Are you okay? Please tell me if you need help."
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 0.72rem; color: #fbbf24; font-weight: 800; text-transform: uppercase;">Resident Verbal Response &amp; Result:</div>
+              <div id="voiceCheckResidentReply" style="font-size: 0.85rem; color: #fff; margin-top: 4px; font-weight: 700;">
+                "&lt;No verbal response detected for 20 seconds &bull; Presumed unconscious&gt;"
+              </div>
+              <div id="voiceCheckDesc" style="font-size: 0.72rem; color: #94a3b8; margin-top: 4px;">
+                20-second acoustic timeout expired without speech. Auto-escalated to Boston EMS 911 CAD.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Wellbeing Summary & Medication Reminders Grid -->
       <div class="two-col-grid" style="margin-bottom: 24px;">
         <!-- Wellbeing Summary -->
@@ -1897,7 +2173,10 @@
 
             <!-- Simulation Action Buttons -->
             <div class="sec-sim-controls">
-              <button class="btn-sec-action btn-sec-teal" onclick="advanceResponderStage()" title="Advance to next stage in route">
+              <button class="btn-sec-action btn-sec-teal" onclick="runCompleteVerifiedFlow()" title="Test complete end-to-end verified arrival and unlock demonstration">
+                &#9654; Run Complete Verified Flow
+              </button>
+              <button class="btn-sec-action" onclick="advanceResponderStage()" title="Advance to next stage in route">
                 &rarr; Advance Stage
               </button>
               <button class="btn-sec-action" onclick="simulateVerifiedArrival()" title="Simulate authorized Medic-42 arriving within 35m perimeter">
@@ -1911,6 +2190,8 @@
                   <div class="dropdown-item" onclick="triggerSimFailure('unauthorized')">&#10006; Unauthorized Responder (Badge BOGUS-999)</div>
                   <div class="dropdown-item" onclick="triggerSimFailure('wrong_location')">&#10006; Outside Residence Geofence (450m away)</div>
                   <div class="dropdown-item" onclick="triggerSimFailure('offline_lock')">&#10006; Smart Lock Provider Offline / Comms Failure</div>
+                  <div class="dropdown-item" onclick="triggerSimFailure('hardware_failure')">&#10006; Deadbolt Latch Jam (Failed Unlock Command)</div>
+                  <div class="dropdown-item" onclick="triggerSimFailure('restore_online')">&#10004; Restore Hardware Online</div>
                 </div>
               </div>
               <button class="btn-sec-action btn-sec-slate" onclick="resetSecuritySimulation()" title="Reset simulation to initial state">
@@ -3310,5 +3591,6 @@
   <script src="/static/dashboard.js?v=12.0"></script>
   <script src="/static/demo_module.js?v=2.0"></script>
   <script src="/static/location_security.js?v=1.0"></script>
+  <script src="/static/operator_console.js?v=1.0"></script>
 </body>
 </html>

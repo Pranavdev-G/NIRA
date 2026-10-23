@@ -25,7 +25,11 @@ class CaregiverService:
     """Dispatches real-time caregiver alerts for MODERATE and HIGH risk conditions using simulated adapters."""
 
     @classmethod
-    async def dispatch_notification(cls, request: NotifyCaregiverRequest) -> CaregiverNotificationResponse:
+    async def dispatch_notification(
+        cls,
+        request: NotifyCaregiverRequest,
+        db=None
+    ) -> CaregiverNotificationResponse:
         notification_id = f"notif_{uuid.uuid4().hex[:10]}"
         timestamp = datetime.now(timezone.utc).isoformat()
 
@@ -92,6 +96,26 @@ class CaregiverService:
                     disclaimer=adapter_res.disclaimer if adapter_res else "SIMULATION ADAPTER - Outbound caregiver notification simulated."
                 )
             )
+
+        if db is not None:
+            try:
+                from app.database.models import NotificationModel
+                r_level = request.risk.risk_level if hasattr(request, "risk") and request.risk else "STANDARD"
+                notif_record = NotificationModel(
+                    id=notification_id,
+                    recipient=settings.PRIMARY_CAREGIVER_NAME,
+                    channel=", ".join(channels),
+                    headline=headline,
+                    body=body,
+                    priority=r_level,
+                    status="SENT",
+                    is_simulation=True,
+                    sent_at=datetime.now(timezone.utc)
+                )
+                db.add(notif_record)
+                db.commit()
+            except Exception:
+                pass
 
         return CaregiverNotificationResponse(
             notification_id=notification_id,

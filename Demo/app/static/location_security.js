@@ -26,19 +26,13 @@
     });
   }
 
-  // Initialize interactive Leaflet map
+  // Initialize interactive Leaflet map or high-contrast vector fallback
   function initSecurityMap() {
     const mapEl = document.getElementById('securityLiveMap');
     if (!mapEl) return;
 
     if (typeof L === 'undefined') {
-      console.warn('[SecurityMap] Leaflet L is not available. Using fallback display.');
-      mapEl.innerHTML = `
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:0.8rem;text-align:center;padding:20px;">
-          <div style="font-weight:700;color:#38bdf8;margin-bottom:6px;">📍 Geofence Active: Eleanor Vance Residence</div>
-          <div>12 Beacon Street, Boston MA • 42.3588° N, -71.0638° W</div>
-          <div style="font-size:0.7rem;color:#64748b;margin-top:6px;">(Map visualization layer active in vector fallback mode)</div>
-        </div>`;
+      renderVectorSecurityMap(mapEl);
       return;
     }
 
@@ -75,7 +69,7 @@
         </div>`;
       const residentIcon = createCustomIcon(residentIconHtml, 'sec-resident-icon', [28, 28]);
       residentMarker = L.marker(defaultCenter, { icon: residentIcon }).addTo(secMap);
-      residentMarker.bindPopup('<strong>Eleanor Vance (Resident)</strong><br>Apt 4B • Within 35m Geofence<br><span style="color:#14b8a6;font-size:0.75rem;">GPS Signal: High Confidence (Simulation)</span>');
+      residentMarker.bindPopup('<strong>Eleanor Vance (Resident)</strong><br>48 Beacon St, Apt 4B • Within 35m Geofence<br><span style="color:#14b8a6;font-size:0.75rem;">GPS Signal: High Confidence (Simulation)</span>');
 
       // Responder pin (Ambulance / Emergency vehicle)
       const responderIconHtml = `
@@ -86,11 +80,11 @@
           </div>
         </div>`;
       const responderIcon = createCustomIcon(responderIconHtml, 'sec-responder-icon', [34, 34]);
-      responderMarker = L.marker([42.3650, -71.0720], { icon: responderIcon }).addTo(secMap);
+      responderMarker = L.marker([42.3631, -71.0682], { icon: responderIcon }).addTo(secMap);
       responderMarker.bindPopup('<strong>EMS Medic-42</strong><br>Boston EMS First Responders<br><span style="color:#38bdf8;font-size:0.75rem;">Status: Dispatched</span>');
 
       // Polyline route
-      routePolyline = L.polyline([[42.3650, -71.0720], defaultCenter], {
+      routePolyline = L.polyline([[42.3631, -71.0682], defaultCenter], {
         color: '#38bdf8',
         weight: 3,
         opacity: 0.7,
@@ -99,13 +93,67 @@
 
       // Fit bounds nicely
       secMap.fitBounds([
-        [42.3650, -71.0720],
+        [42.3631, -71.0682],
         defaultCenter
       ], { padding: [35, 35] });
 
     } catch (err) {
-      console.error('[SecurityMap] Error initializing Leaflet:', err);
+      console.warn('[SecurityMap] Leaflet init fallback to vector SVG:', err);
+      renderVectorSecurityMap(mapEl);
     }
+  }
+
+  // High-fidelity animated vector SVG fallback map
+  function renderVectorSecurityMap(mapEl) {
+    mapEl.innerHTML = `
+      <div style="position:relative; width:100%; height:100%; background:#020617; overflow:hidden;">
+        <svg viewBox="0 0 500 220" style="width:100%; height:100%; display:block;">
+          <defs>
+            <radialGradient id="secBeaconGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#14b8a6" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="#14b8a6" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="secEmsGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.4"/>
+              <stop offset="100%" stop-color="#f43f5e" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <line x1="0" y1="110" x2="500" y2="110" stroke="rgba(255,255,255,0.04)" stroke-dasharray="4 4"/>
+          <line x1="250" y1="0" x2="250" y2="220" stroke="rgba(255,255,255,0.04)" stroke-dasharray="4 4"/>
+          <!-- Street corridors -->
+          <path d="M 30 170 Q 200 130 470 70" stroke="rgba(56, 189, 248, 0.15)" stroke-width="14" fill="none" stroke-linecap="round"/>
+          <path d="M 30 170 Q 200 130 470 70" stroke="#1e293b" stroke-width="4" fill="none"/>
+          <path d="M 320 20 L 375 200" stroke="#1e293b" stroke-width="3" fill="none"/>
+          <text x="60" y="188" fill="#475569" font-size="8.5" font-family="monospace">Cambridge St Corridor</text>
+          <text x="360" y="195" fill="#475569" font-size="8.5" font-family="monospace">Beacon Hill Sector</text>
+
+          <!-- 35m residence geofence perimeter around Eleanor Vance (cx=360, cy=130) -->
+          <circle cx="360" cy="130" r="44" fill="rgba(20, 184, 166, 0.12)" stroke="#14b8a6" stroke-width="1.8" stroke-dasharray="4 3"/>
+          <circle cx="360" cy="130" r="62" fill="url(#secBeaconGlow)"/>
+
+          <!-- Dynamic Route Line -->
+          <line id="secSvgRouteLine" x1="80" y1="50" x2="360" y2="130" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6 4" opacity="0.8"/>
+
+          <!-- Resident Marker -->
+          <g transform="translate(360, 130)">
+            <circle cx="0" cy="0" r="8" fill="#14b8a6" stroke="#ffffff" stroke-width="2"/>
+            <circle cx="0" cy="0" r="15" fill="none" stroke="#14b8a6" stroke-width="1.5" opacity="0.8">
+              <animate attributeName="r" values="8;20" dur="2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.8;0" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            <text x="0" y="-14" fill="#5eead4" font-size="9.5" font-weight="700" text-anchor="middle" font-family="sans-serif">Eleanor Vance (Apt 4B)</text>
+            <text x="0" y="24" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="monospace">35m Geofence Perimeter</text>
+          </g>
+
+          <!-- Responder Marker (Medic-42) -->
+          <g id="secSvgEmsMarker" transform="translate(80, 50)" style="transition: transform 0.6s ease-in-out;">
+            <circle cx="0" cy="0" r="18" fill="url(#secEmsGlow)"/>
+            <rect x="-15" y="-11" width="30" height="22" rx="5" fill="#e11d48" stroke="#ffffff" stroke-width="1.5"/>
+            <text x="0" y="4" fill="#ffffff" font-size="9" font-weight="900" text-anchor="middle" font-family="sans-serif">🚑 42</text>
+            <text id="secSvgEmsStatus" x="0" y="-15" fill="#fca5a5" font-size="8.5" font-weight="700" text-anchor="middle" font-family="sans-serif">Medic-42 (DISPATCHED)</text>
+          </g>
+        </svg>
+      </div>`;
   }
 
   // Fetch security state from backend
@@ -310,34 +358,78 @@
   }
 
   function updateMapPositions(data) {
-    if (!secMap || !data.resident || !data.responder) return;
+    if (!data.resident || !data.responder) return;
 
-    try {
-      const residentLatLng = [data.resident.latitude, data.resident.longitude];
-      const responderLatLng = [data.responder.latitude, data.responder.longitude];
+    if (secMap) {
+      try {
+        const residentLatLng = [data.resident.latitude, data.resident.longitude];
+        const responderLatLng = [data.responder.latitude, data.responder.longitude];
 
-      if (residentMarker) {
-        residentMarker.setLatLng(residentLatLng);
+        if (residentMarker) {
+          residentMarker.setLatLng(residentLatLng);
+        }
+        if (geofenceCircle) {
+          geofenceCircle.setLatLng(residentLatLng);
+        }
+        if (responderMarker) {
+          responderMarker.setLatLng(responderLatLng);
+          responderMarker.setPopupContent(`
+            <strong>${data.responder.unit_name}</strong><br>
+            Status: <b>${data.responder.status}</b><br>
+            Distance: ${Math.round(data.distance_meters)}m<br>
+            <span style="color:${data.responder.is_authorized ? '#14b8a6' : '#e11d48'};font-size:0.75rem;">
+              ${data.responder.is_authorized ? '✓ Authorized Responder' : '⚠ Unauthorized'}
+            </span>
+          `);
+        }
+        if (routePolyline) {
+          routePolyline.setLatLngs([responderLatLng, residentLatLng]);
+        }
+      } catch (e) {
+        console.error('[SecurityMap] Error updating map coords:', e);
       }
-      if (geofenceCircle) {
-        geofenceCircle.setLatLng(residentLatLng);
+    }
+
+    updateVectorMapCoords(data);
+  }
+
+  function updateVectorMapCoords(data) {
+    const emsMarker = document.getElementById('secSvgEmsMarker');
+    const routeLine = document.getElementById('secSvgRouteLine');
+    const emsStatus = document.getElementById('secSvgEmsStatus');
+    if (!emsMarker) return;
+
+    const stage = (data.responder && data.responder.status) || 'DISPATCHED';
+    let targetX = 80;
+    let targetY = 50;
+
+    if (stage === 'EN_ROUTE') {
+      targetX = 180;
+      targetY = 80;
+    } else if (stage === 'ARRIVING') {
+      targetX = 275;
+      targetY = 110;
+    } else if (stage === 'ARRIVED') {
+      targetX = 352;
+      targetY = 126;
+    }
+
+    emsMarker.setAttribute('transform', `translate(${targetX}, ${targetY})`);
+
+    if (routeLine) {
+      routeLine.setAttribute('x1', targetX);
+      routeLine.setAttribute('y1', targetY);
+      if (stage === 'ARRIVED') {
+        routeLine.setAttribute('stroke', '#14b8a6');
+        routeLine.setAttribute('opacity', '0.4');
+      } else {
+        routeLine.setAttribute('stroke', '#38bdf8');
+        routeLine.setAttribute('opacity', '0.8');
       }
-      if (responderMarker) {
-        responderMarker.setLatLng(responderLatLng);
-        responderMarker.setPopupContent(`
-          <strong>${data.responder.unit_name}</strong><br>
-          Status: <b>${data.responder.status}</b><br>
-          Distance: ${Math.round(data.distance_meters)}m<br>
-          <span style="color:${data.responder.is_authorized ? '#14b8a6' : '#e11d48'};font-size:0.75rem;">
-            ${data.responder.is_authorized ? '✓ Authorized Responder' : '⚠ Unauthorized'}
-          </span>
-        `);
-      }
-      if (routePolyline) {
-        routePolyline.setLatLngs([responderLatLng, residentLatLng]);
-      }
-    } catch (e) {
-      console.error('[SecurityMap] Error updating map coords:', e);
+    }
+
+    if (emsStatus) {
+      emsStatus.textContent = `${data.responder.unit_id} (${stage}) • ${Math.round(data.distance_meters)}m`;
     }
   }
 
@@ -383,6 +475,84 @@
 
   // --- ACTIONS EXPOSED GLOBALLY ---
 
+  // Complete end-to-end demo flow sequence
+  window.runCompleteVerifiedFlow = async function () {
+    if (window.showToast) {
+      window.showToast('🚨 Step 1/5: Emergency Alert triggered. Boston EMS Medic-42 dispatched...', 'info');
+    }
+    try {
+      // Step 1: Emergency Trigger
+      const resEmg = await fetch('/api/v1/security/emergency/trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resident_id: 'user_eleanor_vance',
+          room: 'bathroom',
+          severity: 'HIGH',
+          reason: 'Bathroom fall detected on wet tile with tachycardia'
+        })
+      });
+      secState = await resEmg.json();
+      renderSecurityUI(secState);
+      await new Promise(r => setTimeout(r, 1300));
+
+      // Step 2: En Route
+      if (window.showToast) {
+        window.showToast('🚑 Step 2/5: Medic-42 En Route (Cambridge St Corridor, 620m away)...', 'info');
+      }
+      const resEnRoute = await fetch('/api/v1/security/responder/step', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target_status: 'EN_ROUTE' })
+      });
+      secState = await resEnRoute.json();
+      renderSecurityUI(secState);
+      await new Promise(r => setTimeout(r, 1300));
+
+      // Step 3: Arriving (< 150m)
+      if (window.showToast) {
+        window.showToast('📍 Step 3/5: Medic-42 Arriving (<150m perimeter approach)...', 'info');
+      }
+      const resArr = await fetch('/api/v1/security/responder/step', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target_status: 'ARRIVING' })
+      });
+      secState = await resArr.json();
+      renderSecurityUI(secState);
+      await new Promise(r => setTimeout(r, 1300));
+
+      // Step 4: Arrival Verified Check-In (< 35m residence perimeter)
+      if (window.showToast) {
+        window.showToast('🛡️ Step 4/5: Verified Arrival Check-In (8m away, Badge BEMS-8821 verified)...', 'info');
+      }
+      const resChk = await fetch('/api/v1/security/responder/checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          badge_id: 'BEMS-8821',
+          badge_number: 'BEMS-8821',
+          auth_token: 'AUTH-TOKEN-BEMS-8821-EXP2026',
+          latitude: 42.358810,
+          longitude: -71.063810,
+          override_stage: 'ARRIVED'
+        })
+      });
+      secState = await resChk.json();
+      renderSecurityUI(secState);
+      await new Promise(r => setTimeout(r, 1000));
+
+      // Step 5: Authenticated Smart Door Unlock
+      if (window.showToast) {
+        window.showToast('🔑 Step 5/5: Transmitting authenticated unlock token to Yale/Matter smart lock...', 'info');
+      }
+      await window.executeVerifiedUnlock();
+
+    } catch (err) {
+      console.error('[Security] Failed running complete flow:', err);
+    }
+  };
+
   // Advance responder along their route
   window.advanceResponderStage = async function () {
     try {
@@ -425,7 +595,7 @@
   window.simulateVerifiedArrival = async function () {
     try {
       if (window.showToast) {
-        window.showToast('Simulating verified EMS arrival at 12 Beacon St perimeter...', 'info');
+        window.showToast('Simulating verified EMS arrival at 48 Beacon St perimeter...', 'info');
       }
 
       const res = await fetch('/api/v1/security/responder/checkin', {
@@ -433,6 +603,8 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           badge_id: 'BEMS-8821',
+          badge_number: 'BEMS-8821',
+          auth_token: 'AUTH-TOKEN-BEMS-8821-EXP2026',
           latitude: 42.358810,
           longitude: -71.063810,
           override_stage: 'ARRIVED'
@@ -473,7 +645,7 @@
       doorBar.style.borderColor = 'rgba(245, 158, 11, 0.4)';
       doorTitle.textContent = 'Front Door Smart Lock: UNLOCKING...';
       doorTitle.style.color = '#fbbf24';
-      doorSub.textContent = 'Transmitting signed cryptographic unlock token to August Lock provider...';
+      doorSub.textContent = 'Verifying cryptographic credentials and dispatching pulse...';
     }
 
     try {
@@ -482,8 +654,10 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           badge_id: 'BEMS-8821',
-          responder_name: 'Paramedic James Kelly (Medic-42)',
-          security_token: 'signed_jwt_ems_token_boston_911'
+          responder_badge: 'BEMS-8821',
+          responder_name: 'Capt. Marcus Chen (Medic-42)',
+          security_token: 'AUTH-TOKEN-BEMS-8821-EXP2026',
+          auth_token: 'AUTH-TOKEN-BEMS-8821-EXP2026'
         })
       });
 
@@ -499,14 +673,12 @@
         window.showToast('Smart Lock Unlocked! First responders granted entry.', 'success');
       }
 
-      // Play audio notification if voiceAudio or niraStore exists
       if (window.niraStore && typeof window.niraStore.playChime === 'function') {
         window.niraStore.playChime();
       }
 
     } catch (err) {
       console.error('[Security] Unlock command rejected:', err);
-      // Fetch latest state to update UI with error state
       await fetchSecurityStatus();
       if (window.showToast) {
         window.showToast(`Unlock failed: ${err.message}`, 'error');
@@ -542,20 +714,21 @@
 
   // Failure simulation trigger
   window.triggerSimFailure = async function (type) {
-    // Close dropdown
     const dd = document.getElementById('failureDropdown');
     if (dd) dd.style.display = 'none';
 
     if (type === 'unauthorized') {
-      if (window.showToast) window.showToast('Simulating unauthorized responder badge...', 'warning');
+      if (window.showToast) window.showToast('Simulating unauthorized responder badge (BOGUS-999)...', 'warning');
       try {
         const res = await fetch('/api/v1/security/lock/unlock', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             badge_id: 'BOGUS-999',
-            responder_name: 'Unknown Individual',
-            security_token: 'invalid_token'
+            responder_badge: 'BOGUS-999',
+            responder_name: 'Unknown Imposter',
+            security_token: 'invalid_token',
+            auth_token: 'INVALID-TOKEN'
           })
         });
         const data = await res.json();
@@ -565,37 +738,35 @@
         console.error(e);
       }
     } else if (type === 'wrong_location') {
-      if (window.showToast) window.showToast('Simulating unlock outside geofence perimeter...', 'warning');
+      if (window.showToast) window.showToast('Simulating unlock outside geofence perimeter (450m away)...', 'warning');
       try {
-        // Position responder far away
-        await fetch('/api/v1/security/responder/checkin', {
+        await fetch('/api/v1/security/responder/step', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            badge_id: 'BEMS-8821',
-            latitude: 42.362000,
-            longitude: -71.070000,
-            override_stage: 'ARRIVING'
+            target_status: 'EN_ROUTE',
+            simulate_wrong_location: true
           })
         });
-        // Attempt unlock
         const res = await fetch('/api/v1/security/lock/unlock', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             badge_id: 'BEMS-8821',
-            responder_name: 'Paramedic James Kelly (Medic-42)',
-            security_token: 'signed_jwt_ems_token_boston_911'
+            responder_badge: 'BEMS-8821',
+            responder_name: 'Capt. Marcus Chen (Medic-42)',
+            security_token: 'AUTH-TOKEN-BEMS-8821-EXP2026',
+            auth_token: 'AUTH-TOKEN-BEMS-8821-EXP2026'
           })
         });
         const data = await res.json();
         await fetchSecurityStatus();
-        if (window.showToast) window.showToast(`Geofence Alert: ${data.detail || 'Responder not at residence.'}`, 'error');
+        if (window.showToast) window.showToast(`Geofence Alert: ${data.detail || 'Responder has not arrived.'}`, 'error');
       } catch (e) {
         console.error(e);
       }
     } else if (type === 'offline_lock') {
-      if (window.showToast) window.showToast('Simulating smart lock provider outage...', 'error');
+      if (window.showToast) window.showToast('Simulating smart lock provider outage / IoT mesh timeout...', 'error');
       try {
         const res = await fetch('/api/v1/security/lock/manual-override', {
           method: 'POST',
@@ -608,7 +779,43 @@
         const data = await res.json();
         secState = data;
         renderSecurityUI(data);
-        if (window.showToast) window.showToast('Smart lock device offline: Automatic unlock unavailable — manual access required.', 'error');
+        if (window.showToast) window.showToast('Automatic unlock unavailable — manual access required.', 'error');
+      } catch (e) {
+        console.error(e);
+      }
+    } else if (type === 'hardware_failure') {
+      if (window.showToast) window.showToast('Simulating smart lock deadbolt motor jam / retraction failure...', 'error');
+      try {
+        const res = await fetch('/api/v1/security/lock/manual-override', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'SIMULATE_LOCK_FAILURE',
+            reason: 'Hardware motor failed to retract latch'
+          })
+        });
+        const data = await res.json();
+        secState = data;
+        renderSecurityUI(data);
+        if (window.showToast) window.showToast('Motor retraction jam: Automatic unlock unavailable — manual access required.', 'error');
+      } catch (e) {
+        console.error(e);
+      }
+    } else if (type === 'restore_online') {
+      if (window.showToast) window.showToast('Restoring smart lock online & locked...', 'info');
+      try {
+        const res = await fetch('/api/v1/security/lock/manual-override', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'RESTORE_ONLINE',
+            reason: 'Restoring smart lock device online'
+          })
+        });
+        const data = await res.json();
+        secState = data;
+        renderSecurityUI(data);
+        if (window.showToast) window.showToast('Smart lock device online and reconnected.', 'success');
       } catch (e) {
         console.error(e);
       }

@@ -201,6 +201,12 @@ class MultimodalRiskIntelligence:
         "im ok", "i'm ok", "i'm okay", "i am okay", "no help", "doing well"
     ]
 
+    NEGATION_KEYWORDS = [
+        "not ok", "not okay", "not fine", "not alright", "not good",
+        "not doing well", "dont feel well", "don't feel well", "do not feel well",
+        "feel terrible", "feel dizzy", "feel sick", "unwell"
+    ]
+
     DISTRESS_KEYWORDS = [
         "help", "fell", "fallen", "cant get up", "can't get up",
         "cannot get up", "hurts", "pain", "bleeding", "dizzy",
@@ -218,11 +224,21 @@ class MultimodalRiskIntelligence:
         if voice_response.intent:
             return voice_response.intent.lower()
 
-        clean = re.sub(r"[^\w\s]", "", voice_response.transcript.lower())
-        if any(kw in clean for kw in cls.SAFE_KEYWORDS) and not any(kw in clean for kw in cls.DISTRESS_KEYWORDS):
-            return "safe"
+        raw = voice_response.transcript.lower().strip()
+        clean = re.sub(r"[^\w\s]", "", raw)
+
+        # 1. Negation ("I'm not okay", "not fine") must NEVER be classified as safe
+        if any(neg in raw for neg in cls.NEGATION_KEYWORDS) or any(neg in clean for neg in ["not ok", "not okay", "not fine"]):
+            return "distress"
+
+        # 2. Explicit distress keywords
         if any(kw in clean for kw in cls.DISTRESS_KEYWORDS):
             return "distress"
+
+        # 3. Explicit safe confirmations
+        if any(kw in clean for kw in cls.SAFE_KEYWORDS):
+            return "safe"
+
         # Ambiguous user response defaults to distress for elderly safety
         return "distress"
 

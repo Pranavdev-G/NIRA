@@ -40,6 +40,10 @@ class EventSource(str, Enum):
     CAMERA_POSE = "camera_pose"
     AUDIO_VOICE = "audio_voice"
     ENVIRONMENT = "environment"
+    GPS = "gps"
+    MEDICATION = "medication"
+    SMART_HOME = "smart_home"
+    DEVICE_HEALTH = "device_health"
     STATE_MACHINE = "state_machine"
     MANUAL = "manual"
     SYSTEM = "system"
@@ -77,6 +81,24 @@ class EventType(str, Enum):
     VOICE_RESPONSE_SAFE = "voice_response_safe"
     VOICE_RESPONSE_DISTRESS = "voice_response_distress"
     VOICE_TIMEOUT = "voice_timeout"
+
+    # GPS & Location Telemetry
+    GPS_LOCATION_UPDATE = "gps_location_update"
+    GEOFENCE_TRANSITION = "geofence_transition"
+
+    # Medication Adherence
+    MEDICATION_SCHEDULED = "medication_scheduled"
+    MEDICATION_TAKEN = "medication_taken"
+    MEDICATION_MISSED = "medication_missed"
+    MEDICATION_DELAYED = "medication_delayed"
+
+    # Smart Home & Smart Lock
+    SMART_LOCK_STATE_CHANGED = "smart_lock_state_changed"
+    SMART_LOCK_UNLOCK_REQUESTED = "smart_lock_unlock_requested"
+
+    # Device & Sensor Health
+    DEVICE_HEALTH_STATUS = "device_health_status"
+    SENSOR_CONNECTIVITY_CHANGE = "sensor_connectivity_change"
 
     # Incident & Emergency Lifecycle
     WELLNESS_TIMEOUT = "wellness_timeout"
@@ -150,6 +172,19 @@ class UnifiedEvent(BaseModel):
     payload: Dict[str, Any] = Field(default_factory=dict, description="Event-specific metadata dictionary")
     confidence: float = Field(1.0, ge=0.0, le=1.0, description="Confidence score between 0.0 and 1.0")
     correlation_id: str = Field(..., min_length=3, description="Distributed correlation ID for tracing across incident lifecycle")
+    location: Optional[str] = Field(None, description="Physical location/zone description; defaults to room_id")
+    zone: Optional[str] = Field(None, description="Specific sub-room zone, e.g. floor_substrate, shower_stall")
+    simulated: bool = Field(True, description="Flag indicating simulated demo telemetry")
+    details: Dict[str, Any] = Field(default_factory=dict, description="Detailed event attributes matching payload")
+    device_metadata: Dict[str, Any] = Field(default_factory=dict, description="Metadata of originating IoT node or simulator")
+
+    def model_post_init(self, __context: Any) -> None:
+        if not self.location:
+            self.location = self.room_id
+        if not self.details and self.payload:
+            self.details = self.payload.copy()
+        elif not self.payload and self.details:
+            self.payload = self.details.copy()
 
     @field_validator("timestamp")
     @classmethod

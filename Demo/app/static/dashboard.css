@@ -6271,6 +6271,517 @@ a:hover {
   word-break: break-word;
 }
 
+/* ==========================================================================
+   NIRA Command Center & Operator Simulation Hub Styles
+   ========================================================================== */
+
+.operator-control-hub {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(8, 13, 26, 0.95) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 18px;
+  padding: 22px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+.operator-control-hub::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #38bdf8, #34d399, #f59e0b, #f43f5e, #38bdf8);
+  background-size: 300% 100%;
+  animation: shimmerBorder 6s linear infinite;
+}
+
+@keyframes shimmerBorder {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 300% 0%; }
+}
+
+.operator-hub-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.operator-hub-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.operator-hub-title h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.operator-hub-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  padding: 3px 8px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+/* 14-Step Presentation Stepper */
+.flow-stepper-card {
+  background: rgba(2, 6, 23, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 18px;
+}
+
+.flow-stepper-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.flow-counter-pill {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 3px 10px;
+  border-radius: 9999px;
+}
+
+.flow-nav-group {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-flow-nav {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-flow-nav:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+.btn-flow-nav.primary {
+  background: linear-gradient(135deg, #0284c7 0%, #00cae0 100%);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
+}
+
+.btn-flow-nav.primary:hover {
+  box-shadow: 0 6px 22px rgba(2, 132, 199, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-flow-nav:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.flow-step-meta {
+  margin-bottom: 12px;
+}
+
+.flow-step-meta h4 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.flow-step-meta .flow-sub {
+  font-size: 0.80rem;
+  color: #38bdf8;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.flow-step-meta .flow-desc {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  line-height: 1.45;
+  margin-top: 6px;
+}
+
+.flow-progress-track {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.flow-step-dot {
+  flex: 1;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.flow-step-dot.active {
+  background: #38bdf8;
+  box-shadow: 0 0 10px #38bdf8;
+}
+
+.flow-step-dot.completed {
+  background: #34d399;
+}
+
+/* 6 Predefined Scenario Buttons */
+.scenarios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.btn-scenario-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.btn-scenario-card:hover {
+  background: rgba(56, 189, 248, 0.08);
+  border-color: rgba(56, 189, 248, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.btn-scenario-card .scen-title {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.btn-scenario-card .scen-desc {
+  font-size: 0.70rem;
+  color: #94a3b8;
+  line-height: 1.35;
+}
+
+/* 13 Sensor Simulation Matrix */
+.sensor-matrix-wrap {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 16px;
+}
+
+.sensor-matrix-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #94a3b8;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sim-actions-flex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btn-sim-action {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 7px 12px;
+  color: #e2e8f0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-sim-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.btn-sim-action.action-normal {
+  border-color: rgba(52, 211, 153, 0.35);
+  color: #34d399;
+}
+.btn-sim-action.action-normal:hover {
+  background: rgba(52, 211, 153, 0.15);
+  border-color: #34d399;
+}
+
+.btn-sim-action.action-fall {
+  border-color: rgba(244, 63, 94, 0.45);
+  background: rgba(244, 63, 94, 0.12);
+  color: #fda4af;
+}
+.btn-sim-action.action-fall:hover {
+  background: rgba(244, 63, 94, 0.25);
+  border-color: #f43f5e;
+}
+
+.btn-sim-action.action-amber {
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+}
+.btn-sim-action.action-amber:hover {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: #fbbf24;
+}
+
+.btn-sim-action.action-blue {
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+}
+.btn-sim-action.action-blue:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: #38bdf8;
+}
+
+/* 7-Step Scenario Progression Banner */
+.scenario-progression-box {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1.5px solid rgba(56, 189, 248, 0.4);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  animation: modalPop 0.3s ease;
+}
+
+.scen-prog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.scen-step-ribbon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+}
+
+.scen-step-chip {
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #94a3b8;
+  white-space: nowrap;
+  transition: all 0.25s ease;
+}
+
+.scen-step-chip.active {
+  background: rgba(56, 189, 248, 0.25);
+  border-color: #38bdf8;
+  color: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+
+.scen-step-chip.done {
+  background: rgba(52, 211, 153, 0.15);
+  border-color: #34d399;
+  color: #34d399;
+}
+
+.scen-step-arrow {
+  color: #64748b;
+  font-size: 0.74rem;
+}
+
+.scen-current-detail {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(56, 189, 248, 0.08);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.80rem;
+  color: #ffffff;
+}
+
+.pulse-dot-cyan {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 8px #38bdf8;
+  animation: pulseDot 1.5s infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.5; }
+}
+
+/* Risk Intelligence Explainability Card */
+.risk-intel-grid {
+  display: grid;
+  grid-template-columns: 140px 1fr 1fr;
+  gap: 16px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+@media (max-width: 768px) {
+  .risk-intel-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.risk-score-circle-card {
+  text-align: center;
+  background: rgba(2, 6, 23, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px 10px;
+}
+
+.risk-big-score {
+  font-size: 2.2rem;
+  font-weight: 900;
+  line-height: 1;
+  font-family: var(--font-mono);
+}
+
+.risk-big-tier {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+.risk-factors-list {
+  font-size: 0.74rem;
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.risk-factor-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+/* Sensor Health HUD */
+.sensor-health-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.sensor-health-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.sensor-health-item .s-name {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.sensor-health-item .s-badge {
+  font-size: 0.62rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.s-sim-online {
+  background: rgba(52, 211, 153, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.s-sim-degraded {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.s-sim-offline {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+/* Voice Classification Badges */
+.voice-class-badge {
+  font-size: 0.70rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  padding: 3px 8px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.class-safe { background: rgba(52, 211, 153, 0.2); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.4); }
+.class-risk { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+.class-emergency { background: rgba(244, 63, 94, 0.2); color: #fda4af; border: 1px solid rgba(244, 63, 94, 0.5); }
+.class-uncertain { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.4); }
+.class-no_response { background: rgba(244, 63, 94, 0.25); color: #ff3b57; border: 1px solid #ff3b57; }
+
 
 
 

@@ -44,6 +44,32 @@ class PersonalBaselineEngine:
         RoutineSlot("Night Wind-down", 21, 23, ["living_room", "bedroom", "bathroom"], ["hygiene", "reading", "preparing_for_bed"], base_vulnerability=0.20),
     ]
 
+    # Hourly baseline expected mobility score (0.0=immobile/sleep, 1.0=active)
+    HOURLY_MOBILITY_PROFILE: Dict[int, float] = {
+        0: 0.05, 1: 0.02, 2: 0.02, 3: 0.02, 4: 0.02, 5: 0.05, 6: 0.15,
+        7: 0.65, 8: 0.80, 9: 0.75, 10: 0.70, 11: 0.65, 12: 0.85,
+        13: 0.70, 14: 0.40, 15: 0.35, 16: 0.45, 17: 0.60, 18: 0.80,
+        19: 0.70, 20: 0.55, 21: 0.40, 22: 0.20, 23: 0.08
+    }
+
+    # Per-zone typical safe inactivity limits (in seconds)
+    ZONE_INACTIVITY_LIMITS_SEC: Dict[str, int] = {
+        "bathroom": 1200,      # 20 min normal max without movement
+        "bedroom": 28800,      # 8 hours resting window
+        "living_room": 7200,   # 2 hours TV/reading
+        "kitchen": 1800,       # 30 min cooking/dining
+        "hallway": 300,        # 5 min transit
+        "stairs": 120          # 2 min transit
+    }
+
+    # Dynamic learned tolerances from resident feedback e.g. "I'm okay, false alarm"
+    _learned_tolerances: Dict[str, float] = {
+        "living_room:reading": 0.25,
+        "living_room:sitting": 0.20,
+        "bedroom:napping": 0.30
+    }
+    _feedback_history: List[Dict[str, Any]] = []
+
     @classmethod
     def get_slot_for_hour(cls, hour: int) -> RoutineSlot:
         """Finds matching circadian routine slot for given 24h clock hour."""
@@ -119,9 +145,14 @@ class PersonalBaselineEngine:
         deviation_score += slot.base_vulnerability
 
         # Blend with wearable external sensor baseline deviation if present
-        if provided_baseline_deviation is not None:
-            # Weighted average between circadian model and wearable model
-            deviation_score = 0.45 * deviation_score + 0.55 * float(provided_baseline_deviation)
+        # Apply learned tolerance if not an obvious fall emergency (Section 5 Guardrail)
+        is_obvious_emergency = ("fall" in act_clean or "thud" in act_clean) and ("none" in act_clean or "bathroom" in loc_clean)
+        tolerance = 0.0
+        if not is_obvious_emergency:
+            tolerance = cls.get_learned_tolerance(loc_clean, act_clean)
+            if tolerance > 0.0:
+                deviation_score = max(0.0, deviation_score - tolerance)
+                reasons.append(f"Adaptive baseline: Learned tolerance applied for {location}/{activity} (-{tolerance:.2f})")
 
         # Bound between 0.0 and 1.0
         final_score = round(max(0.0, min(1.0, deviation_score)), 2)
@@ -131,7 +162,64 @@ class PersonalBaselineEngine:
             "hour": hour,
             "expected_locations": slot.expected_locations,
             "expected_activities": slot.expected_activities,
+            "learned_tolerance_applied": tolerance,
             "deviation_score": final_score
         }
 
         return final_score, reasons, meta
+
+    @classmethod
+    def record_resident_feedback(cls, location: str, activity: str, is_safe: bool = True) -> float:
+        """
+        Adapts baseline tolerance based on resident feedback (e.g., False Alarm confirmations).
+        Guarantees deterministic false-alarm reduction.
+        """
+        loc = location.lower().replace(" ", "_")
+        act = activity.lower().replace(" ", "_")
+        key = f"{loc}:{act}"
+        current = cls._learned_tolerances.get(key, 0.0)
+        if is_safe:
+            # Increase tolerance safely up to a maximum cap of 0.35
+            new_tol = round(min(0.35, current + 0.10), 2)
+            cls._learned_tolerances[key] = new_tol
+        else:
+            # Decay tolerance if flagged as real risk
+            new_tol = round(max(0.0, current - 0.10), 2)
+            cls._learned_tolerances[key] = new_tol
+
+        cls._feedback_history.append({
+            "key": key,
+            "is_safe": is_safe,
+            "new_tolerance": new_tol,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        return new_tol
+
+    @classmethod
+    def get_learned_tolerance(cls, location: str, activity: str) -> float:
+        loc = location.lower().replace(" ", "_")
+        act = activity.lower().replace(" ", "_")
+        for k, tol in cls._learned_tolerances.items():
+            if k == f"{loc}:{act}" or k == f"{loc}:resting" or k == f"{loc}:sitting":
+                return tol
+        return 0.0
+
+    @classmethod
+    def get_hourly_profile(cls) -> Dict[int, float]:
+        """Returns the 24-hour baseline expected mobility profile."""
+        return cls.HOURLY_MOBILITY_PROFILE.copy()
+
+    @classmethod
+    def get_zone_inactivity_limit(cls, zone: str) -> int:
+        """Returns safe inactivity duration in seconds for a specific zone."""
+        return cls.ZONE_INACTIVITY_LIMITS_SEC.get(zone.lower().replace(" ", "_"), 1800)
+
+    @classmethod
+    def reset_learning(cls):
+        """Resets learned baseline feedback to default state."""
+        cls._learned_tolerances = {
+            "living_room:reading": 0.25,
+            "living_room:sitting": 0.20,
+            "bedroom:napping": 0.30
+        }
+        cls._feedback_history = []

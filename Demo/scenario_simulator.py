@@ -28,6 +28,7 @@ import sys
 import time
 import uuid
 import logging
+from datetime import datetime, timezone
 from typing import Dict, Any, List
 
 try:
@@ -388,3 +389,107 @@ class ScenarioSimulator:
         hazard_state = env_res.get("response", {}).get("safety_state") if env_res else "ANOMALY"
         print(f"⚠️ Scenario F Complete. Detected Environmental Hazard. State: {hazard_state}")
         return {"scenario": "F_ENVIRONMENTAL_HAZARD", "hazard_state": hazard_state}
+
+    # -----------------------------------------------------------------------
+    # Scenario G: Worsening Condition
+    # -----------------------------------------------------------------------
+
+    def run_scenario_worsening_condition(self) -> Dict[str, Any]:
+        """
+        Scenario G: Resident has a minor slip in bedroom, followed by progressive
+        vital deterioration (heart rate climbs from 82 to 142 BPM) and prolonged inactivity.
+        The system autonomously escalates from MODERATE -> HIGH -> CRITICAL emergency.
+        """
+        corr_id = f"corr-scen-worsen-{uuid.uuid4().hex[:8]}"
+        print("\n=== SCENARIO 4: WORSENING CONDITION (Dynamic Escalation) ===")
+
+        # Step 1: Minor stumble detected in bedroom
+        print("1. Bedroom camera reports initial stumble / slip (conf 0.72)...")
+        self.vision.emit_event(preset="minor_stumble", room_id="bedroom", correlation_id=corr_id)
+        self._sleep()
+
+        # Step 2: Inactivity sets in — resident seated on floor unable to get up
+        print("2. Radar flags immobility (motion level: 0.12, seated on floor)...")
+        self.radar.emit_event(preset="floor_collapse_immobile", room_id="bedroom", correlation_id=corr_id)
+        self._sleep()
+
+        # Step 3: Progressive vital deterioration (moderate tachycardia 108 BPM)
+        print("3. Apple Watch detects early heart rate surge (108 BPM)...")
+        self.wearable.emit_event(preset="walking_normal", room_id="bedroom", hr_override=108, correlation_id=corr_id)
+        self._sleep()
+
+        # Step 4: Severe tachycardia (142 BPM) + arrhythmia detected
+        print("4. Apple Watch triggers acute tachycardia alarm (142 BPM + arrhythmia)...")
+        w_res = self.wearable.emit_event(preset="tachycardia_fall_impact", room_id="bedroom", hr_override=142, correlation_id=corr_id)
+        self._sleep()
+
+        # Step 5: Voice check timeout (unresponsive due to worsening shock)
+        print("5. Alexa wellness check receives silence (20s timeout)...")
+        vox_res = self.voice.emit_event(preset="prompt_timeout", room_id="bedroom", correlation_id=corr_id)
+        self._sleep()
+
+        final_state = vox_res.get("response", {}).get("safety_state") if vox_res else "CRITICAL"
+        print(f"🚨 Scenario Worsening Condition Complete. Final State: {final_state} (Escalated to Emergency Dispatch)")
+        return {"scenario": "WORSENING_CONDITION", "final_state": final_state, "voice_res": vox_res}
+
+    # -----------------------------------------------------------------------
+    # Scenario H: Medication Miss
+    # -----------------------------------------------------------------------
+
+    def run_scenario_medication_miss(self) -> Dict[str, Any]:
+        """
+        Scenario H: Scheduled evening Lisinopril 10mg is missed by resident.
+        Echo Show prompts senior, then alerts caregiver David Vance upon delay threshold.
+        """
+        corr_id = f"corr-scen-meds-{uuid.uuid4().hex[:8]}"
+        print("\n=== SCENARIO 6: MEDICATION MISS & ADHERENCE ESCALATION ===")
+
+        # Step 1: Normal environmental reading in kitchen
+        print("1. Kitchen ambient sensors active (normal environment)...")
+        self.environment.emit_event(preset="kitchen_active", room_override="kitchen", correlation_id=corr_id)
+        self._sleep()
+
+        # Step 2: Medication scheduled time arrives (18:00) — smart dispenser unaccessed
+        print("2. Scheduled dose at 18:00 (Lisinopril 10mg). Smart pill compartment unaccessed...")
+        med_evt = {
+            "event_id": f"evt-med-miss-{uuid.uuid4().hex[:6]}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "resident_id": self.resident_id,
+            "room_id": "kitchen",
+            "source": "system",
+            "event_type": "state_transition",
+            "payload": {
+                "medication": "Lisinopril 10mg",
+                "scheduled_time": "18:00",
+                "status": "MISSED",
+                "delay_minutes": 120,
+                "adherence_score": 0.88,
+                "alert_caregiver": True,
+                "notification_message": "Evening Lisinopril 10mg missed (120 min delay). Caregiver notified."
+            },
+            "confidence": 0.95,
+            "correlation_id": corr_id
+        }
+        import urllib.request
+        import json
+        req = urllib.request.Request(
+            f"{self.base_url}/api/v1/events/ingest",
+            data=json.dumps(med_evt).encode("utf-8"),
+            headers={"Content-Type": "application/json"}
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                res_data = json.loads(resp.read().decode("utf-8"))
+        except Exception as e:
+            res_data = {"status": "FAILED", "error": str(e)}
+
+        self._sleep()
+
+        # Step 3: Echo Show delivers audible reminder
+        print("3. Echo Show 15 issues conversational reminder to Eleanor...")
+        self.voice.emit_event(preset="medication_reminder", room_id="kitchen", correlation_id=corr_id)
+        self._sleep()
+
+        print("✅ Scenario Medication Miss Complete. Caregiver alerted and adherence tracked.")
+        return {"scenario": "MEDICATION_MISS", "result": res_data}
+

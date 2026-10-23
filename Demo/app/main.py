@@ -10,7 +10,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database.session import init_db
-from app.routers import health, tools_http, mcp_server, risk_api, incidents_api, events_api, demo_api, live_api, security_api
+from app.routers import (
+    health, tools_http, mcp_server, risk_api, incidents_api,
+    events_api, demo_api, live_api, security_api, medications_api, auth_api
+)
 
 
 @asynccontextmanager
@@ -114,6 +117,8 @@ app.include_router(mcp_server.router)
 app.include_router(demo_api.router)
 app.include_router(live_api.router)
 app.include_router(security_api.router)
+app.include_router(medications_api.router)
+app.include_router(auth_api.router)
 
 
 from fastapi.staticfiles import StaticFiles

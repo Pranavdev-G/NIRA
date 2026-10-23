@@ -265,6 +265,14 @@
     </div>
 
     <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+      <div id="loginErrorAlert" style="display: none; background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.4); border-radius: var(--radius-inner); padding: 12px 14px; margin-bottom: 16px; color: #fb7185; font-size: 0.82rem; display: flex; align-items: flex-start; gap: 10px;">
+        <span style="font-size: 1.1rem; line-height: 1;">⚠️</span>
+        <div style="flex: 1;">
+          <strong>Invalid Demo Credentials</strong>
+          <div style="font-size: 0.74rem; color: #fca5a5; margin-top: 3px;">The email or password does not match any demo account. Please use one of the 1-click profiles below or enter the credentials shown in the quick guide.</div>
+        </div>
+      </div>
+
       <div class="form-group">
         <label class="form-label" for="loginEmail">Email Address</label>
         <input 
@@ -321,6 +329,7 @@
         <div>
           <div class="role-btn-title" style="color: #fbbf24;">David Vance (Son &bull; Family Admin)</div>
           <div class="role-btn-sub">Full Admin Console &bull; Live Telemetry & Door Overrides</div>
+          <div style="font-size: 0.68rem; color: #94a3b8; font-family: monospace; margin-top: 2px;">david.vance@example.com / admin123</div>
         </div>
       </button>
 
@@ -335,6 +344,7 @@
         <div>
           <div class="role-btn-title">Eleanor & Family (Home View)</div>
           <div class="role-btn-sub">Interactive Safety Dashboard &bull; Multilingual &bull; 🎬 Demo Video & Guide</div>
+          <div style="font-size: 0.68rem; color: #94a3b8; font-family: monospace; margin-top: 2px;">family@beaconhill.care / family123</div>
         </div>
       </button>
 
@@ -348,8 +358,9 @@
           </svg>
         </div>
         <div>
-          <div class="role-btn-title">Medic 14 (Ambulance Driver Portal)</div>
+          <div class="role-btn-title">Medic 14 (Boston EMS Command)</div>
           <div class="role-btn-sub">Ambulance CAD Dispatch &bull; Mobile Data Terminal &bull; Smart Door PIN: 8492</div>
+          <div style="font-size: 0.68rem; color: #94a3b8; font-family: monospace; margin-top: 2px;">medic14@bostonems.gov / medic123</div>
         </div>
       </button>
     </div>
@@ -372,15 +383,15 @@
         email: "family@beaconhill.care",
         password: "family123",
         avatar: "👵",
-        redirect: "/#demo"
+        redirect: "/#demo/overview"
       },
       ems: {
-        name: "Medic 14 (Boston EMS First Responder)",
+        name: "Medic 14 (Boston EMS Command)",
         role: "Ambulance Driver / CAD First Responder",
         email: "medic14@bostonems.gov",
         password: "medic123",
         avatar: "🚑",
-        redirect: "/#demo/emergencyalert"
+        redirect: "/#demo/dispatch"
       }
     };
 
@@ -392,22 +403,37 @@
     function quickLogin(roleKey) {
       const profile = USER_PROFILES[roleKey];
       if (!profile) return;
+      document.getElementById("loginEmail").value = profile.email;
+      document.getElementById("loginPassword").value = profile.password;
       submitUserSession(profile);
     }
 
     function handleLoginSubmit(event) {
       event.preventDefault();
-      const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+      const alertBox = document.getElementById("loginErrorAlert");
+      if (alertBox) alertBox.style.display = "none";
 
+      const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+      const password = document.getElementById("loginPassword").value;
+
+      // Look for matching credentials
+      let matchedProfile = null;
       for (const key in USER_PROFILES) {
-        if (USER_PROFILES[key].email.toLowerCase() === email) {
-          submitUserSession(USER_PROFILES[key]);
-          return;
+        const p = USER_PROFILES[key];
+        if (p.email.toLowerCase() === email && p.password === password) {
+          matchedProfile = p;
+          break;
         }
       }
 
-      const target = (email.includes("admin") || email.includes("david")) ? USER_PROFILES.admin_son : USER_PROFILES.senior_home;
-      submitUserSession(target);
+      if (!matchedProfile) {
+        if (alertBox) {
+          alertBox.style.display = "flex";
+        }
+        return;
+      }
+
+      submitUserSession(matchedProfile);
     }
 
     function submitUserSession(userObj) {

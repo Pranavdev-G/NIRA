@@ -138,3 +138,41 @@ class TelemetryEventModel(Base):
     created_at = Column(DateTime(timezone=True), default=utc_now)
     safety_state_after = Column(String(32), default="NORMAL")
     evidence_summary = Column(JSON, default=list)
+
+
+class MedicationModel(Base):
+    """Prescription schedule and daily adherence tracking."""
+    __tablename__ = "medications"
+
+    id = Column(String(64), primary_key=True, index=True)
+    resident_id = Column(String(64), ForeignKey("users.id"), nullable=False, index=True)
+    medication_name = Column(String(128), nullable=False)
+    dosage = Column(String(64), nullable=False)
+    scheduled_time = Column(String(32), nullable=False)  # e.g., "08:00", "13:00", "18:00"
+    instructions = Column(String(256), nullable=True)
+    status = Column(String(32), default="SCHEDULED")  # SCHEDULED, TAKEN, MISSED, DELAYED
+    taken_at = Column(DateTime(timezone=True), nullable=True)
+    delay_minutes = Column(Integer, default=0)
+    adherence_rate = Column(Float, default=1.0)
+    caregiver_alerted = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now)
+    updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class NotificationModel(Base):
+    """Caregiver and first responder notification audit logs."""
+    __tablename__ = "notifications"
+
+    id = Column(String(64), primary_key=True, index=True)
+    recipient = Column(String(128), nullable=False)
+    channel = Column(String(32), nullable=False)  # "SMS", "PUSH", "ECHO_DROP_IN"
+    headline = Column(String(256), nullable=False)
+    body = Column(Text, nullable=False)
+    priority = Column(String(32), default="STANDARD")  # "STANDARD", "HIGH", "CRITICAL"
+    status = Column(String(32), default="SENT")  # "SENT", "ACKNOWLEDGED", "TIMEOUT", "ESCALATED"
+    is_simulation = Column(Boolean, default=True)
+    incident_id = Column(String(64), nullable=True, index=True)
+    correlation_id = Column(String(64), nullable=True, index=True)
+    sent_at = Column(DateTime(timezone=True), default=utc_now)
+    acknowledged_at = Column(DateTime(timezone=True), nullable=True)
+
