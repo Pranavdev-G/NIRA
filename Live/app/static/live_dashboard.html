@@ -546,8 +546,8 @@
               <span id="roomTitleText">Living Room (Main Area) — Live Pose Estimation &amp; Movement Tracker</span>
             </div>
             <div style="display: flex; align-items: center; gap: 12px;">
-              <button id="webcamToggleBtn" class="btn-sim" style="border-color: var(--cyan-neon); color: var(--cyan-neon); padding: 5px 12px; font-size: 0.76rem;" onclick="toggleLiveWebcam()">
-                <span id="webcamBtnIcon">📹</span> <span id="webcamBtnText">Start Live Webcam</span>
+              <button id="webcamToggleBtn" class="room-chip" style="padding: 5px 12px; font-size: 0.74rem; border: 1px solid var(--border-subtle); display: inline-flex; align-items: center; gap: 6px; cursor: pointer; background: rgba(255, 255, 255, 0.04); color: var(--text-muted);" onclick="toggleLiveWebcam()">
+                <span id="webcamBtnIcon">📷</span> <span id="webcamBtnText">Use Physical Webcam</span>
               </button>
               <div style="font-family: var(--font-mono); font-size: 0.74rem; color: var(--cyan-neon);">
                 FPS: <span id="cameraFps">28.5</span> &bull; 1080p
@@ -567,22 +567,6 @@
           <div class="camera-viewport-box">
             <video id="liveWebcamVideo" playsinline autoplay muted style="display:none;"></video>
             <canvas id="visionCanvas" width="760" height="380"></canvas>
-
-            <!-- Prominent Click to Start Live Camera Overlay -->
-            <div id="cameraStartOverlay" style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(2, 6, 23, 0.82); z-index: 8; cursor: pointer; backdrop-filter: blur(4px);" onclick="toggleLiveWebcam()">
-              <div style="background: rgba(0, 229, 255, 0.15); border: 2px solid var(--cyan-neon); border-radius: 50%; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 0 25px rgba(0, 229, 255, 0.5); margin-bottom: 12px;">
-                📹
-              </div>
-              <div style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: #fff; margin-bottom: 6px;">
-                Click to Start Live Camera Tracking
-              </div>
-              <div style="font-family: var(--font-body); font-size: 0.82rem; color: var(--text-muted); max-width: 420px; text-align: center; line-height: 1.4;">
-                Connects your live camera with real-time YOLOv8 pose estimation, posture angles, and automated fall detection.
-              </div>
-              <button class="btn-sim" style="margin-top: 14px; border-color: var(--cyan-neon); color: #fff; background: var(--cyan-gradient); font-weight: 800; padding: 8px 20px; box-shadow: 0 4px 14px rgba(0, 229, 255, 0.35);">
-                ▶ Enable Live Camera
-              </button>
-            </div>
             
             <div class="camera-hud-overlay">
               <div class="hud-tag">
@@ -968,7 +952,7 @@
 
       if (!isWebcamActive) {
         try {
-          txt.textContent = 'Connecting...';
+          if (txt) txt.textContent = 'Connecting...';
           const stream = await navigator.mediaDevices.getUserMedia({
             video: { width: { ideal: 640 }, height: { ideal: 360 } },
             audio: false
@@ -977,23 +961,23 @@
           video.srcObject = stream;
           await video.play();
           isWebcamActive = true;
-          icon.textContent = '🛑';
-          txt.textContent = 'Stop Live Webcam';
-          btn.style.borderColor = '#ef4444';
-          btn.style.color = '#ef4444';
-          const overlay = document.getElementById('cameraStartOverlay');
-          if (overlay) overlay.style.display = 'none';
-          showToast('Live Camera active! Running real YOLO pose & fall detection.', 'success');
+          if (icon) icon.textContent = '🛑';
+          if (txt) txt.textContent = 'Switch to Ambient Stream';
+          if (btn) {
+            btn.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+            btn.style.color = '#fca5a5';
+          }
+          showToast('Physical webcam active: Running real-time YOLO pose & fall detection.', 'success');
         } catch (err) {
-          console.error('Webcam access error:', err);
+          console.warn('Physical webcam not accessible:', err);
           isWebcamActive = false;
-          icon.textContent = '📹';
-          txt.textContent = 'Start Live Webcam';
-          btn.style.borderColor = 'var(--cyan-neon)';
-          btn.style.color = 'var(--cyan-neon)';
-          const overlay = document.getElementById('cameraStartOverlay');
-          if (overlay) overlay.style.display = 'flex';
-          showToast('Camera note: ' + (err.message || 'Permission needed'), 'error');
+          if (icon) icon.textContent = '📷';
+          if (txt) txt.textContent = 'Use Physical Webcam';
+          if (btn) {
+            btn.style.borderColor = 'var(--border-subtle)';
+            btn.style.color = 'var(--text-muted)';
+          }
+          showToast('Webcam note: ' + (err.message || 'Permission needed') + '. Operating on Ambient Stream.', 'info');
         }
       } else {
         if (webcamStream) {
@@ -1003,13 +987,13 @@
         if (video) video.srcObject = null;
         isWebcamActive = false;
         lastInferenceResult = null;
-        icon.textContent = '📹';
-        txt.textContent = 'Start Live Webcam';
-        btn.style.borderColor = 'var(--cyan-neon)';
-        btn.style.color = 'var(--cyan-neon)';
-        const overlay = document.getElementById('cameraStartOverlay');
-        if (overlay) overlay.style.display = 'flex';
-        showToast('Live Camera stopped. Standing by.', 'info');
+        if (icon) icon.textContent = '📷';
+        if (txt) txt.textContent = 'Use Physical Webcam';
+        if (btn) {
+          btn.style.borderColor = 'var(--border-subtle)';
+          btn.style.color = 'var(--text-muted)';
+        }
+        showToast('Switched to Ambient AI vision stream.', 'info');
       }
     }
 
@@ -1160,7 +1144,7 @@
           // Draw prompt watermark
           ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
           ctx.font = '600 12px Outfit, sans-serif';
-          ctx.fillText(`CAM-01 • ${activeRoom.toUpperCase()} • Click "Start Live Webcam" for Real Camera Feed`, 20, cvs.height - 18);
+          ctx.fillText(`CAM-01 • ${activeRoom.toUpperCase()} • AMBIENT AI POSE & KINEMATICS`, 20, cvs.height - 18);
 
           // Draw Simulated Pose Skeleton
           if (isEmergency) {
@@ -1175,13 +1159,6 @@
         requestAnimationFrame(renderFrame);
       }
       renderFrame();
-
-      // Proactively request camera on page load if supported
-      setTimeout(() => {
-        if (!isWebcamActive && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          toggleLiveWebcam();
-        }
-      }, 700);
     }
 
     function drawLiveDetections(ctx, w, h, result) {
