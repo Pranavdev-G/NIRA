@@ -4,9 +4,8 @@ Complies with Amazon Developer Hackathon 2026 specifications.
 """
 
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timezone
 from pydantic import BaseModel, Field
-from app.models.enums import RiskLevel, WellnessState, EmergencyDispatchStatus
+from app.models.enums import WellnessState
 
 
 # ---------------------------------------------------------------------------

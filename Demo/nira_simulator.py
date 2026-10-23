@@ -28,10 +28,8 @@ Usage Examples:
 """
 
 import sys
-import time
 import argparse
 import logging
-from typing import Optional
 
 # Ensure UTF-8 output on Windows consoles
 if hasattr(sys.stdout, "reconfigure"):
@@ -40,20 +38,20 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 try:
-    from Demo.wearable_simulator import WearableSimulator
-    from Demo.environment_simulator import EnvironmentSimulator
-    from Demo.radar_simulator import RadarSimulator
-    from Demo.vision_simulator import VisionSimulator
-    from Demo.voice_simulator import VoiceSimulator
-    from Demo.scenario_simulator import ScenarioSimulator
-except ImportError:
+    from .wearable_simulator import WearableSimulator
+    from .environment_simulator import EnvironmentSimulator
+    from .radar_simulator import RadarSimulator
+    from .vision_simulator import VisionSimulator
+    from .voice_simulator import VoiceSimulator
+    from .scenario_simulator import ScenarioSimulator
+except (ImportError, ValueError):
     try:
-        from .wearable_simulator import WearableSimulator
-        from .environment_simulator import EnvironmentSimulator
-        from .radar_simulator import RadarSimulator
-        from .vision_simulator import VisionSimulator
-        from .voice_simulator import VoiceSimulator
-        from .scenario_simulator import ScenarioSimulator
+        from Demo.wearable_simulator import WearableSimulator
+        from Demo.environment_simulator import EnvironmentSimulator
+        from Demo.radar_simulator import RadarSimulator
+        from Demo.vision_simulator import VisionSimulator
+        from Demo.voice_simulator import VoiceSimulator
+        from Demo.scenario_simulator import ScenarioSimulator
     except ImportError:
         try:
             from demo.wearable_simulator import WearableSimulator
@@ -151,22 +149,22 @@ def run_all_scenarios(orchestrator: ScenarioSimulator):
     orchestrator.run_normal_day(slot_delay_sec=0.2)
 
     print("\n>>> 2/7: Scenario A (False Alarm)...")
-    res_a = orchestrator.run_scenario_a_false_alarm()
+    orchestrator.run_scenario_a_false_alarm()
 
     print("\n>>> 3/7: Scenario B (Responsive Emergency)...")
-    res_b = orchestrator.run_scenario_b_responsive_emergency()
+    orchestrator.run_scenario_b_responsive_emergency()
 
     print("\n>>> 4/7: Scenario C (Silent Emergency)...")
-    res_c = orchestrator.run_scenario_c_silent_emergency()
+    orchestrator.run_scenario_c_silent_emergency()
 
     print("\n>>> 5/7: Scenario D (Recovery After Emergency)...")
-    res_d = orchestrator.run_scenario_d_recovery()
+    orchestrator.run_scenario_d_recovery()
 
     print("\n>>> 6/7: Scenario E (Sensor Dropout & Reconnect)...")
-    res_e = orchestrator.run_scenario_e_sensor_dropout()
+    orchestrator.run_scenario_e_sensor_dropout()
 
     print("\n>>> 7/7: Scenario F (Environmental Hazard Pre-Warning)...")
-    res_f = orchestrator.run_scenario_f_environmental_hazard()
+    orchestrator.run_scenario_f_environmental_hazard()
 
     print("\n" + "=" * 75)
     print("🎉 ALL SCENARIOS COMPLETED SUCCESSFULLY VIA GENUINE BACKEND TELEMETRY!")

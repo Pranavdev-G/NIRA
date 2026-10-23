@@ -10,12 +10,27 @@
 let currentScenario = "silent";
 let isPlayingAnimation = false;
 
+// User interaction state tracker for Web Audio policy compliance
+let userHasInteracted = false;
+if (typeof window !== "undefined") {
+  const markInteraction = () => { userHasInteracted = true; };
+  window.addEventListener("pointerdown", markInteraction, { once: true, passive: true });
+  window.addEventListener("keydown", markInteraction, { once: true, passive: true });
+}
+
 // Audio Chime Generator via Web Audio API (Zero external assets needed)
 function playChime(type = "info") {
+  // Respect browser autoplay policy - only trigger audio after user gesture
+  if (!userHasInteracted && !(typeof navigator !== "undefined" && navigator.userActivation && navigator.userActivation.hasBeenActive)) {
+    return;
+  }
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
     const ctx = new AudioCtx();
+    if (ctx.state === "suspended") {
+      return;
+    }
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
@@ -2461,6 +2476,19 @@ function switchTab(tabId) {
   playChime("info");
 
   const aliasMap = {
+    'homedashboard': 'homedashboard',
+    'dashboard': 'homedashboard',
+    'home': 'homedashboard',
+    'caregiverdashboard': 'caregiverdashboard',
+    'caregiver': 'caregiverdashboard',
+    'family': 'caregiverdashboard',
+    'elderlyprofile': 'elderlyprofile',
+    'profile': 'elderlyprofile',
+    'resident': 'elderlyprofile',
+    'medicationreminders': 'medicationreminders',
+    'medications': 'medicationreminders',
+    'meds': 'medicationreminders',
+    'reminders': 'medicationreminders',
     'voiceassistant': 'voiceassistant',
     'assistant': 'voiceassistant',
     'dailycheckin': 'dailycheckin',
@@ -2488,14 +2516,23 @@ function switchTab(tabId) {
     'history': 'incidenthistory',
     'incidents': 'incidenthistory',
     'overview': 'overview',
+    'medications': 'medications',
+    'medication': 'medications',
+    'meds': 'medications',
     'vision': 'vision',
     'voice': 'voice',
     'dispatch': 'dispatch'
   };
 
-  const canonical = (tabId && aliasMap[tabId.toLowerCase()]) ? aliasMap[tabId.toLowerCase()] : (tabId ? tabId.toLowerCase() : 'voiceassistant');
+  const canonical = (tabId && aliasMap[tabId.toLowerCase()]) ? aliasMap[tabId.toLowerCase()] : (tabId ? tabId.toLowerCase() : 'overview');
 
   const allTabs = [
+    { id: 'overview', btn: 'tabBtnOverview', panel: 'panelOverview' },
+    { id: 'homedashboard', btn: 'tabBtnHomeDashboard', panel: 'panelHomeDashboard' },
+    { id: 'caregiverdashboard', btn: 'tabBtnCaregiverDashboard', panel: 'panelCaregiverDashboard' },
+    { id: 'elderlyprofile', btn: 'tabBtnElderlyProfile', panel: 'panelElderlyProfile' },
+    { id: 'medicationreminders', btn: 'tabBtnMedicationReminders', panel: 'panelMedicationReminders' },
+    { id: 'medications', btn: 'tabBtnMedicationReminders', panel: 'panelMedicationReminders' },
     { id: 'voiceassistant', btn: 'tabBtnVoiceAssistant', panel: 'panelVoiceAssistant' },
     { id: 'dailycheckin', btn: 'tabBtnDailyCheckin', panel: 'panelDailyCheckin' },
     { id: 'demovideo', btn: 'tabBtnDemoVideo', panel: 'panelDemoVideo' },
@@ -2504,7 +2541,6 @@ function switchTab(tabId) {
     { id: 'locationmap', btn: 'tabBtnLocationMap', panel: 'panelLocationMap' },
     { id: 'notificationcenter', btn: 'tabBtnNotificationCenter', panel: 'panelNotificationCenter' },
     { id: 'incidenthistory', btn: 'tabBtnIncidentHistory', panel: 'panelIncidentHistory' },
-    { id: 'overview', btn: 'tabBtnOverview', panel: 'panelOverview' },
     { id: 'vision', btn: 'tabBtnVision', panel: 'panelVision' },
     { id: 'voice', btn: 'tabBtnVoice', panel: 'panelVoice' },
     { id: 'dispatch', btn: 'tabBtnDispatch', panel: 'panelDispatch' }
@@ -2552,6 +2588,17 @@ function switchTab(tabId) {
   }
 
   // If switched to locationmap, trigger Leaflet resize
+  // Trigger Person 1 controllers render
+  if (canonical === 'homedashboard' && window.person1HomeDashboard) {
+    try { window.person1HomeDashboard.render(); } catch (e) {}
+  } else if (canonical === 'caregiverdashboard' && window.person1CaregiverDashboard) {
+    try { window.person1CaregiverDashboard.render(); } catch (e) {}
+  } else if (canonical === 'elderlyprofile' && window.person1ElderlyProfile) {
+    try { window.person1ElderlyProfile.render(); } catch (e) {}
+  } else if (canonical === 'medicationreminders' && window.person1MedicationReminders) {
+    try { window.person1MedicationReminders.render(); } catch (e) {}
+  }
+
   if (canonical === 'locationmap' && window.person2LocationMap) {
     setTimeout(() => {
       if (window.person2LocationMap.leafletMap) {
@@ -3227,6 +3274,20 @@ function returnToLandingGateway() {
 window.enterSystemMode = enterSystemMode;
 window.returnToLandingGateway = returnToLandingGateway;
 window.switchSystemMode = switchSystemMode;
+
+function openAmbulanceDriverPortal() {
+  enterSystemMode("demo");
+  if (window.person2DemoStore && !window.person2DemoStore.getActiveIncident()) {
+    window.person2DemoStore.simulateFall();
+  }
+  window.location.hash = "#demo/emergencyalert";
+  setTimeout(() => {
+    if (typeof switchTab === "function") {
+      switchTab("emergencyalert");
+    }
+  }, 80);
+}
+window.openAmbulanceDriverPortal = openAmbulanceDriverPortal;
 
 // Check URL hash immediately on boot or navigation
 if (typeof window !== "undefined") {

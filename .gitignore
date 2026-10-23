@@ -30,5 +30,7 @@ Thumbs.db
 # ML training runs & temporary downloads
 Live/runs/
 crop_*.jpg
-/yolov8n.pt
-/yolov8n-pose.pt
+scratch/
+output/
+*.webm
+

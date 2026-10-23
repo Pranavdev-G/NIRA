@@ -337,7 +337,7 @@ def test_scenario_repeated_event_debouncing_and_hysteresis():
     assert res1.risk_level == RiskLevel.LOW.value
 
     # Immediate second and third events (rapid cluster)
-    res2 = MultimodalRiskIntelligence.evaluate(event, context, hysteresis_tracker=tracker)
+    _ = MultimodalRiskIntelligence.evaluate(event, context, hysteresis_tracker=tracker)
     res3 = MultimodalRiskIntelligence.evaluate(event, context, hysteresis_tracker=tracker)
 
     # Cluster compounding is recorded

@@ -193,6 +193,8 @@ async def root_launch_live():
     }
 
 
+__all__ = ["app"]
+
 if __name__ == "__main__":
     import uvicorn
     print("\n==================================================================")

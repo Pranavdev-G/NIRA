@@ -4,14 +4,13 @@ Generates structured CAD-compliant packets and escalates CRITICAL alerts to emer
 """
 
 import uuid
-import time
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 from app.config import settings
 from app.models.enums import RiskLevel, EmergencyDispatchStatus
 from app.models.schemas import (
     Event, Context, Risk, EmergencyPacket, PatientSnapshot,
-    GenerateEmergencyPacketRequest, EscalateEmergencyRequest, EscalateEmergencyResponse
+    EscalateEmergencyRequest, EscalateEmergencyResponse
 )
 
 

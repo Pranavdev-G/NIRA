@@ -6,7 +6,7 @@ Optimized for sub-500ms execution with latency monitoring headers.
 import time
 import asyncio
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, Response, Request
+from fastapi import APIRouter, Response, Request
 from fastapi.responses import StreamingResponse
 
 from app.models.schemas import (

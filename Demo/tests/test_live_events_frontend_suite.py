@@ -26,8 +26,6 @@ Test Matrix:
 20. Empty incident history (meaningful empty state & filter mismatch guidance)
 """
 
-import pytest
-import time
 from datetime import datetime, timezone
 from fastapi.testclient import TestClient
 from app.main import app

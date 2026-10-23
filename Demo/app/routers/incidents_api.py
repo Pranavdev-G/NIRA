@@ -27,7 +27,7 @@ from sqlalchemy.orm import Session
 
 from app.database.session import get_db
 from app.database.models import UserModel, IncidentModel, IncidentTimelineModel, EmergencyPacketModel
-from app.models.schemas import Event, Context, VoiceResponse, RiskAssessmentResponse, Risk, EscalateEmergencyRequest
+from app.models.schemas import Event, Context, RiskAssessmentResponse, Risk, EscalateEmergencyRequest
 from app.models.enums import RiskLevel
 from app.models.event_contracts import UnifiedEvent
 from app.services.aegis_risk_engine import AegisRiskEngine

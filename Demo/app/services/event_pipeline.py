@@ -29,12 +29,7 @@ from app.models.event_contracts import (
     EvidenceItem, ResidentStateSnapshot, EventIngestResult
 )
 from app.database.models import (
-    TelemetryEventModel, IncidentModel, IncidentTimelineModel, UserModel
-)
-from app.services.caregiver_service import CaregiverService
-from app.services.emergency_service import EmergencyService
-from app.models.schemas import (
-    Event, Context, Risk, NotifyCaregiverRequest, EscalateEmergencyRequest
+    TelemetryEventModel, IncidentModel, IncidentTimelineModel
 )
 
 logger = logging.getLogger("NIRAEventPipeline")
@@ -211,7 +206,6 @@ class EventPipeline:
         hr = self.current_state.vitals.get("heart_rate_bpm", 72)
         has_arrhythmia = bool(self.current_state.vitals.get("arrhythmia_detected", False))
         is_tachycardia = hr >= 130
-        is_elevated_hr = 100 <= hr < 130
         is_bradycardia = 0 < hr <= 45
 
         # Environmental indicators

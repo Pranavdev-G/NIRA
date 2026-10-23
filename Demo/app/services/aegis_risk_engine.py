@@ -19,11 +19,11 @@ Implements strict risk level threshold rules:
 import re
 import time
 from datetime import datetime, timezone
-from typing import Dict, Any, List, Optional, Tuple
+from typing import List, Optional
 
 from app.models.enums import RiskLevel
 from app.models.schemas import (
-    Event, Context, Risk, VoiceResponse,
+    Event, Context, VoiceResponse,
     RiskAssessmentResponse
 )
 from app.services.context_engine import ContextEngine
@@ -40,6 +40,12 @@ class AegisRiskEngine:
         "ok", "okay", "fine", "alright", "all good", "false alarm",
         "dropped", "dont worry", "don't worry", "im fine", "i am fine",
         "im ok", "i'm ok", "i'm okay", "i am okay", "no help", "doing well"
+    ]
+
+    NEGATION_KEYWORDS = [
+        "not ok", "not okay", "not fine", "not alright", "not good",
+        "not doing well", "dont feel well", "don't feel well", "do not feel well",
+        "feel terrible", "feel dizzy", "feel sick", "unwell"
     ]
 
     DISTRESS_KEYWORDS = [
@@ -61,11 +67,20 @@ class AegisRiskEngine:
         if voice_response.intent:
             return voice_response.intent.lower()
 
-        clean = re.sub(r"[^\w\s]", "", voice_response.transcript.lower())
-        if any(kw in clean for kw in cls.SAFE_KEYWORDS) and not any(kw in clean for kw in cls.DISTRESS_KEYWORDS):
-            return "safe"
+        raw = voice_response.transcript.lower().strip()
+        clean = re.sub(r"[^\w\s]", "", raw)
+
+        # 1. Negation ("I'm not okay", "not fine") must NEVER be classified as safe
+        if any(neg in raw for neg in cls.NEGATION_KEYWORDS) or any(neg in clean for neg in ["not ok", "not okay", "not fine"]):
+            return "distress"
+
+        # 2. Explicit distress keywords
         if any(kw in clean for kw in cls.DISTRESS_KEYWORDS):
             return "distress"
+
+        # 3. Explicit safe confirmations
+        if any(kw in clean for kw in cls.SAFE_KEYWORDS):
+            return "safe"
 
         # Ambiguous response defaults to distress for elderly safety
         return "distress"
@@ -154,6 +169,7 @@ class AegisRiskEngine:
 
         # 5. Conversational Verification State Machine Rules
         voice_intent = cls._parse_voice_intent(voice_response)
+        voice_transcript = voice_response.transcript if (voice_response and voice_response.transcript) else ""
 
         # -------------------------------------------------------------------
         # RULE SET EVALUATION
@@ -162,7 +178,7 @@ class AegisRiskEngine:
             # LOW: Routine deviation minimal, normal sensor signals, verified safe.
             risk_level = RiskLevel.LOW.value
             confidence = 0.94
-            reasons.insert(0, f"User verbally confirmed safety ('{voice_response.transcript}'). Escalation sequence cancelled.")
+            reasons.insert(0, f"User verbally confirmed safety ('{voice_transcript}'). Escalation sequence cancelled.")
             rec_action = "MONITOR_PASSIVELY"
             req_wellness = False
             req_caregiver = False
@@ -184,7 +200,7 @@ class AegisRiskEngine:
             if (is_confirmed_fall and has_zero_movement) or has_abnormal_vitals:
                 risk_level = RiskLevel.CRITICAL.value
                 confidence = 0.96
-                reasons.insert(0, f"Critical distress: User requested help ('{voice_response.transcript}') with compounding trauma/vital indicators")
+                reasons.insert(0, f"Critical distress: User requested help ('{voice_transcript}') with compounding trauma/vital indicators")
                 rec_action = "DISPATCH_EMERGENCY_SERVICES_AND_ALERT_CAREGIVER"
                 req_wellness = False
                 req_caregiver = True
@@ -192,7 +208,7 @@ class AegisRiskEngine:
             else:
                 risk_level = RiskLevel.HIGH.value
                 confidence = 0.92
-                reasons.insert(0, f"Distress confirmed: User requested assistance during wellness check ('{voice_response.transcript}')")
+                reasons.insert(0, f"Distress confirmed: User requested assistance during wellness check ('{voice_transcript}')")
                 rec_action = "ALERT_CAREGIVER_AND_PREPARE_CAD_PACKET"
                 req_wellness = False
                 req_caregiver = True

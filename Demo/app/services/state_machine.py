@@ -9,13 +9,13 @@ Handles:
 import uuid
 import re
 from datetime import datetime, timezone
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional
 from app.config import settings
 from app.models.enums import RiskLevel, WellnessState
 from app.models.schemas import (
     Event, Context, Risk, WellnessCheckResponse,
     WellnessCheckReplyRequest, WellnessCheckResolutionResponse,
-    NotifyCaregiverRequest, GenerateEmergencyPacketRequest,
+    NotifyCaregiverRequest,
     EscalateEmergencyRequest, EmergencyPacket
 )
 from app.services.caregiver_service import CaregiverService

@@ -21,9 +21,10 @@ if str(_DEMO_DIR) not in sys.path:
     sys.path.insert(0, str(_DEMO_DIR))
 
 try:
-    from app.main import app
-except ImportError:
-    from Demo.app.main import app
+    try:
+        from Demo.app.main import app
+    except ImportError:
+        from app.main import app
 
 client = TestClient(app)
 

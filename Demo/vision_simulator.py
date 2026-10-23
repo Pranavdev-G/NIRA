@@ -116,12 +116,14 @@ class VisionSimulator:
         target_url: str = "http://localhost:8000/api/v1/events/ingest",
         noise_level: float = 0.02,
         confidence_override: Optional[float] = None,
-        latency_sec: float = 0.0
+        latency_sec: float = 0.0,
+        confidence_score: Optional[float] = None
     ):
         self.resident_id = resident_id
         self.target_url = target_url
         self.noise_level = noise_level
-        self.confidence_override = confidence_override
+        self.confidence_override = confidence_score if confidence_score is not None else confidence_override
+        self.confidence_score = self.confidence_override
         self.latency_sec = latency_sec
 
     def generate_raw(
@@ -211,6 +213,30 @@ class VisionSimulator:
             }
         except Exception as e:
             return {"error": str(e), "sent_event": payload}
+
+    def start_continuous_stream(
+        self,
+        preset: Optional[str] = None,
+        frequency_hz: float = 1.0,
+        count: Optional[int] = None,
+        **kwargs: Any
+    ) -> None:
+        """Stream continuous edge vision telemetry events."""
+        active_preset = preset or "upright_standing"
+        interval = 1.0 / max(0.01, frequency_hz)
+        emitted = 0
+        print(f"[VisionSimulator] Starting continuous streaming ({active_preset}) at {frequency_hz}Hz...")
+        try:
+            while count is None or emitted < count:
+                res = self.emit_event(preset=active_preset, **kwargs)
+                emitted += 1
+                if res and "sent_event" in res:
+                    print(f"[{datetime.now().strftime('%H:%M:%S')}] Emitted Vision #{emitted}: Status={res.get('status_code')}")
+                if count is not None and emitted >= count:
+                    break
+                time.sleep(interval)
+        except KeyboardInterrupt:
+            print("\n[VisionSimulator] Stream stopped.")
 
 
 VisionDeviceSimulator = VisionSimulator

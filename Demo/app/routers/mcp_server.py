@@ -6,7 +6,7 @@ Compatible with official MCP 2024-11-05/2025 specification.
 import uuid
 import json
 import asyncio
-from typing import Dict, Any
+from typing import Dict
 from fastapi import APIRouter, Request, Response, Query
 from fastapi.responses import JSONResponse, StreamingResponse
 

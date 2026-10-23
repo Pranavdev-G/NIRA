@@ -81,6 +81,27 @@ class VoiceSimulator:
             "is_timeout": False,
             "intent": "safe",
             "confidence": 0.96
+        },
+        "negation": {
+            "description": "Resident explicitly states negation: 'I'm not okay.'",
+            "transcript": "I'm not okay.",
+            "is_timeout": False,
+            "intent": "distress",
+            "confidence": 0.98
+        },
+        "risk_unwell": {
+            "description": "Resident reports risk symptom: 'I don't feel well.'",
+            "transcript": "I don't feel well, I feel dizzy.",
+            "is_timeout": False,
+            "intent": "distress",
+            "confidence": 0.92
+        },
+        "uncertainty": {
+            "description": "Resident responds with uncertainty: 'I don't know.'",
+            "transcript": "I don't know...",
+            "is_timeout": False,
+            "intent": "ambiguous",
+            "confidence": 0.75
         }
     }
 
@@ -103,7 +124,18 @@ class VoiceSimulator:
         correlation_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Generates a standardized NIRA UnifiedEvent payload for voice responses."""
-        cfg = self.PRESETS.get(preset, self.PRESETS["safe_verbal_confirmation"])
+        aliases = {
+            "safe": "safe_verbal_confirmation",
+            "risk": "risk_unwell",
+            "emergency": "distress_help",
+            "help": "distress_help",
+            "uncertain": "uncertainty",
+            "silence": "prompt_timeout",
+            "timeout": "prompt_timeout",
+            "negation": "negation"
+        }
+        normalized_preset = aliases.get(preset.lower(), preset)
+        cfg = self.PRESETS.get(normalized_preset, self.PRESETS.get("safe_verbal_confirmation"))
         now_iso = datetime.now(timezone.utc).isoformat()
         tr = transcript_override if transcript_override is not None else cfg["transcript"]
         to = is_timeout_override if is_timeout_override is not None else cfg["is_timeout"]

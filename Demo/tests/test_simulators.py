@@ -15,7 +15,6 @@ Verifies:
 
 import uuid
 import pytest
-from datetime import datetime, timezone
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -25,7 +24,6 @@ from environment_simulator import EnvironmentSimulator
 from radar_simulator import RadarSimulator
 from vision_simulator import VisionSimulator
 from voice_simulator import VoiceSimulator
-from scenario_simulator import ScenarioSimulator
 import nira_simulator
 
 
@@ -79,7 +77,7 @@ def test_wearable_disconnect_and_reconnect():
     assert sim.is_connected is True
 
     sim.disconnect()
-    assert sim.is_connected is False
+    assert not sim.is_connected
     ev_disc = sim.generate_unified_event()
     assert ev_disc["payload"]["heart_rate_bpm"] == 0
     assert ev_disc["payload"]["wearable_status"] == "disconnected"

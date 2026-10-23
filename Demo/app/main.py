@@ -7,11 +7,13 @@ import time
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.database.session import init_db
-from app.routers import health, tools_http, mcp_server, risk_api, incidents_api, events_api, demo_api, live_api
+from app.routers import (
+    health, tools_http, mcp_server, risk_api, incidents_api,
+    events_api, demo_api, live_api, security_api, medications_api, auth_api
+)
 
 
 @asynccontextmanager
@@ -114,6 +116,9 @@ app.include_router(tools_http.router)
 app.include_router(mcp_server.router)
 app.include_router(demo_api.router)
 app.include_router(live_api.router)
+app.include_router(security_api.router)
+app.include_router(medications_api.router)
+app.include_router(auth_api.router)
 
 # Mount Live Voice Interaction Router
 try:
@@ -134,6 +139,14 @@ import os
 static_dir = os.path.join(os.path.dirname(__file__), "static")
 if os.path.exists(static_dir):
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+
+from starlette.responses import Response
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    """Satisfy browser favicon queries cleanly without 404 warnings."""
+    return Response(status_code=204)
 
 
 @app.get("/", tags=["Dashboard Frontend"])

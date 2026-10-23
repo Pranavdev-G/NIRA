@@ -20,7 +20,6 @@ import sys
 import time
 import argparse
 import logging
-from datetime import datetime, timezone
 from typing import Optional
 
 # Ensure UTF-8 output on Windows consoles
@@ -32,7 +31,13 @@ if hasattr(sys.stderr, "reconfigure"):
 import cv2
 import numpy as np
 
-from app.vision.fall_detector import AegisFallDetector, FallEvent
+try:
+    from app.vision.fall_detector import AegisFallDetector, FallEvent
+except ImportError:
+    try:
+        from Demo.app.vision.fall_detector import AegisFallDetector, FallEvent
+    except ImportError:
+        from .app.vision.fall_detector import AegisFallDetector, FallEvent
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("AegisFallRunner")
@@ -150,6 +155,9 @@ def run_pipeline(
                 if not max_frames and frame_idx >= 120:
                     break
             else:
+                if cap is None:
+                    logger.info("No video capture device available.")
+                    break
                 ret, frame = cap.read()
                 if not ret:
                     logger.info("End of video stream reached.")
