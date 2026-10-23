@@ -6786,3 +6786,547 @@ a:hover {
 
 
 
+
+
+/* ==========================================================================
+   PERSON 1 DEMO MODULE — DASHBOARDS, PROFILE & MEDICATION STYLES
+   Minimalist, Ultra-Refined Apple Health & Tesla-Grade Dark UI
+   ========================================================================== */
+
+/* 1. Home Dashboard Welcome Hero */
+.dash-welcome-hero {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(18, 23, 34, 0.6) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 16px;
+  padding: 22px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+
+.dash-welcome-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.dash-avatar-circle {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(56, 189, 248, 0.15);
+  border: 2px solid rgba(56, 189, 248, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.dash-hero-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px 0;
+}
+
+.dash-hero-sub {
+  font-size: 0.82rem;
+  color: var(--text-secondary, #cbd5e1);
+}
+
+/* 2. Responsive 4-Column Metric Grid */
+.dash-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.dash-metric-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+}
+
+.dash-metric-card:hover {
+  border-color: rgba(56, 189, 248, 0.3);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.dash-card-top-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.dash-metric-icon {
+  font-size: 1.15rem;
+}
+
+.dash-metric-category {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #94a3b8);
+}
+
+.dash-metric-big-val {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 4px 0;
+}
+
+.dash-metric-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #cbd5e1);
+  line-height: 1.45;
+  margin-bottom: 12px;
+}
+
+.dash-metric-foot {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted, #94a3b8);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 10px;
+}
+
+.dash-progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  margin: 6px 0 10px 0;
+  overflow: hidden;
+}
+
+.dash-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #38bdf8 0%, #10b981 100%);
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+}
+
+/* 3. Split Grid (Quick Actions & Activity Feed) */
+.dash-split-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .dash-split-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dash-section-subhead {
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #38bdf8;
+  margin-bottom: 12px;
+}
+
+.dash-quick-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.dash-action-tile {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 14px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  color: #fff;
+}
+
+.dash-action-tile:hover {
+  background: rgba(56, 189, 248, 0.08);
+  border-color: #38bdf8;
+  transform: translateY(-2px);
+}
+
+.tile-icon {
+  font-size: 1.3rem;
+}
+
+.tile-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+/* 4. Activity Feed */
+.dash-activity-list {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dash-activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.82rem;
+}
+
+.dash-activity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.dot-critical { background: var(--accent-red, #f43f5e); box-shadow: 0 0 8px rgba(244, 63, 94, 0.6); }
+.dot-checkin { background: var(--accent-green, #10b981); }
+.dot-med { background: #38bdf8; }
+.dot-info { background: #94a3b8; }
+
+.dash-activity-content {
+  flex: 1;
+}
+
+.dash-activity-text {
+  color: #fff;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.dash-activity-time {
+  font-size: 0.72rem;
+  color: var(--text-muted, #94a3b8);
+  margin-top: 2px;
+}
+
+/* 5. Caregiver Status Badges & Emergency Callout */
+.caregiver-status-badge {
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-normal {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34d399;
+}
+
+.badge-attention {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+
+.badge-emergency {
+  background: rgba(244, 63, 94, 0.2);
+  border: 1px solid rgba(244, 63, 94, 0.6);
+  color: #fda4af;
+  animation: pulseCritical 1.2s infinite;
+}
+
+.caregiver-emergency-card {
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.15) 0%, rgba(18, 23, 34, 0.9) 100%);
+  border: 2px solid var(--accent-red, #f43f5e);
+  border-radius: 14px;
+  padding: 18px 20px;
+  animation: pulseEmergencyGlow 2s infinite ease-in-out;
+}
+
+.caregiver-emergency-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.emergency-pulse-border {
+  border-color: var(--accent-red, #f43f5e) !important;
+  box-shadow: 0 0 20px rgba(244, 63, 94, 0.3);
+}
+
+.emergency-btn {
+  background: linear-gradient(135deg, #e11d48 0%, #f43f5e 100%) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+}
+
+.cg-med-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.84rem;
+}
+
+.cg-med-row:last-child {
+  border-bottom: none;
+}
+
+/* 6. Profile Styles */
+.profile-hero-card {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(18, 23, 34, 0.8) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.profile-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.profile-avatar-box {
+  width: 68px;
+  height: 68px;
+  border-radius: 16px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 2px solid rgba(56, 189, 248, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  flex-shrink: 0;
+}
+
+.profile-name {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 4px 0;
+}
+
+.profile-sub {
+  font-size: 0.82rem;
+  color: var(--text-secondary, #cbd5e1);
+}
+
+.profile-section-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+
+.profile-contact-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.contact-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.profile-conditions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-condition-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #fff;
+}
+
+.condition-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #38bdf8;
+  flex-shrink: 0;
+}
+
+.profile-prefs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.pref-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.pref-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted, #94a3b8);
+  margin-bottom: 2px;
+}
+
+.pref-val {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* 7. Medication Reminders Grid & Cards */
+.demo-medications-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.medication-card {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+}
+
+.medication-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.card-taken {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.04);
+}
+
+.card-missed {
+  border-color: rgba(244, 63, 94, 0.35);
+  background: rgba(244, 63, 94, 0.04);
+}
+
+.med-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.med-icon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(56, 189, 248, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.med-header-text {
+  flex: 1;
+}
+
+.med-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.med-dosage {
+  font-size: 0.78rem;
+  color: var(--text-secondary, #cbd5e1);
+  margin-top: 1px;
+}
+
+.med-details-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8rem;
+  margin-bottom: 14px;
+  flex: 1;
+}
+
+.med-detail-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.med-detail-label {
+  color: var(--text-muted, #94a3b8);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.med-detail-val {
+  color: #fff;
+  font-weight: 500;
+  text-align: right;
+}
+
+.med-actions-footer {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 12px;
+}
+
+.btn-sm {
+  padding: 7px 12px !important;
+  font-size: 0.78rem !important;
+}
+
+@keyframes pulseEmergencyGlow {
+  0% { box-shadow: 0 0 0 rgba(244, 63, 94, 0.4); }
+  50% { box-shadow: 0 0 25px rgba(244, 63, 94, 0.7); }
+  100% { box-shadow: 0 0 0 rgba(244, 63, 94, 0.4); }
+}

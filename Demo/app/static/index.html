@@ -521,7 +521,7 @@
           <span>&rarr;</span>
         </button>
         <button onclick="openVideoDemoModal()" class="btn-demo-secondary" style="padding: 12px 24px; font-size: 0.95rem; border-radius: 9999px; background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.2); display: inline-flex; align-items: center; gap: 8px;">
-          <span>🎬 Watch Gemini Video Reel</span>
+          <span>🎬 Watch Demo Video Reel</span>
         </button>
         <a href="/login" class="btn-demo-secondary" id="btnLandingLogin" style="padding: 12px 22px; font-size: 0.95rem; border-radius: 9999px; background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.2); text-decoration: none; color: #cbd5e1; display: inline-flex; align-items: center; gap: 8px;">
           <span>🔑 Portal Login</span>
@@ -701,7 +701,14 @@
         </a>
 
         <!-- Switch Profile Dropdown / Quick Links in Header -->
-        <div class="header-profile-badge" style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); padding: 5px 12px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.12); font-size: 0.78rem;">
+        <div class="header-profile-badge" id="headerActiveUserBadge" style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); padding: 5px 12px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.12); font-size: 0.78rem;">
+          <span>👵</span>
+          <span style="font-weight: 700; color: #e2e8f0;">Eleanor Vance</span>
+        </div>
+        <button class="btn-header-action" id="btnLogout" onclick="if(window.person1Auth) window.person1Auth.logout(); else window.location.href='/login';" title="Sign Out of Session" style="padding: 5px 10px; font-size: 0.75rem;">
+          Sign Out
+        </button>
+        <div class="header-profile-badge" style="display:none;"  style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); padding: 5px 12px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.12); font-size: 0.78rem;">
           <span style="color: #38bdf8;">👵</span>
           <span style="font-weight: 700; color: #e2e8f0;">Eleanor &amp; Family</span>
           <span style="color: rgba(255,255,255,0.3);">&bull;</span>
@@ -815,8 +822,8 @@
 
     <!-- Apple iOS / macOS Style Multi-View Tab Navigation Strip -->
     <nav class="tab-navigation-strip" role="tablist" aria-label="NIRA Safety Telemetry Views">
-      <!-- 1. Home Dashboard Overview & Health Snapshot -->
-      <button class="tab-nav-btn active" id="tabBtnOverview" onclick="switchTab('overview')" role="tab" aria-selected="true" aria-controls="panelOverview" tabindex="0">
+      <!-- Person 1 Demo Module Assigned Tabs -->
+      <button class="tab-nav-btn active" id="tabBtnHomeDashboard" onclick="switchTab('homedashboard')" role="tab" aria-selected="true" aria-controls="panelHomeDashboard" tabindex="0">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
           <polyline points="9 22 9 12 15 12 15 22"/>
@@ -824,6 +831,31 @@
         <span>Home Dashboard</span>
       </button>
 
+      <button class="tab-nav-btn" id="tabBtnCaregiverDashboard" onclick="switchTab('caregiverdashboard')" role="tab" aria-selected="false" aria-controls="panelCaregiverDashboard" tabindex="-1">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span>Caregiver Dashboard</span>
+      </button>
+
+      <button class="tab-nav-btn" id="tabBtnElderlyProfile" onclick="switchTab('elderlyprofile')" role="tab" aria-selected="false" aria-controls="panelElderlyProfile" tabindex="-1">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <span>Elderly Profile</span>
+      </button>
+
+      <button class="tab-nav-btn" id="tabBtnMedicationReminders" onclick="switchTab('medications')" role="tab" aria-selected="false" aria-controls="panelMedicationReminders" tabindex="-1">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M10.5 20.5l10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7z"/>
+          <line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/>
+        </svg>
+        <span>Medications</span>
+      </button>
       <!-- Person 2 Demo Module Assigned Tabs -->
       <button class="tab-nav-btn" id="tabBtnVoiceAssistant" onclick="switchTab('voiceassistant')" role="tab" aria-selected="false" aria-controls="panelVoiceAssistant" tabindex="-1">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -908,6 +940,16 @@
         <span>Incident History</span>
       </button>
 
+      <button class="tab-nav-btn" id="tabBtnOverview" onclick="switchTab('overview')" role="tab" aria-selected="false" aria-controls="panelOverview" tabindex="-1" style="display: none !important;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7"/>
+          <rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        <span>Overview &amp; Vitals</span>
+      </button>
+
       <button class="tab-nav-btn" id="tabBtnVision" onclick="switchTab('vision')" role="tab" aria-selected="false" aria-controls="panelVision" tabindex="-1">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M23 7l-7 5 7 5V7z"/>
@@ -928,6 +970,499 @@
 
     <!-- Main Content Container with ARIA region -->
     <main id="mainContent">
+
+    <!-- ======================================================================
+         PERSON 1: HOME DASHBOARD
+         ====================================================================== -->
+    <div class="tab-content-panel active" id="panelHomeDashboard" role="tabpanel" aria-labelledby="tabBtnHomeDashboard">
+      <div class="demo-module-card">
+        
+        <!-- Welcome Banner -->
+        <div class="dash-welcome-hero">
+          <div class="dash-welcome-left">
+            <div class="dash-avatar-circle">👵</div>
+            <div>
+              <h2 class="dash-hero-title">Welcome back, <span id="dashWelcomeName">Eleanor</span>! 👋</h2>
+              <div class="dash-hero-sub">
+                <span id="dashResidentAge">79 years old</span> &bull; 
+                Room: <span id="dashResidentRoom" style="color: #38bdf8; font-weight: 700;">Living Room</span> &bull; 
+                <span id="dashResidentAddress">Unit 4B - Beacon Hill, Boston</span>
+              </div>
+            </div>
+          </div>
+          <div class="dash-welcome-right">
+            <span class="pill-badge pill-green">NIRA System Active &bull; All Sensors Nominal</span>
+          </div>
+        </div>
+
+        <!-- 4 Top Status Cards -->
+        <div class="dash-metrics-grid">
+          
+          <!-- Card 1: Wellbeing & Daily Check-in -->
+          <div class="dash-metric-card" id="dashCardCheckin">
+            <div class="dash-card-top-row">
+              <span class="dash-metric-icon">🌅</span>
+              <span class="dash-metric-category">DAILY WELLBEING</span>
+            </div>
+            <div style="margin: 8px 0;">
+              <span class="pill-badge pill-green" id="dashCheckinStatusBadge">● Checked In — Feeling Fine</span>
+            </div>
+            <div class="dash-metric-desc" id="dashCheckinDesc">Mood: Calm • Sleep: 7.5 hrs • Prepared morning tea.</div>
+            <div class="dash-metric-foot">
+              <span id="dashCheckinTime">Logged Today</span>
+              <button class="btn-demo-link" id="dashBtnCheckin">Check-in Page &rarr;</button>
+            </div>
+          </div>
+
+          <!-- Card 2: Medication Reminders -->
+          <div class="dash-metric-card" id="dashCardMeds">
+            <div class="dash-card-top-row">
+              <span class="dash-metric-icon">💊</span>
+              <span class="dash-metric-category">MEDICATION REMINDERS</span>
+            </div>
+            <div class="dash-metric-big-val" id="dashMedCount">2 of 4 taken today</div>
+            <div class="dash-progress-track">
+              <div class="dash-progress-fill" id="dashMedProgressBar" style="width: 50%;"></div>
+            </div>
+            <div class="dash-metric-desc" id="dashNextMed">Next: Metformin (500mg) at 06:00 PM</div>
+            <div class="dash-metric-foot">
+              <span>Schedule Active</span>
+              <button class="btn-demo-link" id="dashBtnMeds">View All Meds &rarr;</button>
+            </div>
+          </div>
+
+          <!-- Card 3: Safety & Incident Status -->
+          <div class="dash-metric-card" id="dashIncCardWrap">
+            <div class="dash-card-top-row">
+              <span class="dash-metric-icon">🛡️</span>
+              <span class="dash-metric-category">SAFETY &amp; INCIDENTS</span>
+            </div>
+            <div style="margin: 8px 0;">
+              <span class="pill-badge pill-green" id="dashIncStatusBadge">🛡️ All Clear • 0 Active Emergencies</span>
+            </div>
+            <div class="dash-metric-desc" id="dashIncDetails">Ambient radar &amp; optical sensors steady. Zero falls registered.</div>
+            <div class="dash-metric-foot">
+              <span>Real-time Protected</span>
+              <button class="btn-demo-link" id="dashIncActionBtn">Simulate Safety Event</button>
+            </div>
+          </div>
+
+          <!-- Card 4: Caregiver Connection -->
+          <div class="dash-metric-card" id="dashCardCaregiver">
+            <div class="dash-card-top-row">
+              <span class="dash-metric-icon">👨‍💼</span>
+              <span class="dash-metric-category">CAREGIVER ON STANDBY</span>
+            </div>
+            <div class="dash-metric-big-val" id="dashCaregiverName" style="font-size: 1.15rem;">David Vance (Son)</div>
+            <div style="font-size: 0.78rem; color: var(--accent-green-text); font-weight: 700; display: flex; align-items: center; gap: 6px; margin: 4px 0;">
+              <span class="conn-dot" style="background: #10b981;"></span> Live Guardian Link Connected
+            </div>
+            <div class="dash-metric-desc" id="dashCaregiverPhone">+1-555-019-2834 &bull; Primary Proxy</div>
+            <div class="dash-metric-foot">
+              <span>SMS &bull; Echo Drop-In</span>
+              <button class="btn-demo-link" onclick="if(window.switchTab) window.switchTab('caregiverdashboard')">Caregiver Portal &rarr;</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Middle Section: Quick Actions & Recent Activity -->
+        <div class="dash-split-grid">
+          
+          <!-- Left: Quick Navigation Actions Hub -->
+          <div>
+            <div class="dash-section-subhead">QUICK ACTIONS &amp; ROUTINES</div>
+            <div class="dash-quick-actions-grid">
+              <button class="dash-action-tile" onclick="switchTab('dailycheckin')">
+                <span class="tile-icon">📋</span>
+                <span class="tile-label">Daily Wellness Check-in</span>
+              </button>
+              <button class="dash-action-tile" onclick="switchTab('elderlyprofile')">
+                <span class="tile-icon">👤</span>
+                <span class="tile-label">My Resident Profile</span>
+              </button>
+              <button class="dash-action-tile" onclick="switchTab('medications')">
+                <span class="tile-icon">💊</span>
+                <span class="tile-label">Medication Reminders</span>
+              </button>
+              <button class="dash-action-tile" onclick="switchTab('voiceassistant')">
+                <span class="tile-icon">🎙️</span>
+                <span class="tile-label">Ask Alexa / Voice AI</span>
+              </button>
+              <button class="dash-action-tile" onclick="switchTab('falldetection')">
+                <span class="tile-icon">⚡</span>
+                <span class="tile-label">Fall Detection &amp; HUD</span>
+              </button>
+              <button class="dash-action-tile" onclick="switchTab('locationmap')">
+                <span class="tile-icon">🗺️</span>
+                <span class="tile-label">Nearby Hospitals &amp; Map</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: Recent Activity Feed -->
+          <div>
+            <div class="dash-section-subhead">RECENT SYSTEM ACTIVITY &amp; AUDIT FEED</div>
+            <div class="dash-activity-list" id="dashRecentActivityList">
+              <!-- Dynamically populated by HomeDashboardController -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         PERSON 1: CAREGIVER DASHBOARD
+         ====================================================================== -->
+    <div class="tab-content-panel" id="panelCaregiverDashboard" role="tabpanel" aria-labelledby="tabBtnCaregiverDashboard">
+      <div class="demo-module-card">
+        
+        <div class="demo-card-header">
+          <div class="demo-card-title-wrap">
+            <span class="demo-card-icon" aria-hidden="true">👨‍💼</span>
+            <div>
+              <h3>Family Caregiver &amp; Guardian Command Console</h3>
+              <div class="demo-card-desc">David Vance (Son &bull; Primary Healthcare Proxy) &bull; Real-time telemetry, medication compliance, and emergency intervention.</div>
+            </div>
+          </div>
+          <div>
+            <span id="caregiverResidentStatusBadge" class="caregiver-status-badge badge-normal">🛡️ NORMAL — RESIDENT SAFE</span>
+          </div>
+        </div>
+
+        <!-- Emergency Alert Callout (Pulsing Red when fall simulated) -->
+        <div id="caregiverEmergencyAlertCallout" style="display: none; margin-bottom: 20px;"></div>
+
+        <!-- 3-Column Summary -->
+        <div class="dash-metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+          
+          <!-- Col 1: Connected Resident Profile -->
+          <div class="dash-metric-card">
+            <div class="dash-card-top-row">
+              <span class="dash-metric-icon">👵</span>
+              <span class="dash-metric-category">CONNECTED RESIDENT</span>
+            </div>
+            <div class="dash-metric-big-val" id="cgResidentName">Eleanor Vance</div>
+            <div class="dash-metric-desc" id="cgResidentAge">79 years old &bull; Female</div>
+            <div class="dash-metric-desc" id="cgResidentAddress">Unit 4B - Beacon Hill, Boston, MA</div>
+            <div style="font-size: 0.8rem; color: #fff; margin-top: 8px;">
+              Current Room: <strong id="cgResidentRoom" style="color: #38bdf8;">Living Room</strong>
+            </div>
+            <div class="dash-metric-foot" style="margin-top: 14px;">
+              <button class="btn-demo-link" onclick="switchTab('elderlyprofile')">View Resident Profile &rarr;</button>
+            </div>
+          </div>
+
+          <!-- Col 2: Live Telemetry Sensor Matrix -->
+          <div class="dash-metric-card">
+            <div class="dash-card-top-row">
+              <span class="dash-metric-icon">📡</span>
+              <span class="dash-metric-category">LIVE SENSOR TELEMETRY</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px;">
+              <span style="font-size: 0.8rem; color: var(--text-secondary);">Heart Rate:</span>
+              <span id="cgSensorHeartRate" style="font-weight: 800; color: #38bdf8;">74 BPM</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px;">
+              <span style="font-size: 0.8rem; color: var(--text-secondary);">Classified Posture:</span>
+              <span id="cgSensorPosture" style="font-weight: 700; color: #fff;">Standing / Ambulatory</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+              <span style="font-size: 0.8rem; color: var(--text-secondary);">Radar Micro-Motion:</span>
+              <span id="cgSensorMotion" style="font-weight: 700; color: var(--accent-green-text);">0.35 m/s (Nominal)</span>
+            </div>
+            <div class="dash-metric-foot">
+              <button class="btn-demo-link" onclick="switchTab('falldetection')">Full Sensor HUD &rarr;</button>
+            </div>
+          </div>
+
+          <!-- Col 3: Routine & Adherence -->
+          <div class="dash-metric-card">
+            <div class="dash-card-top-row">
+              <span class="dash-metric-icon">📊</span>
+              <span class="dash-metric-category">ROUTINE &amp; MEDICATION</span>
+            </div>
+            <div style="margin: 6px 0;">
+              <span style="font-size: 0.78rem; color: var(--text-secondary);">Daily Check-in:</span>
+              <div id="cgCheckinStatus" style="font-weight: 800; font-size: 0.95rem; color: var(--accent-green-text);">I'm fine (Today)</div>
+              <div id="cgCheckinNotes" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Prepared morning tea.</div>
+            </div>
+            <div style="margin-top: 8px;">
+              <span style="font-size: 0.78rem; color: var(--text-secondary);">Medication Adherence:</span>
+              <div id="cgMedAdherenceSummary" style="font-weight: 700; color: #fff; font-size: 0.88rem;">2 of 4 Doses Taken</div>
+            </div>
+            <div class="dash-metric-foot">
+              <button class="btn-demo-link" onclick="switchTab('medications')">Medication Manager &rarr;</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Caregiver Dose List & Quick Action Buttons -->
+        <div style="margin-top: 20px;">
+          <div class="dash-section-subhead">TODAY'S RESIDENT MEDICATION DOSES</div>
+          <div id="cgMedDoseList" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 10px;">
+            <!-- Rendered by CaregiverDashboardController -->
+          </div>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+          <button class="btn-demo-primary" onclick="switchTab('emergencyalert')">Emergency Alert Monitor</button>
+          <button class="btn-demo-secondary" onclick="switchTab('incidenthistory')">View Incident Audit History</button>
+          <button class="btn-demo-secondary" onclick="switchTab('locationmap')">Nearby Trauma Hospitals &amp; Map</button>
+          <button class="btn-demo-secondary" onclick="if(window.person2DemoStore) window.person2DemoStore.showToast('Connecting Alexa Echo Show 15 Drop-in...', 'info')">Drop-in Voice Call (Alexa)</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         PERSON 1: ELDERLY PERSON'S PROFILE
+         ====================================================================== -->
+    <div class="tab-content-panel" id="panelElderlyProfile" role="tabpanel" aria-labelledby="tabBtnElderlyProfile">
+      <div class="demo-module-card">
+        
+        <!-- Profile Header -->
+        <div class="profile-hero-card">
+          <div class="profile-hero-left">
+            <div class="profile-avatar-box" id="profileAvatar">👵</div>
+            <div>
+              <h2 class="profile-name" id="profileResidentName">Eleanor Vance</h2>
+              <div class="profile-sub" id="profileResidentAge">79 Years Old &bull; Female &bull; DOB: June 14, 1947</div>
+              <div class="profile-sub" id="profileResidentAddress">Unit 4B - Beacon Hill, Boston, MA 02108</div>
+              <div style="margin-top: 6px; font-size: 0.8rem; color: #38bdf8;">
+                Smart Door Lock PIN: <strong id="profileDoorPinDisplay">8492</strong> (Medics / EMS Authorized)
+              </div>
+            </div>
+          </div>
+          <div class="profile-hero-right">
+            <button class="btn-demo-primary" id="btnEditProfile">✎ Edit Profile</button>
+          </div>
+        </div>
+
+        <!-- PROFILE VIEW CONTAINER -->
+        <div id="profileViewContainer">
+          
+          <div class="dash-split-grid" style="margin-top: 20px;">
+            
+            <!-- Left: Emergency Contacts & Relationships -->
+            <div class="profile-section-card">
+              <div class="dash-section-subhead">EMERGENCY CONTACTS &amp; GUARDIANS</div>
+              
+              <div class="profile-contact-row">
+                <div class="contact-icon">👨‍💼</div>
+                <div>
+                  <div style="font-weight: 700; color: #fff;" id="profileGuardianDisplay">David Vance (Son)</div>
+                  <div style="font-size: 0.78rem; color: var(--text-secondary);">Primary Guardian &bull; Healthcare Proxy &bull; Family Admin</div>
+                  <div style="font-size: 0.85rem; color: #38bdf8; font-weight: 600;" id="profileGuardianPhoneDisplay">+1-555-019-2834</div>
+                </div>
+              </div>
+
+              <div class="profile-contact-row" style="margin-top: 14px;">
+                <div class="contact-icon">🩺</div>
+                <div>
+                  <div style="font-weight: 700; color: #fff;">Dr. Marcus Chen, MD</div>
+                  <div style="font-size: 0.78rem; color: var(--text-secondary);">Attending Geriatrician &bull; Mass General Brigham</div>
+                  <div style="font-size: 0.85rem; color: #38bdf8; font-weight: 600;">(617) 726-2000</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Clinical Diagnoses & Allergies -->
+            <div class="profile-section-card">
+              <div class="dash-section-subhead">DOCUMENTED MEDICAL CONDITIONS &amp; ALLERGIES</div>
+              <ul class="profile-conditions-list" id="profileConditionsList">
+                <!-- Dynamically rendered -->
+              </ul>
+            </div>
+
+          </div>
+
+          <!-- Care Preferences -->
+          <div class="profile-section-card" style="margin-top: 20px;">
+            <div class="dash-section-subhead">CARE PREFERENCES &amp; AMBIENT SAFETY SETTINGS</div>
+            <div class="profile-prefs-grid">
+              <div class="pref-item">
+                <span class="pref-label">DAILY ROUTINE:</span>
+                <span class="pref-val">Wake: 07:30 AM &bull; Sleep: 09:30 PM</span>
+              </div>
+              <div class="pref-item">
+                <span class="pref-label">ASSISTANT LANGUAGE:</span>
+                <span class="pref-val">English (US) &bull; Multilingual Fallback</span>
+              </div>
+              <div class="pref-item">
+                <span class="pref-label">PREFERRED EMS HOSPITAL:</span>
+                <span class="pref-val">Massachusetts General Hospital (0.4 mi)</span>
+              </div>
+              <div class="pref-item">
+                <span class="pref-label">FALL PREVENTION:</span>
+                <span class="pref-val">Shower grab bars, hallway nightlights active</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- PROFILE EDIT FORM (Hidden by default) -->
+        <div id="profileEditContainer" style="display: none; margin-top: 20px;">
+          <div class="profile-section-card">
+            <div class="dash-section-subhead">EDIT RESIDENT SAFETY PROFILE</div>
+            <div id="profileFormError" class="auth-error-box" style="display: none;"></div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+              <div class="form-group">
+                <label class="form-label" for="editProfileName">Full Name</label>
+                <input type="text" id="editProfileName" class="form-input" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="editProfileAge">Age</label>
+                <input type="number" id="editProfileAge" class="form-input" required min="50" max="120">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="editProfileAddress">Residence Address</label>
+              <input type="text" id="editProfileAddress" class="form-input" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+              <div class="form-group">
+                <label class="form-label" for="editProfileGuardian">Primary Guardian Name</label>
+                <input type="text" id="editProfileGuardian" class="form-input" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="editProfileGuardianPhone">Guardian Phone</label>
+                <input type="text" id="editProfileGuardianPhone" class="form-input" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="editProfileDoorPin">Encrypted Smart Door PIN</label>
+              <input type="text" id="editProfileDoorPin" class="form-input" required>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 16px;">
+              <button class="btn-demo-primary" id="btnSaveProfile">Save Profile Changes</button>
+              <button class="btn-demo-secondary" id="btnCancelProfileEdit">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         PERSON 1: MEDICATION REMINDERS
+         ====================================================================== -->
+    <div class="tab-content-panel" id="panelMedicationReminders" role="tabpanel" aria-labelledby="tabBtnMedicationReminders">
+      <div class="demo-module-card">
+        
+        <div class="demo-card-header">
+          <div class="demo-card-title-wrap">
+            <span class="demo-card-icon" aria-hidden="true">💊</span>
+            <div>
+              <h3>Medication Reminders &amp; Adherence Tracker</h3>
+              <div class="demo-card-desc">Daily medication regimens, dosages, intake timestamps, and missed dose alerts for Eleanor Vance.</div>
+            </div>
+          </div>
+          <div>
+            <button class="btn-demo-primary" id="btnAddMedicationModalBtn">+ Add Medication Reminder</button>
+          </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="dash-metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 24px;">
+          <div class="dash-metric-card">
+            <span class="dash-metric-category">TODAY'S PROGRESS</span>
+            <div class="dash-metric-big-val" id="medAdherenceSummary">2 / 4 Doses Taken</div>
+            <div class="dash-metric-desc">50% Completed</div>
+          </div>
+          <div class="dash-metric-card">
+            <span class="dash-metric-category">NEXT SCHEDULED DOSE</span>
+            <div class="dash-metric-big-val" id="medNextDoseSummary" style="font-size: 1.05rem;">Metformin (500mg) at 06:00 PM</div>
+            <div class="dash-metric-desc">Take with evening meal</div>
+          </div>
+          <div class="dash-metric-card">
+            <span class="dash-metric-category">30-DAY COMPLIANCE SCORE</span>
+            <div class="dash-metric-big-val" id="medAdherenceScore" style="color: var(--accent-green-text);">96% Overall</div>
+            <div class="dash-metric-desc">Consistent morning adherence</div>
+          </div>
+        </div>
+
+        <!-- Active Medications Grid -->
+        <div class="dash-section-subhead">SCHEDULED MEDICATIONS REGIMEN</div>
+        <div class="demo-medications-grid" id="demoMedicationsGrid">
+          <!-- Rendered by MedicationRemindersController -->
+        </div>
+
+        <!-- Intake History Audit Table -->
+        <div style="margin-top: 30px;">
+          <div class="dash-section-subhead">INTAKE COMPLETION AUDIT TRAIL</div>
+          <div class="demo-table-wrap">
+            <table class="demo-data-table">
+              <thead>
+                <tr>
+                  <th>Medication</th>
+                  <th>Scheduled Time</th>
+                  <th>Status</th>
+                  <th>Intake Timestamp</th>
+                  <th>Audit Verification</th>
+                </tr>
+              </thead>
+              <tbody id="demoMedicationHistoryTableBody">
+                <!-- Rendered by MedicationRemindersController -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Add Medication Modal Overlay -->
+        <div id="addMedicationModal" class="demo-modal-overlay" style="display: none;" aria-hidden="true">
+          <div class="demo-modal-dialog" style="max-width: 480px;">
+            <div class="demo-modal-header">
+              <h4>Add New Medication Reminder</h4>
+              <button class="demo-modal-close" onclick="window.person1MedicationReminders.closeAddModal()">&times;</button>
+            </div>
+            <div class="demo-modal-body">
+              <div id="addMedErrorMsg" class="auth-error-box" style="display: none;"></div>
+
+              <div class="form-group">
+                <label class="form-label" for="inputMedName">Medication Name</label>
+                <input type="text" id="inputMedName" class="form-input" placeholder="e.g. Amlodipine" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="inputMedDosage">Dosage</label>
+                <input type="text" id="inputMedDosage" class="form-input" placeholder="e.g. 5mg tablet" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="inputMedTime">Scheduled Time</label>
+                <input type="text" id="inputMedTime" class="form-input" placeholder="e.g. 02:00 PM" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="inputMedPurpose">Instructions &amp; Purpose</label>
+                <input type="text" id="inputMedPurpose" class="form-input" placeholder="e.g. Take with water after lunch">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="inputMedPrescriber">Prescribing Physician</label>
+                <input type="text" id="inputMedPrescriber" class="form-input" value="Dr. Marcus Chen, MD">
+              </div>
+            </div>
+            <div class="demo-modal-footer">
+              <button class="btn-demo-primary" id="btnSaveNewMedication">Add Reminder</button>
+              <button class="btn-demo-secondary" id="btnCancelNewMedication">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
 
     <!-- ======================================================================
          PAGE A: VOICE ASSISTANT (Microphone Interaction & Ambient Dialogue)
@@ -1512,8 +2047,8 @@
           <div class="demo-card-title-wrap">
             <span class="demo-card-icon" aria-hidden="true">🎬</span>
             <div>
-              <h3>NIRA Official Explainer Video &bull; Powered by Gemini</h3>
-              <div class="demo-card-desc">Official Gemini Multimodal AI video demonstration providing clinical decision rationale, telemetry breakdown, and emergency safety phases.</div>
+              <h3>NIRA 3D &amp; Official Explainer Video &bull; Powered by Gemini</h3>
+              <div class="demo-card-desc">Official Multimodal 3D Digital Twin and Gemini AI video demonstration providing clinical decision rationale, telemetry breakdown, and live voiceover across all 5 safety phases.</div>
             </div>
           </div>
           <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
@@ -3592,5 +4127,6 @@
   <script src="/static/demo_module.js?v=2.0"></script>
   <script src="/static/location_security.js?v=1.0"></script>
   <script src="/static/operator_console.js?v=1.0"></script>
+  <script src="/static/person1_module.js?v=2.0"></script>
 </body>
 </html>

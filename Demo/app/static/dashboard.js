@@ -1368,6 +1368,19 @@ function switchTab(tabId) {
   
   // Tab ID canonical mapping & aliases
   const aliasMap = {
+    'homedashboard': 'homedashboard',
+    'dashboard': 'homedashboard',
+    'home': 'homedashboard',
+    'caregiverdashboard': 'caregiverdashboard',
+    'caregiver': 'caregiverdashboard',
+    'family': 'caregiverdashboard',
+    'elderlyprofile': 'elderlyprofile',
+    'profile': 'elderlyprofile',
+    'resident': 'elderlyprofile',
+    'medicationreminders': 'medicationreminders',
+    'medications': 'medicationreminders',
+    'meds': 'medicationreminders',
+    'reminders': 'medicationreminders',
     'voiceassistant': 'voiceassistant',
     'assistant': 'voiceassistant',
     'dailycheckin': 'dailycheckin',
@@ -1407,9 +1420,13 @@ function switchTab(tabId) {
 
   const allTabs = [
     { id: 'overview', btn: 'tabBtnOverview', panel: 'panelOverview' },
+    { id: 'homedashboard', btn: 'tabBtnHomeDashboard', panel: 'panelHomeDashboard' },
+    { id: 'caregiverdashboard', btn: 'tabBtnCaregiverDashboard', panel: 'panelCaregiverDashboard' },
+    { id: 'elderlyprofile', btn: 'tabBtnElderlyProfile', panel: 'panelElderlyProfile' },
+    { id: 'medicationreminders', btn: 'tabBtnMedicationReminders', panel: 'panelMedicationReminders' },
+    { id: 'medications', btn: 'tabBtnMedicationReminders', panel: 'panelMedicationReminders' },
     { id: 'voiceassistant', btn: 'tabBtnVoiceAssistant', panel: 'panelVoiceAssistant' },
     { id: 'dailycheckin', btn: 'tabBtnDailyCheckin', panel: 'panelDailyCheckin' },
-    { id: 'medications', btn: 'tabBtnMedicationReminders', panel: 'panelMedicationReminders' },
     { id: 'demovideo', btn: 'tabBtnDemoVideo', panel: 'panelDemoVideo' },
     { id: 'falldetection', btn: 'tabBtnFallDetection', panel: 'panelFallDetection' },
     { id: 'emergencyalert', btn: 'tabBtnEmergencyAlert', panel: 'panelEmergencyAlert' },
@@ -1458,6 +1475,17 @@ function switchTab(tabId) {
   }
 
   // If switched to locationmap, trigger Leaflet resize
+  // Trigger Person 1 controllers render
+  if (canonical === 'homedashboard' && window.person1HomeDashboard) {
+    try { window.person1HomeDashboard.render(); } catch (e) {}
+  } else if (canonical === 'caregiverdashboard' && window.person1CaregiverDashboard) {
+    try { window.person1CaregiverDashboard.render(); } catch (e) {}
+  } else if (canonical === 'elderlyprofile' && window.person1ElderlyProfile) {
+    try { window.person1ElderlyProfile.render(); } catch (e) {}
+  } else if (canonical === 'medicationreminders' && window.person1MedicationReminders) {
+    try { window.person1MedicationReminders.render(); } catch (e) {}
+  }
+
   if (canonical === 'locationmap' && window.person2LocationMap) {
     setTimeout(() => {
       if (window.person2LocationMap.leafletMap) {

@@ -203,6 +203,81 @@
           sampleDisclaimer: "Sample Data for Demo"
         }
       ]
+ ,
+      medications: [
+        {
+          id: "med-lisinopril",
+          name: "Lisinopril",
+          dosage: "10mg tablet",
+          schedule: "08:00 AM (Morning)",
+          time: "08:00 AM",
+          instruction: "Take 1 tablet daily with a full glass of water for blood pressure",
+          purpose: "Hypertension / Blood Pressure Management",
+          prescriber: "Dr. Marcus Chen, MD",
+          status: "taken",
+          takenAt: "08:15 AM",
+          remainingDoses: 26
+        },
+        {
+          id: "med-vitamind",
+          name: "Vitamin D3",
+          dosage: "2000 IU softgel",
+          schedule: "12:30 PM (Midday)",
+          time: "12:30 PM",
+          instruction: "Take 1 softgel daily with lunch for bone density & calcium absorption",
+          purpose: "Bone Density & Fracture Prevention",
+          prescriber: "Dr. Marcus Chen, MD",
+          status: "taken",
+          takenAt: "12:45 PM",
+          remainingDoses: 42
+        },
+        {
+          id: "med-metformin",
+          name: "Metformin",
+          dosage: "500mg tablet",
+          schedule: "06:00 PM (Evening)",
+          time: "06:00 PM",
+          instruction: "Take 1 tablet with dinner to maintain glycemic control",
+          purpose: "Glucose Regulation / Metabolic Health",
+          prescriber: "Dr. Marcus Chen, MD",
+          status: "upcoming",
+          takenAt: null,
+          remainingDoses: 18
+        },
+        {
+          id: "med-donepezil",
+          name: "Donepezil",
+          dosage: "5mg tablet",
+          schedule: "09:00 PM (Bedtime)",
+          time: "09:00 PM",
+          instruction: "Take 1 tablet immediately before bed for memory & cognitive function",
+          purpose: "Cognitive Support / Mild Cognitive Impairment",
+          prescriber: "Dr. Marcus Chen, MD",
+          status: "upcoming",
+          takenAt: null,
+          remainingDoses: 30
+        }
+      ],
+      medicationHistory: [
+        {
+          id: "med-log-1",
+          medId: "med-lisinopril",
+          medName: "Lisinopril (10mg tablet)",
+          scheduledTime: "08:00 AM",
+          status: "taken",
+          timestamp: "08:15 AM",
+          recordedBy: "Eleanor Vance (Confirmed via Voice Check-in)"
+        },
+        {
+          id: "med-log-2",
+          medId: "med-vitamind",
+          medName: "Vitamin D3 (2000 IU softgel)",
+          scheduledTime: "12:30 PM",
+          status: "taken",
+          timestamp: "12:45 PM",
+          recordedBy: "Eleanor Vance (Confirmed via Dashboard)"
+        }
+      ]
     };
   }
 
@@ -228,6 +303,8 @@
           if (!Array.isArray(this.state.voiceHistory)) this.state.voiceHistory = [];
           if (!this.state.sensors) this.state.sensors = getDefaultDemoState().sensors;
           if (!this.state.hospitals) this.state.hospitals = getDefaultDemoState().hospitals;
+          if (!Array.isArray(this.state.medications)) this.state.medications = getDefaultDemoState().medications;
+          if (!Array.isArray(this.state.medicationHistory)) this.state.medicationHistory = getDefaultDemoState().medicationHistory;
           return;
         }
       } catch (err) {
@@ -561,6 +638,115 @@
       return msg;
     }
 
+    
+    // -------------------------------------------------------------------------
+    // Person 1 Integration Methods (Medication & Resident Profile)
+    // -------------------------------------------------------------------------
+    markMedicationTaken(medId) {
+      if (!Array.isArray(this.state.medications)) return false;
+      const med = this.state.medications.find(m => m.id === medId);
+      if (!med) return false;
+      med.status = 'taken';
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      med.takenAt = timeStr;
+
+      if (!Array.isArray(this.state.medicationHistory)) this.state.medicationHistory = [];
+      this.state.medicationHistory.unshift({
+        id: "med-log-" + Date.now(),
+        medId: med.id,
+        medName: `${med.name} (${med.dosage})`,
+        scheduledTime: med.schedule || med.time || "Scheduled",
+        status: "taken",
+        timestamp: timeStr,
+        recordedBy: "Eleanor Vance (Confirmed via Demo Dashboard)"
+      });
+
+      this.state.notifications.unshift({
+        id: "NOTIF-MED-" + Date.now(),
+        timestamp: new Date().toISOString(),
+        category: "reminder",
+        severity: "info",
+        title: `Medication Taken: ${med.name}`,
+        description: `Eleanor Vance recorded scheduled dose of ${med.name} (${med.dosage}) at ${timeStr}.`,
+        read: false,
+        incidentId: null,
+        simulated: true,
+        acknowledged: true
+      });
+
+      this.saveState();
+      this.showToast(`Dose recorded: ${med.name} marked as taken.`, "success");
+      return true;
+    }
+
+    markMedicationMissed(medId) {
+      if (!Array.isArray(this.state.medications)) return false;
+      const med = this.state.medications.find(m => m.id === medId);
+      if (!med) return false;
+      med.status = 'missed';
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      if (!Array.isArray(this.state.medicationHistory)) this.state.medicationHistory = [];
+      this.state.medicationHistory.unshift({
+        id: "med-log-" + Date.now(),
+        medId: med.id,
+        medName: `${med.name} (${med.dosage})`,
+        scheduledTime: med.schedule || med.time || "Scheduled",
+        status: "missed",
+        timestamp: timeStr,
+        recordedBy: "Caregiver Alert: Missed Dose"
+      });
+
+      this.state.notifications.unshift({
+        id: "NOTIF-MED-" + Date.now(),
+        timestamp: new Date().toISOString(),
+        category: "reminder",
+        severity: "warning",
+        title: `⚠️ Medication Missed: ${med.name}`,
+        description: `Scheduled dose of ${med.name} (${med.dosage}) was marked as missed. Caregiver alert triggered.`,
+        read: false,
+        incidentId: null,
+        simulated: true,
+        acknowledged: false
+      });
+
+      this.saveState();
+      this.showToast(`Medication ${med.name} marked as missed. Caregiver notified.`, "warning");
+      return true;
+    }
+
+    addMedication(medData) {
+      if (!Array.isArray(this.state.medications)) this.state.medications = [];
+      const newMed = {
+        id: "med-" + Date.now(),
+        name: medData.name || "Unnamed Medication",
+        dosage: medData.dosage || "Standard Dose",
+        schedule: medData.schedule || (medData.time ? `${medData.time} (Daily)` : "Daily"),
+        time: medData.time || "08:00 AM",
+        instruction: medData.instruction || "Take as directed with water",
+        purpose: medData.purpose || "Prescribed Regimen",
+        prescriber: medData.prescriber || "Dr. Marcus Chen, MD",
+        status: "upcoming",
+        takenAt: null,
+        remainingDoses: parseInt(medData.remainingDoses) || 30
+      };
+      this.state.medications.push(newMed);
+      this.saveState();
+      this.showToast(`Added reminder for ${newMed.name} (${newMed.dosage}).`, "success");
+      return newMed;
+    }
+
+    updateResidentProfile(profileData) {
+      if (!this.state.resident) this.state.resident = getDefaultDemoState().resident;
+      this.state.resident = {
+        ...this.state.resident,
+        ...profileData
+      };
+      this.saveState();
+      this.showToast("Resident profile successfully updated and saved.", "success");
+      return this.state.resident;
+    }
+
     showToast(message, type = "info") {
       if (typeof window.showToastNotification === 'function') {
         window.showToastNotification(message, type);
@@ -573,6 +759,7 @@
   // Instantiate global singleton
   const demoStore = new Person2DemoStore();
   window.person2DemoStore = demoStore;
+  window.person1Store = demoStore;
 
   // ---------------------------------------------------------------------------
   // View Controllers & Renderers
@@ -2230,11 +2417,21 @@
               <span class="pill-badge pill-blue" id="videoPhasePill">${escapeHtml(sc.tag)}</span>
             </div>
 
-            <!-- Official Video Reel Mode -->
+            <!-- 3D / Human Presenter & Video View Switcher -->
             <div class="gemini-view-toggles" role="group" aria-label="Explainer Presentation Mode">
-              <button class="view-mode-btn active-view-mode" data-mode="video" onclick="window.demoVideoController.setViewMode('video')" title="Play Official Gemini AI Generated Video">
-                🎬 Official Gemini AI Video Reel
+              <button class="view-mode-btn ${this.viewMode === 'video' ? 'active-view-mode' : ''}" data-mode="video" onclick="window.demoVideoController.setViewMode('video')" title="Play Official Gemini AI Generated Video">
+                🎬 Official Video
               </button>
+              <button class="view-mode-btn ${this.viewMode === 'split' ? 'active-view-mode' : ''}" data-mode="split" onclick="window.demoVideoController.setViewMode('split')" title="Side-by-side 3D Simulation and Human AI Presenter">
+                ✨ Split Studio
+              </button>
+              <button class="view-mode-btn ${this.viewMode === 'human' ? 'active-view-mode' : ''}" data-mode="human" onclick="window.demoVideoController.setViewMode('human')" title="Focused Human AI Presenter View">
+                👤 Presenter
+              </button>
+              <button class="view-mode-btn ${this.viewMode === '3d' ? 'active-view-mode' : ''}" data-mode="3d" onclick="window.demoVideoController.setViewMode('3d')" title="Focused 3D Digital Twin View">
+                🌐 3D Twin
+              </button>
+            </div>              </button>
             </div>
 
             <div style="display: flex; align-items: center; gap: 8px;">

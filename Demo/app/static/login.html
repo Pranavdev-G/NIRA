@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aegis Ambient Care — Secure Portal Access</title>
-  <meta name="description" content="Secure login portal for family members, sons, clinicians, and first responders.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+  <title>NIRA — Secure Ambient Care Access</title>
+  <meta name="description" content="Secure login and registration portal for residents, caregivers, and first responders.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -17,12 +16,13 @@
       justify-content: center;
       min-height: 100vh;
       padding: 32px 20px;
-      background-color: var(--bg-deep);
+      background-color: var(--bg-deep, #080a10);
       position: relative;
       overflow-x: hidden;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      color: #fff;
     }
 
-    /* Ambient Background Glow Spheres */
     body::before {
       content: "";
       position: absolute;
@@ -49,398 +49,556 @@
 
     .login-card {
       width: 100%;
-      max-width: 480px;
-      background: var(--bg-surface);
-      backdrop-filter: var(--glass-blur);
-      border: 1px solid var(--border-glass-specular);
-      border-radius: var(--radius-hero);
-      padding: 42px 36px;
+      max-width: 500px;
+      background: var(--bg-surface, rgba(18, 23, 34, 0.95));
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 20px;
+      padding: 36px 32px;
       box-shadow: 0 30px 80px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.1);
       position: relative;
       z-index: 1;
-      animation: modalPop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .login-header {
       text-align: center;
-      margin-bottom: 28px;
+      margin-bottom: 22px;
     }
 
-    .login-header .brand-icon {
-      margin: 0 auto 16px auto;
-      width: 54px;
-      height: 54px;
+    .brand-icon-shield {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 14px auto;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(6, 182, 212, 0.05) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #38bdf8;
     }
 
     .login-header h1 {
       font-size: 1.55rem;
       font-weight: 800;
       color: #fff;
-      letter-spacing: -0.03em;
+      letter-spacing: -0.02em;
       margin-bottom: 4px;
-      background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
     }
 
     .login-header p {
       font-size: 0.84rem;
-      color: var(--text-secondary);
+      color: var(--text-secondary, #cbd5e1);
       font-weight: 500;
     }
 
+    /* Auth Tab Switcher */
+    .auth-tabs-strip {
+      display: flex;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 22px;
+    }
+
+    .auth-tab-btn {
+      flex: 1;
+      padding: 9px 12px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary, #cbd5e1);
+      font-size: 0.85rem;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .auth-tab-btn.active {
+      background: rgba(56, 189, 248, 0.2);
+      color: #fff;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      box-shadow: 0 2px 10px rgba(56, 189, 248, 0.15);
+    }
+
     .form-group {
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     .form-label {
       display: block;
       font-size: 0.78rem;
       font-weight: 700;
-      color: var(--text-secondary);
-      margin-bottom: 7px;
+      color: var(--text-secondary, #cbd5e1);
+      margin-bottom: 6px;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
 
     .form-input {
       width: 100%;
-      padding: 13px 16px;
+      padding: 12px 14px;
       background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-glass);
-      border-radius: var(--radius-inner);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 10px;
       color: #fff;
       font-size: 0.92rem;
       font-family: inherit;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.2s ease;
       box-sizing: border-box;
     }
 
     .form-input:focus {
       outline: none;
-      border-color: var(--neon-blue);
+      border-color: #38bdf8;
       background: rgba(255, 255, 255, 0.07);
-      box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
     }
 
-    .btn-submit {
+    .auth-error-box {
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      color: #fda4af;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .auth-success-box {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .btn-submit-primary {
       width: 100%;
-      padding: 14px;
+      padding: 13px;
       background: linear-gradient(135deg, #0284c7 0%, #00cae0 100%);
       color: #fff;
       border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: var(--radius-inner);
-      font-size: 0.94rem;
+      border-radius: 10px;
+      font-size: 0.92rem;
       font-weight: 800;
       cursor: pointer;
-      margin-top: 10px;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 4px 20px rgba(0, 202, 224, 0.3);
+      margin-top: 8px;
+      transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
     }
 
-    .btn-submit:hover {
+    .btn-submit-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(0, 202, 224, 0.45);
+      box-shadow: 0 8px 24px rgba(0, 202, 224, 0.35);
     }
 
-    .divider {
+    .divider-or {
       text-align: center;
       position: relative;
-      margin: 26px 0 20px 0;
+      margin: 22px 0 16px 0;
     }
 
-    .divider::before {
+    .divider-or::before {
       content: "";
       position: absolute;
       top: 50%;
       left: 0;
       right: 0;
       height: 1px;
-      background: var(--border-glass);
+      background: rgba(255, 255, 255, 0.12);
     }
 
-    .divider span {
+    .divider-or span {
       position: relative;
-      background: #0b1120;
-      padding: 0 14px;
+      background: #0f1523;
+      padding: 0 12px;
       font-size: 0.74rem;
-      color: var(--text-muted);
+      color: var(--text-muted, #94a3b8);
       text-transform: uppercase;
       font-weight: 800;
       letter-spacing: 0.06em;
     }
 
-    .quick-roles-title {
-      font-size: 0.78rem;
-      font-weight: 800;
-      color: var(--neon-blue);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 12px;
-      text-align: center;
-    }
-
-    .role-grid {
-      display: grid;
-      grid-template-columns: 1fr;
+    .demo-roles-container {
+      display: flex;
+      flex-direction: column;
       gap: 10px;
     }
 
-    .role-btn {
+    .demo-role-btn {
       background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-glass);
-      border-radius: var(--radius-inner);
-      padding: 13px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 12px 14px;
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
       cursor: pointer;
       text-align: left;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.2s ease;
       color: #fff;
+      text-decoration: none;
     }
 
-    .role-btn:hover {
-      border-color: var(--neon-blue);
-      background: rgba(56, 189, 248, 0.1);
+    .demo-role-btn:hover {
+      border-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.08);
       transform: translateY(-2px);
-      box-shadow: 0 0 20px rgba(56, 189, 248, 0.18);
+      box-shadow: 0 4px 18px rgba(56, 189, 248, 0.15);
     }
 
-    .role-btn.admin-role {
-      border-color: rgba(245, 158, 11, 0.35);
-      background: rgba(245, 158, 11, 0.07);
-    }
-
-    .role-btn.admin-role:hover {
-      border-color: var(--neon-amber);
-      background: rgba(245, 158, 11, 0.16);
-      box-shadow: 0 0 22px rgba(245, 158, 11, 0.25);
-    }
-
-    .role-icon-box {
-      width: 38px;
-      height: 38px;
+    .role-icon-circ {
+      width: 40px;
+      height: 40px;
       border-radius: 10px;
       background: rgba(255, 255, 255, 0.06);
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 1.25rem;
       flex-shrink: 0;
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .role-btn-title {
+    .role-title {
       font-size: 0.88rem;
       font-weight: 700;
       color: #fff;
       margin-bottom: 2px;
     }
 
-    .role-btn-sub {
+    .role-desc {
       font-size: 0.74rem;
-      color: var(--text-secondary);
+      color: var(--text-secondary, #cbd5e1);
     }
   </style>
 </head>
 <body>
 
   <div class="login-card">
-
     <div class="login-header">
-      <div class="brand-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <div class="brand-icon-shield">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           <path d="M9 12l2 2 4-4"/>
         </svg>
       </div>
-      <h1>NIRA</h1>
-      <p style="font-size: 0.95rem; font-weight: 700; color: #38bdf8; margin-top: 4px; letter-spacing: 0.05em; text-transform: uppercase;">Never Ignore Risk Assistant</p>
-      <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 4px;">Aegis Ambient Care &bull; Secure Enterprise Portal</p>
+      <h1>NIRA Ambient Care</h1>
+      <p>Never Ignore Risk Assistant &bull; Elderly Safety Platform</p>
     </div>
 
-    <form id="loginForm" onsubmit="handleLoginSubmit(event)">
-      <div id="loginErrorAlert" style="display: none; background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.4); border-radius: var(--radius-inner); padding: 12px 14px; margin-bottom: 16px; color: #fb7185; font-size: 0.82rem; display: flex; align-items: flex-start; gap: 10px;">
-        <span style="font-size: 1.1rem; line-height: 1;">⚠️</span>
-        <div style="flex: 1;">
-          <strong>Invalid Demo Credentials</strong>
-          <div style="font-size: 0.74rem; color: #fca5a5; margin-top: 3px;">The email or password does not match any demo account. Please use one of the 1-click profiles below or enter the credentials shown in the quick guide.</div>
+    <!-- Toggle Tabs: Sign In / Sign Up -->
+    <div class="auth-tabs-strip" role="tablist">
+      <button class="auth-tab-btn active" id="tabBtnSignIn" onclick="switchAuthTab('signin')" role="tab" aria-selected="true">Sign In</button>
+      <button class="auth-tab-btn" id="tabBtnSignUp" onclick="switchAuthTab('signup')" role="tab" aria-selected="false">Sign Up</button>
+    </div>    <!-- SIGN IN PANEL -->
+    <div id="panelSignIn" role="tabpanel">
+      <div id="loginErrorMsg" class="auth-error-box" role="alert"></div>
+      <div id="loginErrorAlert" class="auth-error-box" role="alert" style="display: none;"></div>
+
+      <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+        <div class="form-group">
+          <label class="form-label" for="loginEmail">Email or Username</label>
+          <input 
+            type="text" 
+            id="loginEmail" 
+            class="form-input" 
+            placeholder="e.g. eleanor.vance@beaconhill.care or david.vance@example.com" 
+            required 
+            value="eleanor.vance@beaconhill.care"
+          >
         </div>
-      </div>
 
-      <div class="form-group">
-        <label class="form-label" for="loginEmail">Email Address</label>
-        <input 
-          type="email" 
-          id="loginEmail" 
-          class="form-input" 
-          placeholder="e.g. david.vance@example.com" 
-          required 
-          value="david.vance@example.com"
-          autocomplete="username"
-        >
-      </div>
-
-      <div class="form-group">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
-          <label class="form-label" for="loginPassword" style="margin-bottom: 0;">Password</label>
-          <span style="font-size: 0.74rem; color: var(--neon-blue); cursor: pointer; font-weight: 600;" onclick="togglePassword()">Show</span>
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label class="form-label" for="loginPassword" style="margin-bottom: 0;">Password</label>
+            <span style="font-size: 0.74rem; color: #38bdf8; cursor: pointer; font-weight: 600;" onclick="togglePassword('loginPassword')">Show/Hide</span>
+          </div>
+          <input 
+            type="password" 
+            id="loginPassword" 
+            class="form-input" 
+            placeholder="Enter password" 
+            required 
+            value="demo123"
+          >
         </div>
-        <input 
-          type="password" 
-          id="loginPassword" 
-          class="form-input" 
-          placeholder="Enter password" 
-          required 
-          value="admin123"
-          autocomplete="current-password"
-        >
+
+        <button type="submit" class="btn-submit-primary" id="btnLogin">
+          <span>Sign In</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+      </form>
+
+      <div class="divider-or">
+        <span>Or 1-Click Demo Profiles</span>
       </div>
 
-      <button type="submit" class="btn-submit" id="btnLogin">
-        <span>Sign In to Portal</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="5" y1="12" x2="19" y2="12"/>
-          <polyline points="12 5 19 12 12 19"/>
-        </svg>
-      </button>
-    </form>
+      <div class="demo-roles-container">
+        <!-- Prominent Demo Button 1: Eleanor Vance (Resident) -->
+        <button class="demo-role-btn" id="btnDemoLoginResident" onclick="quickLogin('senior_resident')">
+          <div class="role-icon-circ" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.3);">
+            👵
+          </div>
+          <div>
+            <div class="role-title">Sign in as Eleanor Vance (Resident)</div>
+            <div class="role-desc">Home Dashboard &bull; Daily Check-in &bull; Medication Reminders</div>
+          </div>
+        </button>
 
-    <div class="divider">
-      <span>Or 1-Click Role Access</span>
+        <!-- Prominent Demo Button 2: David Vance (Caregiver) -->
+        <button class="demo-role-btn" id="btnDemoLoginCaregiver" onclick="quickLogin('caregiver_david')">
+          <div class="role-icon-circ" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3);">
+            👨‍💼
+          </div>
+          <div>
+            <div class="role-title">Sign in as David Vance (Caregiver)</div>
+            <div class="role-desc">Caregiver Dashboard &bull; Emergency Alerts &bull; Sensor Matrix</div>
+          </div>
+        </button>
+
+        <!-- Optional: First Responder EMS -->
+        <button class="demo-role-btn" id="btnDemoLoginEMS" onclick="quickLogin('ems_medic')">
+          <div class="role-icon-circ" style="background: rgba(244, 63, 94, 0.15); border-color: rgba(244, 63, 94, 0.3);">
+            🚑
+          </div>
+          <div>
+            <div class="role-title">Medic 14 (Boston EMS First Responder)</div>
+            <div class="role-desc">Emergency CAD Telemetry &bull; Smart Door Token: 8492</div>
+          </div>
+        </button>
+      </div>
     </div>
 
-    <div class="quick-roles-title">Select Authenticated Profile:</div>
+    <!-- SIGN UP PANEL -->
+    <div id="panelSignUp" role="tabpanel" style="display: none;">
+      <div id="signupErrorMsg" class="auth-error-box" role="alert"></div>
+      <div id="signupSuccessMsg" class="auth-success-box" role="status"></div>
 
-    <div class="role-grid">
-      <!-- Role 1: Son David Vance (Admin) -->
-      <button class="role-btn admin-role" onclick="quickLogin('admin_son')">
-        <div class="role-icon-box" style="color: #fbbf24;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
+      <form id="signupForm" onsubmit="handleSignupSubmit(event)">
+        <div class="form-group">
+          <label class="form-label" for="signupName">Full Name</label>
+          <input 
+            type="text" 
+            id="signupName" 
+            class="form-input" 
+            placeholder="e.g. Margaret Sullivan" 
+            required
+          >
         </div>
-        <div>
-          <div class="role-btn-title" style="color: #fbbf24;">David Vance (Son &bull; Family Admin)</div>
-          <div class="role-btn-sub">Full Admin Console &bull; Live Telemetry & Door Overrides</div>
-          <div style="font-size: 0.68rem; color: #94a3b8; font-family: monospace; margin-top: 2px;">david.vance@example.com / admin123</div>
-        </div>
-      </button>
 
-      <!-- Role 2: Senior / Family Home View -->
-      <button class="role-btn" onclick="quickLogin('senior_home')">
-        <div class="role-icon-box" style="color: #38bdf8;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            <polyline points="9 22 9 12 15 12 15 22"/>
-          </svg>
+        <div class="form-group">
+          <label class="form-label" for="signupRole">Account Role</label>
+          <select id="signupRole" class="form-input" style="background: #161e2e; color: #fff;">
+            <option value="resident">Resident / Senior Citizen</option>
+            <option value="caregiver">Family Caregiver / Guardian</option>
+          </select>
         </div>
-        <div>
-          <div class="role-btn-title">Eleanor & Family (Home View)</div>
-          <div class="role-btn-sub">Interactive Safety Dashboard &bull; Multilingual &bull; 🎬 Demo Video & Guide</div>
-          <div style="font-size: 0.68rem; color: #94a3b8; font-family: monospace; margin-top: 2px;">family@beaconhill.care / family123</div>
-        </div>
-      </button>
 
-      <!-- Role 3: Boston EMS Paramedic -->
-      <button class="role-btn" onclick="quickLogin('ems')">
-        <div class="role-icon-box" style="color: #ff3b57;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
-            <polyline points="2 17 12 22 22 17"/>
-            <polyline points="2 12 12 17 22 12"/>
+        <div class="form-group">
+          <label class="form-label" for="signupEmail">Email Address</label>
+          <input 
+            type="email" 
+            id="signupEmail" 
+            class="form-input" 
+            placeholder="name@example.com" 
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="signupCaregiver">Emergency Contact Name &amp; Phone</label>
+          <input 
+            type="text" 
+            id="signupCaregiver" 
+            class="form-input" 
+            placeholder="e.g. Sarah Sullivan (+1-555-018-4421)" 
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="signupPassword">Password</label>
+          <input 
+            type="password" 
+            id="signupPassword" 
+            class="form-input" 
+            placeholder="At least 6 characters" 
+            required 
+            minlength="6"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="signupConfirmPassword">Confirm Password</label>
+          <input 
+            type="password" 
+            id="signupConfirmPassword" 
+            class="form-input" 
+            placeholder="Re-enter password" 
+            required
+          >
+        </div>
+
+        <button type="submit" class="btn-submit-primary" id="btnSignup">
+          <span>Create Account &bull; Start Demo</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"/>
           </svg>
-        </div>
-        <div>
-          <div class="role-btn-title">Medic 14 (Boston EMS Command)</div>
-          <div class="role-btn-sub">Ambulance CAD Dispatch &bull; Mobile Data Terminal &bull; Smart Door PIN: 8492</div>
-          <div style="font-size: 0.68rem; color: #94a3b8; font-family: monospace; margin-top: 2px;">medic14@bostonems.gov / medic123</div>
-        </div>
-      </button>
+        </button>
+      </form>
     </div>
 
   </div>
 
   <script>
-    const USER_PROFILES = {
-      admin_son: {
-        name: "David Vance (Son • Family Admin)",
-        role: "Family Primary Admin",
-        email: "david.vance@example.com",
-        password: "admin123",
-        avatar: "👨‍💼",
-        redirect: "/admin"
-      },
-      senior_home: {
-        name: "Eleanor & Family (Home View)",
-        role: "Senior / Family View",
-        email: "family@beaconhill.care",
-        password: "family123",
+    const DEMO_PERSONAS = {
+      senior_resident: {
+        name: "Eleanor Vance (Resident)",
+        role: "Resident / Senior View",
+        roleKey: "resident",
+        email: "eleanor.vance@beaconhill.care",
         avatar: "👵",
-        redirect: "/#demo/overview"
+        redirect: "/#demo/homedashboard"
       },
-      ems: {
-        name: "Medic 14 (Boston EMS Command)",
-        role: "Ambulance Driver / CAD First Responder",
+      caregiver_david: {
+        name: "David Vance (Caregiver)",
+        role: "Family Primary Caregiver",
+        roleKey: "caregiver",
+        email: "david.vance@example.com",
+        avatar: "👨‍💼",
+        redirect: "/#demo/caregiverdashboard"
+      },
+      ems_medic: {
+        name: "Medic 14 (Boston EMS First Responder)",
+        role: "First Responder / Dispatch",
         email: "medic14@bostonems.gov",
-        password: "medic123",
         avatar: "🚑",
-        redirect: "/#demo/dispatch"
+        redirect: "/#demo/emergencyalert"
       }
     };
 
-    function togglePassword() {
-      const pass = document.getElementById("loginPassword");
-      pass.type = pass.type === "password" ? "text" : "password";
+    function switchAuthTab(mode) {
+      const tabIn = document.getElementById("tabBtnSignIn");
+      const tabUp = document.getElementById("tabBtnSignUp");
+      const panelIn = document.getElementById("panelSignIn");
+      const panelUp = document.getElementById("panelSignUp");
+
+      if (mode === "signin") {
+        tabIn.classList.add("active");
+        tabIn.setAttribute("aria-selected", "true");
+        tabUp.classList.remove("active");
+        tabUp.setAttribute("aria-selected", "false");
+        panelIn.style.display = "block";
+        panelUp.style.display = "none";
+      } else {
+        tabUp.classList.add("active");
+        tabUp.setAttribute("aria-selected", "true");
+        tabIn.classList.remove("active");
+        tabIn.setAttribute("aria-selected", "false");
+        panelUp.style.display = "block";
+        panelIn.style.display = "none";
+      }
+    }
+
+    function togglePassword(inputId) {
+      const input = document.getElementById(inputId);
+      if (input) {
+        input.type = input.type === "password" ? "text" : "password";
+      }
     }
 
     function quickLogin(roleKey) {
-      const profile = USER_PROFILES[roleKey];
-      if (!profile) return;
-      document.getElementById("loginEmail").value = profile.email;
-      document.getElementById("loginPassword").value = profile.password;
-      submitUserSession(profile);
+      const persona = DEMO_PERSONAS[roleKey];
+      if (persona) {
+        submitUserSession(persona);
+      }
     }
 
     function handleLoginSubmit(event) {
       event.preventDefault();
-      const alertBox = document.getElementById("loginErrorAlert");
-      if (alertBox) alertBox.style.display = "none";
-
       const email = document.getElementById("loginEmail").value.trim().toLowerCase();
-      const password = document.getElementById("loginPassword").value;
+      const pass = document.getElementById("loginPassword").value;
+      const errBox = document.getElementById("loginErrorMsg");
 
-      // Look for matching credentials
-      let matchedProfile = null;
-      for (const key in USER_PROFILES) {
-        const p = USER_PROFILES[key];
-        if (p.email.toLowerCase() === email && p.password === password) {
-          matchedProfile = p;
-          break;
-        }
-      }
-
-      if (!matchedProfile) {
-        if (alertBox) {
-          alertBox.style.display = "flex";
-        }
+      if (!email || !pass) {
+        errBox.textContent = "Please fill in all credentials.";
+        errBox.style.display = "block";
         return;
       }
+      errBox.style.display = "none";
 
-      submitUserSession(matchedProfile);
+      if (email.includes("david") || email.includes("caregiver") || email.includes("admin")) {
+        submitUserSession(DEMO_PERSONAS.caregiver_david);
+      } else if (email.includes("medic") || email.includes("ems")) {
+        submitUserSession(DEMO_PERSONAS.ems_medic);
+      } else {
+        submitUserSession(DEMO_PERSONAS.senior_resident);
+      }
+    }
+
+    function handleSignupSubmit(event) {
+      event.preventDefault();
+      const name = document.getElementById("signupName").value.trim();
+      const role = document.getElementById("signupRole").value;
+      const email = document.getElementById("signupEmail").value.trim();
+      const pass = document.getElementById("signupPassword").value;
+      const confirmPass = document.getElementById("signupConfirmPassword").value;
+      const errBox = document.getElementById("signupErrorMsg");
+      const succBox = document.getElementById("signupSuccessMsg");
+
+      if (pass !== confirmPass) {
+        errBox.textContent = "Passwords do not match. Please re-enter.";
+        errBox.style.display = "block";
+        return;
+      }
+      if (pass.length < 6) {
+        errBox.textContent = "Password must be at least 6 characters long.";
+        errBox.style.display = "block";
+        return;
+      }
+      errBox.style.display = "none";
+
+      const newUser = {
+        name: name,
+        role: role === "caregiver" ? "Family Caregiver" : "Resident / Senior View",
+        roleKey: role,
+        email: email,
+        avatar: role === "caregiver" ? "👨‍💼" : "👵",
+        redirect: role === "caregiver" ? "/#demo/caregiverdashboard" : "/#demo/homedashboard"
+      };
+
+      succBox.textContent = `Account created successfully for ${name}! Redirecting to dashboard...`;
+      succBox.style.display = "block";
+
+      setTimeout(() => {
+        submitUserSession(newUser);
+      }, 600);
     }
 
     function submitUserSession(userObj) {
       localStorage.setItem("aegis_auth_user", JSON.stringify(userObj));
-      const btn = document.getElementById("btnLogin");
-      btn.innerHTML = '<span>Authenticating...</span>';
-      btn.style.opacity = "0.7";
+      localStorage.setItem("nira_demo_auth", JSON.stringify(userObj));
+      const btn = document.getElementById("btnLogin") || document.getElementById("btnSignup");
+      if (btn) {
+        btn.innerHTML = '<span>Entering Demo Portal...</span>';
+        btn.style.opacity = "0.75";
+      }
       setTimeout(() => {
         window.location.href = userObj.redirect || "/";
       }, 350);
