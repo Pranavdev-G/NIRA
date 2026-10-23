@@ -127,8 +127,9 @@ NEGATED_POSITIVE_PATTERNS = [
 
 # Safe affirmations (Lowest Priority: ONLY valid when NO risk/emergency/negation exists)
 SAFE_PATTERNS = [
-    r"\bi'?m\s+okay\b",
-    r"\bi\s+am\s+okay\b",
+    r"\bi'?m\s+(completely\s+)?(okay|fine|alright)\b",
+    r"\bi\s+am\s+(completely\s+)?(okay|fine|alright)\b",
+    r"\bcompletely\s+(okay|fine|alright)\b",
     r"\byes[,\s]+i'?m\s+okay\b",
     r"\byeah[,\s]+i'?m\s+okay\b",
     r"\bi'?m\s+fine\b",
@@ -176,6 +177,11 @@ class ResponseAnalyzer:
     def __init__(self, use_llm: bool = False, openai_api_key: Optional[str] = None):
         self.use_llm = use_llm
         self.openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
+
+    @classmethod
+    def analyze_response(cls, transcript: str) -> VoiceAnalysisResult:
+        """Authoritative analysis entrypoint (Phase 32)."""
+        return cls.analyze_deterministic(transcript)
 
     @classmethod
     def analyze_deterministic(cls, transcript: str) -> VoiceAnalysisResult:

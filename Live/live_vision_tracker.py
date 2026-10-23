@@ -397,7 +397,7 @@ class LiveVisionTracker:
 
             live_dir = Path(__file__).resolve().parent
 
-            # 1. Pose model for face keypoints and biomechanics
+            # 1. Pose model for face keypoints and biomechanics (Strictly Live-contained, Phase 9)
             pose_candidates = [
                 os.getenv("NIRA_POSE_MODEL_PATH"),
                 str(live_dir / "yolov8n-pose.pt"),

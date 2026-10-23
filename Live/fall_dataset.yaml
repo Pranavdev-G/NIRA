@@ -1,4 +1,4 @@
-path: C:/Users/leela/.cache/kagglehub/datasets/uttejkumarkandagatla/fall-detection-dataset/versions/1/fall_dataset
+path: "C:/Users/dharaneesh n/Downloads/archive(13)/fall_dataset"
 train: images/train
 val: images/val
 

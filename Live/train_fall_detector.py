@@ -25,6 +25,8 @@ def resolve_or_download_dataset() -> Path:
 
     # Candidate locations on current machine
     candidates = [
+        Path(os.path.expanduser("~/Downloads/archive(13)/fall_dataset")),
+        Path("C:/Users/dharaneesh n/Downloads/archive(13)/fall_dataset"),
         Path(os.path.expanduser("~/.cache/kagglehub/datasets/uttejkumarkandagatla/fall-detection-dataset/versions/1/fall_dataset")),
         live_dir / "fall_dataset",
         live_dir.parent / "datasets" / "fall_dataset"

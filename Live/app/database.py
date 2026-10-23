@@ -21,10 +21,15 @@ def get_mongo_db() -> Optional[Database]:
     if _db is not None:
         return _db
 
+    if not settings.is_mongo_configured():
+        logger.info("[LiveDB] MongoDB URI not configured. Running in high-performance memory fallback mode.")
+        return None
+
     try:
         uri = settings.MONGODB_URI
         db_name = settings.MONGODB_DB_NAME
-        logger.info(f"[LiveDB] Connecting to MongoDB Atlas cluster at: {uri.split('@')[-1]}")
+        host_info = uri.split('@')[-1].split('/')[0] if '@' in uri else "configured_host"
+        logger.info(f"[LiveDB] Connecting to MongoDB Atlas cluster at: {host_info}")
         _client = MongoClient(uri, serverSelectionTimeoutMS=5000, connectTimeoutMS=5000)
         _client.admin.command("ping")
         _db = _client[db_name]

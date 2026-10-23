@@ -1,256 +1,187 @@
-# NIRA Live Speech Interaction Module
+# NIRA Live Multi-Room Continuous Ambient Safety System
 **Amazon Developer Hackathon 2026 | Ambient AI Safety Agent Track**
 
-High-accuracy real-time speech interaction and conversational wellness verification system for the NIRA elderly care platform.
+NIRA Live is a continuous multi-room ambient safety intelligence platform for senior care that unifies:
+$$\text{ROOM} + \text{CAMERA} + \text{PERSON} + \text{POSTURE} + \text{MOVEMENT} + \text{ZONE DWELL} + \text{ACTIVITY ROUTINE} + \text{VOICE} + \text{VITALS} + \text{TIME CONTEXT}$$
+into one authoritative, multimodal safety core.
 
 ---
 
-## 🎙️ Core Objectives & Capabilities
-
-1. **Controlled On-Demand Microphone Capture**: Captures senior resident speech without permanent recording or privacy intrusion. Automatically detects speech onset and terminates upon silence timeout.
-2. **Standardized Audio Conditioning**: Resamples audio to 16,000 Hz float32 mono, eliminates DC offsets, applies gentle peak normalization, and filters short noise bursts.
-3. **Primary ASR Engine**: Uses **Whisper large-v3-turbo (`openai/whisper-large-v3-turbo`)** loaded once via a singleton lifecycle manager with automatic hardware acceleration detection.
-4. **Clinical Response Analyzer**: Evaluates conversational meaning and classifies responses into `SAFE`, `UNCERTAIN`, `RISK`, or `EMERGENCY`.
-5. **Strict Negation Handling**: Explicitly prevents phrases like `"I am NOT okay"` or `"I'm not feeling well"` from ever resolving to `SAFE`.
-6. **Emergency Priority Hierarchy**: `EMERGENCY > RISK > UNCERTAIN > SAFE`. Contradictory phrases like `"Yes, I'm okay, but I fell down and I can't get up"` immediately trigger `EMERGENCY`.
-7. **Safety Fallback Guarantees**: Any transcription failure, ambiguous input, or microphone hardware issue defaults to `UNCERTAIN` (never silently `SAFE`).
-8. **Downstream Integration**: Emits clean structured contracts (`VoiceInteractionResult`) and persists records to `aegis_care.db`.
-
----
-
-## 🏗️ Architecture Pipeline
+## 🏛️ Core Architecture
 
 ```text
-NIRA Prompt: "Are you okay?"
-       ↓
-🎙️ Controlled Microphone Capture (sounddevice)
-       ↓
-Audio Conditioning (16kHz float32 mono, DC filter, peak norm)
-       ↓
-openai/whisper-large-v3-turbo (Singleton Lifecycle Manager)
-       ↓
-Verbal Transcript + Authentic ASR Quality Metrics
-       ↓
-Clinical Response Analyzer (Negation + Priority Engine)
-       ↓
-Structured Output: VoiceInteractionResult
-       ├── SAFE      → Action: LOG_ONLY
-       ├── RISK      → Action: CREATE_INCIDENT
-       ├── EMERGENCY → Action: ESCALATE_EMERGENCY_CAD
-       └── UNCERTAIN → Action: REPEAT_CHECK_IN
-       ↓
-Persisted to aegis_care.db & Streamed to NIRA Event Pipeline
+MULTIPLE ROOM CAMERAS (Living Room, Bathroom, Bedroom, Kitchen, Hallway)
+        ↓
+CAMERA MANAGER (Registry, Bounded Queues, Inter-Room Resident Handoff)
+        ↓
+PER-CAMERA ROOM TRACKER (YOLOv8 Pose + Kaggle Fall Model + Kinematics)
+        ↓
+ZONE SESSION TRACKING (Entry, Dwell Duration, Exit, Movement Intensity)
+        ↓
+ACTIVITY ROUTINE LEARNER (Personalized learned distributions: Median, P90, Safe Max)
+        ↓
+BEHAVIOR DEVIATION ENGINE (Irregular routines, Wandering, Sequence graphs)
+        ↓
+CONTINUOUS MICROPHONE (VAD Chunker, Whisper Large-v3-Turbo, ResponseAnalyzer)
+        ↓
+LIVE EVENT CONTRACT (Normalized, idempotent, tamper-evident LiveEvent)
+        ↓
+LIVE CORE (Single authoritative CoreService)
+        ↓
+MULTIMODAL RISK ENGINE (14-Signal Composite Evaluator + Context Engine)
+        ↓
+INCIDENT LIFECYCLE & EMERGENCY WORKFLOW FSM
+        ↓
+ADAPTERS: Caregiver SMS (TextBEE) | Paramedic CAD Dispatch | Smart Home Lock
+        ↓
+REALTIME EVENT BUS (SSE & WebSocket Live Dashboard)
 ```
 
 ---
 
-## 📂 File Structure
+## 📦 Kaggle Fall Detection Dataset & Model Training
 
-All implementation files remain strictly inside `Live/`:
+The Live vision tracker and fall detector are trained on the Kaggle Fall Detection dataset.
 
-```text
-Live/
-│
-├── voice/
-│   ├── __init__.py                # Module exports
-│   ├── models.py                  # Pydantic data contracts & enums
-│   ├── audio.py                   # 16kHz mono audio preprocessing & RMS VAD
-│   ├── microphone.py              # Controlled on-demand microphone capture
-│   ├── speech_to_text.py          # Clean abstract ASR interface
-│   ├── whisper_engine.py          # Whisper large-v3-turbo implementation & lifecycle manager
-│   ├── response_analyzer.py       # Clinical semantic analyzer with negation handling
-│   ├── storage.py                 # SQLite database logging (telemetry_events & audit table)
-│   ├── conversation.py            # Multi-turn check-in dialogue manager
-│   ├── service.py                 # Central VoiceService coordinator
-│   └── test_mic.py                # Standalone CLI microphone test tool
-│
-├── api/
-│   ├── __init__.py
-│   └── voice_routes.py            # FastAPI REST endpoints (/api/v1/live/voice/*)
-│
-├── tests/
-│   ├── __init__.py
-│   ├── test_speech_to_text.py     # ASR abstraction & engine tests
-│   ├── test_response_analyzer.py  # SAFE, RISK, EMERGENCY, NEGATION & Mixed tests
-│   ├── test_voice_service.py      # End-to-end integration flow tests
-│   └── test_voice_api.py          # FastAPI endpoint tests
-│
-├── verify_whisper_transcription.py# Real inference test on synthesized audio waveforms
-├── generate_test_audio.py         # Audio generator for benchmark test suite
-├── .env.example                   # Environment configuration template
-└── README.md                      # This documentation
-```
-
----
-
-## 🚀 Quick Start & Installation
-
-### 1. Dependencies
-The system utilizes:
-- `torch` (PyTorch 2.x)
-- `transformers` (Hugging Face)
-- `sounddevice` (Audio I/O)
-- `scipy` & `numpy` (Signal processing)
-- `fastapi` & `pydantic` (Data schemas and REST endpoints)
-
-Install with:
-```bash
-pip install torch transformers sounddevice soundfile scipy numpy fastapi pydantic pytest
-```
-
-### 2. Configuration
-Copy the template configuration:
-```bash
-cp Live/.env.example Live/.env
-```
-
-Key environment variables:
-- `WHISPER_MODEL_ID`: `openai/whisper-large-v3-turbo` (default)
-- `WHISPER_DEVICE`: `auto` (auto-selects CUDA GPU, Apple Silicon MPS, or multi-threaded CPU)
-- `MIC_SAMPLE_RATE`: `16000`
-- `MIC_MAX_RECORD_SECONDS`: `10.0`
-- `MIC_SILENCE_TIMEOUT_SECONDS`: `2.2`
-- `DATABASE_URL`: `sqlite:///./aegis_care.db`
-- `OPENAI_API_KEY`: (Optional) for secondary LLM semantic evaluation
-
----
-
-## 🎤 Running the Live Microphone Test
-
-Run the interactive test command in your terminal and speak into your microphone:
-
-```bash
-python Live/voice/test_mic.py
-```
-Or with specific parameters:
-```bash
-python Live/voice/test_mic.py --question "Are you okay?" --max-duration 10.0 --silence-timeout 2.2
-```
-
-To list all detected audio hardware:
-```bash
-python Live/voice/test_mic.py --list-devices
-```
-
-### Example Terminal Output:
-```text
-==================================================================
- [NIRA] AEGIS AMBIENT CARE — LIVE VOICE INTERACTION SYSTEM
- Amazon Developer Hackathon 2026
-==================================================================
-
-[Hardware] Accelerator: CPU | Precision: torch.float32
-[Microphone] Status: ACTIVE | Device: Microphone Array (AMD Audio Device)
-[ASR Engine] Loading openai/whisper-large-v3-turbo into memory...
-[ASR Engine] Model ready (transformers backend)
-
-------------------------------------------------------------------
-NIRA: Are you okay?
-------------------------------------------------------------------
-
-Listening... (Please speak into your microphone now)
-
-Transcribing...
-
-==================================================================
-Transcript:
-"I am feeling dizzy."
-
-Status:
-RISK
-
-Urgency:
-HIGH
-
-Reason:
-Resident reported experiencing dizziness (feeling dizzy).
-
-Action:
-CREATE_INCIDENT
-------------------------------------------------------------------
-Metadata:
-  • Spoken Language : en
-  • Quality Metric  : good
-  • Audio Duration  : 2.14s
-  • Total Latency   : 14.82s
-  • Interaction ID  : vox-686cdc186b
-==================================================================
-```
-
----
-
-## 🧪 Automated Test Suite
-
-Run the full 70-test test suite:
-```bash
-python -m pytest Live/tests/ -v
-```
-
-### Verified Test Categories:
-- **`test_response_analyzer.py`**:
-  - Safe affirmations (`"I'm okay"`, `"Yes, I'm fine"`, `"Everything is alright"`)
-  - Risk indicators (`"I'm feeling dizzy"`, `"I feel weak"`, `"I fell down"`)
-  - Emergency declarations (`"Help me"`, `"I fell and can't get up"`, `"I can't breathe"`)
-  - Critical Negations (`"I am NOT okay"`, `"I'm not feeling well"`, `"No, not alright"` -> **Never SAFE**)
-  - Mixed Contradictions (`"Yes, I'm okay, but I fell down and I can't get up"` -> **EMERGENCY**)
-  - Ambiguity & Silence (`"I don't know"`, `""`, mumbling -> **UNCERTAIN**)
-- **`test_speech_to_text.py`**: Clean abstraction interface, hardware auto-detection, mono downmixing, resampling, silence handling.
-- **`test_voice_service.py`**: Complete workflow, risk/emergency/safe handling, database audit persistence.
-- **`test_voice_api.py`**: REST endpoints (`/status`, `/analyze`, `/check-in`, `/history`).
-
----
-
-## 🔬 Benchmark Verification on Real Audio Waveforms
-
-To run real Whisper inference on generated audio waveforms:
-```bash
-python Live/verify_whisper_transcription.py
-```
-This tests the actual `openai/whisper-large-v3-turbo` model against 5 real audio files:
-1. `test_speech_safe.wav`: "Yes, I am okay." -> `SAFE`
-2. `test_speech_dizzy.wav`: "I am feeling dizzy." -> `RISK`
-3. `test_speech_emergency.wav`: "Help me. I fell down and cannot get up." -> `EMERGENCY`
-4. `test_speech_negated.wav`: "I am not okay." -> `RISK`
-5. `test_speech_mixed.wav`: "Yes, I am OK, but I fell down and I cannot get up." -> `EMERGENCY`
-
----
-
-## 🤝 Clean Integration Contract
-
-Other LIVE system teammates (incident management, caregiver hub, 911 CAD dispatch) interface with `VoiceService` cleanly without tightly coupling audio dependencies:
+### Dataset Reference & Download via `kagglehub`
+To download the latest version of the dataset using `kagglehub`:
 
 ```python
-from Live.voice import VoiceService, VoiceInteractionStatus
+import kagglehub
 
-voice_service = VoiceService()
+# Download latest version
+path = kagglehub.dataset_download("uttejkumarkandagatla/fall-detection-dataset")
 
-# Trigger conversational check-in
-result = voice_service.run_check_in(
-    elderly_id="user_eleanor_vance",
-    question="Are you okay?"
-)
-
-# Consume result by safety status
-if result.status == VoiceInteractionStatus.EMERGENCY:
-    emergency_service.handle(result)
-
-elif result.status == VoiceInteractionStatus.RISK:
-    incident_service.create(result)
-
-elif result.status == VoiceInteractionStatus.UNCERTAIN:
-    repeat_check_in_timer.schedule(result)
+print("Path to dataset files:", path)
 ```
+
+### Dataset Structure
+```text
+fall_dataset/
+├── images/
+│   ├── train/    # Training frames
+│   └── val/      # Validation frames
+└── labels/
+    ├── train/    # YOLO format bounding boxes
+    └── val/
+```
+
+### Classes
+- **Class 0**: `Fall Detected`
+- **Class 1**: `Walking` (Normal Movement)
+- **Class 2**: `Sitting` (Resting / Normal Movement)
+
+### Training Script
+Execute training inside `Live/`:
+```bash
+python Live/train_fall_detector.py
+```
+This automatically resolves the dataset location (checking local download paths including `archive(13)` and kagglehub cache), generates runtime `fall_dataset.yaml`, trains YOLOv8 on the dataset, and outputs the optimized weights to `Live/nira_fall_model.pt`.
 
 ---
 
-## ⚡ Hardware Awareness & Known Performance Characteristics
+## 🏠 Multi-Room Support (5 Standard Rooms)
 
-1. **Hardware Acceleration**:
-   - **CUDA GPU**: Precision `FP16`. Latency is typically **`250ms – 600ms`**.
-   - **Apple Silicon (MPS)**: Precision `FP16`. Latency is typically **`400ms – 900ms`**.
-   - **CPU**: Precision `FP32` with automatic thread optimization. Latency is typically **`15s – 30s`** on consumer multi-core CPUs due to the 800M parameter model size.
-2. **Model Lifecycle**:
-   - The model is loaded **once** into memory via `WhisperModelManager` and kept hot.
-   - It is never re-downloaded or re-initialized on subsequent speech turns.
-3. **No Fabricated Confidence Numbers**:
-   - The system exposes genuine token metrics (`avg_logprob`, `no_speech_prob`, `compression_ratio`) and derives qualitative indicators (`high`, `good`, `low_confidence`, `empty`) rather than fabricating arbitrary percentages.
+Each room maintains an independent, concurrent safety state:
+
+| Room ID | Room Name | Risk Tier | Default Priors | Camera ID |
+| :--- | :--- | :--- | :--- | :--- |
+| `living_room` | Living Room (Main Area) | `REST_ZONE` | Expected: 3600s (60m) | `CAM-01-LIVING` |
+| `bathroom` | Primary Bathroom | `CRITICAL_ZONE` | Expected: 600s (10m) | `CAM-02-BATH` |
+| `bedroom` | East Wing Bedroom | `SLEEP_ZONE` | Expected: 7200s (120m) | `CAM-03-BED` |
+| `kitchen` | Kitchen & Dining | `ACTIVE_ZONE` | Expected: 600s (10m) | `CAM-04-KITCHEN` |
+| `hallway` | Central Hallway | `TRANSIT_ZONE` | Expected: 300s (5m) | `CAM-05-HALL` |
+
+### Inter-Room Person Handoff
+- When the resident moves `bedroom` $\to$ `hallway` $\to$ `bathroom`, the system recognizes a single continuous resident (`resident_id`).
+- When a person disappears from one camera and appears in another within the configurable grace period (`PERSON_LOST_GRACE_SECONDS = 3.0s`), `ROOM_EXIT` and `ROOM_ENTRY` events are generated cleanly without duplicate fall or missing-person alerts.
+
+---
+
+## ⏱️ Separation of Inactivity vs. Zone Dwell Time
+
+A critical safety principle of NIRA Live is maintaining **TWO distinct timers**:
+
+1. **Movement Inactivity Timer**:
+   - Measures time without meaningful displacement (centroid or keypoint motion).
+   - Stages:
+     - `0–5 min`: Normal / Resting
+     - `5–8 min`: Low Activity Warning
+     - `8–10 min`: Prolonged Low Activity
+     - `10 min (600s)`: Inactivity Detected
+   - *Override*: Fall + Floor Posture immediately overrides ordinary timers.
+
+2. **Zone Dwell Timer (`ZoneSession`)**:
+   - Measures continuous occupancy in a room regardless of whether the resident is moving.
+   - Example: Resident enters bathroom and moves continuously for 15 minutes.
+     - *Inactivity*: 0 seconds
+     - *Dwell*: 15 minutes
+     - *State*: `PROLONGED_ZONE_STAY` (Mild/Moderate risk, produces conversational check-in, **not an automatic ambulance dispatch**).
+
+---
+
+## 🎙️ Always-Available Continuous Microphone & Voice Intelligence
+
+1. **Continuous VAD Listening (`Live/voice/continuous_monitor.py`)**:
+   - Opens audio input once and listens passively.
+   - **Never runs Whisper on silence**: VAD segments genuine speech chunks.
+2. **Two Operating Modes**:
+   - `PASSIVE_MONITORING`: Always active. If the resident spontaneously says *"Help me"*, Whisper transcribes, `ResponseAnalyzer` classifies `EMERGENCY`, and Core starts the emergency workflow immediately without requiring a camera trigger.
+   - `PRIORITY_WELLNESS_CHECK`: System asks *"Eleanor, are you okay?"*. The next speech segment is correlated with the active incident.
+3. **Clinical Priority Hierarchy**:
+   $$\text{EMERGENCY} > \text{RISK} > \text{UNCERTAIN} > \text{SAFE}$$
+   - Strict negation: *"I am not okay"* $\to$ `RISK`.
+   - Mixed clauses: *"I'm okay, but I fell and can't get up"* $\to$ `EMERGENCY`.
+   - Ambiguity: Never silently `SAFE`.
+4. **Severity-Aware Silence Timeout**:
+   - High severity (confirmed fall / floor posture) + silence $\to$ Immediate ambulance CAD dispatch.
+   - Mild anomaly (15m bathroom stay while moving) + silence $\to$ Alert caregiver, repeat prompt; avoids false emergency dispatches.
+
+---
+
+## 📈 Self-Learning Behavioral Baselines
+
+- **Safe Learning Only**: Only validated safe visits (`SAFE` verbal confirmations or normal exits) update routine baselines.
+- **Gradual Bayesian Adaptation**: Safe visits adjust expected duration incrementally via EMA (e.g. 10m $\to$ 10.4m), preventing single long visits from distorting learned norms.
+- **Critical Override**: High hazard events (falls, floor collapse, distress voice) strictly override routine baselines.
+
+---
+
+## 🚀 REST API Reference
+
+### Vision Endpoints
+- `POST /api/v1/live/vision/cameras/{camera_id}/frame`: Ingest real base64 image frame for YOLO inference.
+- `GET  /api/v1/live/vision/rooms`: Get real-time states of all 5 rooms.
+- `GET  /api/v1/live/vision/cameras`: Get camera registry status and inference FPS.
+- `GET  /api/v1/live/vision/state`: Full vision and resident tracking snapshot.
+- `POST /api/v1/live/vision/cameras/{camera_id}/start`: Start specific camera.
+- `POST /api/v1/live/vision/cameras/{camera_id}/stop`: Stop specific camera.
+- `POST /api/v1/live/vision/monitor/start`: Start multi-room monitoring.
+- `POST /api/v1/live/vision/monitor/stop`: Stop monitoring.
+
+### Core Endpoints
+- `POST /api/v1/live/core/events`: Normalized safety event ingestion.
+- `GET  /api/v1/live/core/state`: Authoritative composite resident safety state.
+- `POST /api/v1/live/core/wellness/trigger`: Initiate contextual vocal check-in.
+- `POST /api/v1/live/core/wellness/respond`: Process resident vocal response.
+- `POST /api/v1/live/core/wellness/timeout`: Process silence timeout with severity-aware policy.
+- `GET  /api/v1/live/core/events/stream`: Real-time SSE telemetry stream.
+
+---
+
+## 🧪 Automated Test Verification
+
+Run the comprehensive test suite:
+```bash
+pytest Live/tests/ -v
+```
+
+All 10 required clinical scenarios (Phases 56–65) execute deterministically in seconds using the injectable `TestClock` (`clock.advance(seconds=...)`).
+
+---
+
+## 🔒 Security & Demo Isolation Guarantees
+
+1. **Zero Demo Dependency**: The `Demo/` directory is strictly read-only and unreferenced by Live.
+2. **Live-Contained Models**: All model weights resolve strictly within `Live/` (`Live/yolov8n-pose.pt`, `Live/nira_fall_model.pt`).
+3. **Environment Security**: Sensitive tokens (MongoDB URI, TextBEE keys) read exclusively from environment variables with safe log masking.

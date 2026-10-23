@@ -1,17 +1,20 @@
 """
-Live Vision Multi-Room Camera, Fall Detector, and Routine Learning Router.
+Live Vision Multi-Room Camera, Fall Detector, and Routine Learning Router (Phases 7, 42, 43, 71).
 Amazon Developer Hackathon 2026.
 """
 
-from typing import Dict, Any, Optional
-from fastapi import APIRouter
+from typing import Dict, Any, Optional, List
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from Live.core.models import ZoneType
+from Live.core.core_service import get_live_core
+from Live.vision.camera_manager import get_camera_manager
 from Live.activity_routine_learner import get_activity_learner
 
 router = APIRouter(prefix="/api/v1/live/vision", tags=["Live Vision Multi-Room Fall Detector"])
 
-# Multi-room camera state
+# Fallback room simulation dictionary (includes all 5 rooms: Phase 3)
 _room_states: Dict[str, Dict[str, Any]] = {
     "living_room": {
         "room_name": "Living Room (Main Area)",
@@ -50,9 +53,21 @@ _room_states: Dict[str, Dict[str, Any]] = {
         "risk_level": "LOW"
     },
     "kitchen": {
-        "room_name": "Kitchen & Pantry",
+        "room_name": "Kitchen & Dining",
         "zone_type": "ACTIVE_ZONE",
         "camera_id": "CAM-04-KITCHEN",
+        "status": "NORMAL_IDLE",
+        "person_present": False,
+        "torso_angle_deg": 0.0,
+        "motion_velocity": 0.0,
+        "inactivity_seconds": 0,
+        "fps": 24.0,
+        "risk_level": "LOW"
+    },
+    "hallway": {
+        "room_name": "Central Hallway",
+        "zone_type": "TRANSIT_ZONE",
+        "camera_id": "CAM-05-HALL",
         "status": "NORMAL_IDLE",
         "person_present": False,
         "torso_angle_deg": 0.0,
@@ -66,8 +81,17 @@ _room_states: Dict[str, Dict[str, Any]] = {
 _active_room: str = "living_room"
 
 
+class CameraFramePayload(BaseModel):
+    """Payload for real frame inference (Phase 7)."""
+    image_base64: str = Field(..., description="Base64 encoded image frame or data URI")
+    timestamp: Optional[str] = Field(None, description="ISO-8601 UTC timestamp")
+    resident_id: str = Field("resident_eleanor_vance")
+    camera_id: Optional[str] = None
+    room_id: Optional[str] = None
+
+
 class SwitchRoomPayload(BaseModel):
-    room_id: str = Field(..., description="Target room (living_room, bathroom, bedroom, kitchen)")
+    room_id: str = Field(..., description="Target room (living_room, bathroom, bedroom, kitchen, hallway)")
 
 
 class SimulateVisionEventPayload(BaseModel):
@@ -75,21 +99,110 @@ class SimulateVisionEventPayload(BaseModel):
     event_type: str = Field(..., description="fall, inactivity_5min, normal, recovery")
 
 
-@router.get("/rooms", summary="Get all room camera telemetry feeds")
+# ------------------------------------------------------------------
+# Real Multi-Room Vision Endpoints (Phases 7, 42, 43, 71)
+# ------------------------------------------------------------------
+@router.post("/cameras/{camera_id}/frame", summary="Process real camera image frame for YOLO inference (Phase 7)")
+def process_camera_frame(camera_id: str, payload: CameraFramePayload):
+    """
+    Real inference endpoint: Decodes image, runs YOLO/Kaggle models on correct room tracker,
+    computes movement & posture, evaluates zone dwell duration, and dispatches events to Core.
+    """
+    mgr = get_camera_manager(get_live_core())
+    res = mgr.process_camera_frame(
+        camera_id=camera_id,
+        frame_input=payload.image_base64,
+        timestamp_str=payload.timestamp,
+        resident_id=payload.resident_id
+    )
+    return res
+
+
+@router.get("/rooms", summary="Get all room camera telemetry states (Phase 42)")
 def get_rooms():
-    global _room_states, _active_room
+    """Returns independent state for all 5 rooms."""
+    mgr = get_camera_manager(get_live_core())
+    live_rooms = mgr.get_all_rooms()
+
+    # Support both dictionary mapping for backward compatibility and list for Phase 42 clients
+    rooms_map = {r["room_id"]: r for r in live_rooms} if live_rooms else _room_states
     return {
         "success": True,
-        "active_room": _active_room,
-        "rooms": _room_states
+        "active_room": mgr.current_resident_room.value,
+        "rooms": rooms_map,
+        "room_list": live_rooms
     }
 
 
+@router.get("/cameras", summary="Get camera registry and operational health (Phase 2, 43)")
+def get_cameras():
+    mgr = get_camera_manager(get_live_core())
+    return {
+        "success": True,
+        "cameras": mgr.get_all_cameras()
+    }
+
+
+@router.get("/state", summary="Get complete live vision and resident tracking state (Phase 71)")
+def get_vision_state():
+    mgr = get_camera_manager(get_live_core())
+    return {
+        "success": True,
+        "resident": mgr.get_active_resident_state(),
+        "rooms": mgr.get_all_rooms(),
+        "cameras": mgr.get_all_cameras()
+    }
+
+
+@router.post("/cameras/{camera_id}/start", summary="Start camera feed (Phase 43)")
+def start_camera(camera_id: str):
+    mgr = get_camera_manager(get_live_core())
+    tracker = mgr.get_tracker_by_camera_id(camera_id)
+    if tracker:
+        tracker.config.enabled = True
+        tracker.state.camera_status = tracker.state.camera_status.ONLINE
+        return {"success": True, "camera_id": camera_id, "status": "ONLINE"}
+    return {"success": False, "error": f"Camera {camera_id} not found"}
+
+
+@router.post("/cameras/{camera_id}/stop", summary="Stop camera feed (Phase 43)")
+def stop_camera(camera_id: str):
+    mgr = get_camera_manager(get_live_core())
+    tracker = mgr.get_tracker_by_camera_id(camera_id)
+    if tracker:
+        tracker.config.enabled = False
+        tracker.state.camera_status = tracker.state.camera_status.STOPPED
+        return {"success": True, "camera_id": camera_id, "status": "STOPPED"}
+    return {"success": False, "error": f"Camera {camera_id} not found"}
+
+
+@router.post("/monitor/start", summary="Start multi-room vision monitoring (Phase 43)")
+def start_vision_monitor():
+    mgr = get_camera_manager(get_live_core())
+    mgr.start_monitoring()
+    return {"success": True, "status": "MONITORING_ACTIVE"}
+
+
+@router.post("/monitor/stop", summary="Stop multi-room vision monitoring (Phase 43)")
+def stop_vision_monitor():
+    mgr = get_camera_manager(get_live_core())
+    mgr.stop_monitoring()
+    return {"success": True, "status": "MONITORING_STOPPED"}
+
+
+# ------------------------------------------------------------------
+# Backward Compatible Simulation Endpoints
+# ------------------------------------------------------------------
 @router.post("/switch-room", summary="Switch active camera room view")
 def switch_active_room(payload: SwitchRoomPayload):
     global _active_room
+    mgr = get_camera_manager(get_live_core())
     if payload.room_id in _room_states:
         _active_room = payload.room_id
+        for z in ZoneType:
+            if z.value == payload.room_id:
+                mgr.current_resident_room = z
+                break
         return {"success": True, "active_room": _active_room}
     return {"success": False, "error": f"Unknown room: {payload.room_id}"}
 
@@ -103,16 +216,16 @@ def simulate_vision_event(payload: SimulateVisionEventPayload):
     if ev == "fall":
         room["status"] = "FALL_DETECTED"
         room["person_present"] = True
-        room["torso_angle_deg"] = 84.5  # Horizontal on ground
-        room["motion_velocity"] = 2.85  # Acute drop velocity
+        room["torso_angle_deg"] = 84.5
+        room["motion_velocity"] = 2.85
         room["inactivity_seconds"] = 38
         room["risk_level"] = "CRITICAL"
     elif "inactivity" in ev:
         room["status"] = "PROLONGED_INACTIVITY"
         room["person_present"] = True
-        room["torso_angle_deg"] = 62.0  # Slumped motionless
+        room["torso_angle_deg"] = 62.0
         room["motion_velocity"] = 0.02
-        room["inactivity_seconds"] = 320  # > 5 minutes
+        room["inactivity_seconds"] = 320
         room["risk_level"] = "HIGH_INACTIVITY"
     else:
         room["status"] = "NORMAL_MOVEMENT"

@@ -486,3 +486,27 @@ Add this configuration to your MCP clients configuration file:
 }
 ```
 Or use the direct HTTP JSON-RPC endpoint at `http://localhost:8000/mcp`.
+
+---
+
+## 🛡️ NIRA Live Multi-Room Ambient Safety Intelligence System
+
+For full documentation of the multi-room ambient safety architecture, per-room independent state, inter-room handoff, and routine baseline learner, see [Live/README.md](Live/README.md).
+
+### Kaggle Fall Detection Dataset Reference
+
+The NIRA Live vision models are trained on the Kaggle Fall Detection dataset (`uttejkumarkandagatla/fall-detection-dataset`).
+
+#### Download Dataset via `kagglehub`
+```python
+import kagglehub
+
+# Download latest version
+path = kagglehub.dataset_download("uttejkumarkandagatla/fall-detection-dataset")
+
+print("Path to dataset files:", path)
+```
+
+Dataset YAML configuration: `Live/fall_dataset.yaml`  
+Training script: `python Live/train_fall_detector.py`
+
