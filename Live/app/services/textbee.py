@@ -31,7 +31,7 @@ def format_phone_e164(phone: str) -> str:
         return f"+{digits}"
     elif str(phone).startswith("+"):
         return phone
-    return f"+91{digits}" if digits else "+919489240892"
+    return f"+1{digits}" if digits else "+15550184421"
 
 
 class LiveTextBeeService:
@@ -50,7 +50,7 @@ class LiveTextBeeService:
         latitude: Optional[float] = None,
         longitude: Optional[float] = None,
         address: Optional[str] = None,
-        caretaker_name: str = "Dharaneesh N",
+        caretaker_name: str = "David Vance",
         mongo_db: Optional[Any] = None
     ) -> Dict[str, Any]:
         """Dispatches an urgent emergency SMS with live GPS and camera evidence."""

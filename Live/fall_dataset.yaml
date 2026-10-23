@@ -1,4 +1,4 @@
-path: "C:/Users/dharaneesh n/Downloads/archive(13)/fall_dataset"
+path: "./dataset/fall_dataset"
 train: images/train
 val: images/val
 

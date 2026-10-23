@@ -335,8 +335,10 @@ def test_baseline_guardrail_never_suppresses_true_fall_emergency():
 # 7. SCENARIO DISPATCH TESTS (A through F)
 # ---------------------------------------------------------------------------
 
-def test_all_scenarios_dispatchable_and_authoritative():
+def test_all_scenarios_dispatchable_and_authoritative(monkeypatch):
     """Verify all 6 core scenarios trigger correctly and transition authoritative pipeline state."""
+    from app.routers import demo_api
+    monkeypatch.setattr(demo_api, "_run_scenario_background", lambda name: None)
     scenarios = [
         "false_alarm",
         "responsive_emergency",

@@ -361,8 +361,8 @@ def test_emergency_packet_generator_structure():
             "allergies": ["Penicillin"]
         },
         caregiver_info={
-            "name": "Dharaneesh N",
-            "phone": "9489240892"
+            "name": "David Vance",
+            "phone": "+15550184421"
         },
         smart_home_state={
             "door_lock_status": "UNLOCKED",
@@ -372,7 +372,7 @@ def test_emergency_packet_generator_structure():
 
     assert packet.incident_id == inc.incident_id
     assert packet.resident["full_name"] == "Eleanor Vance"
-    assert packet.caregiver_contact["phone"] == "9489240892"
+    assert packet.caregiver_contact["phone"] == "+15550184421"
     assert packet.smart_home_state["front_door_pin"] == "8492"
     assert packet.location["zone"] == "bathroom"
 

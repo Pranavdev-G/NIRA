@@ -70,7 +70,7 @@ async def send_emergency_sms(payload: SendSMSPayload):
         latitude=patient.get("latitude"),
         longitude=patient.get("longitude"),
         address=patient.get("address"),
-        caretaker_name=caretaker.get("caretaker_name", "Dharaneesh N"),
+        caretaker_name=caretaker.get("caretaker_name", "David Vance"),
         mongo_db=mongo_db
     )
     return res

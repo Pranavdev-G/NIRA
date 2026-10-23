@@ -36,20 +36,55 @@ from Live.app.main import app as live_app
 from Live.app.static import __file__ as static_marker_file
 LIVE_STATIC = Path(static_marker_file).parent
 
-# Import Demo app without modifying any file in Demo/
+from contextlib import asynccontextmanager
+
+# Import Demo app and routes
 try:
     from Demo.app.main import app as demo_app
+    from Demo.app.routers.events_api import router as demo_events_router
+    from Demo.app.routers.incidents_api import router as demo_incidents_router
+    from Demo.app.routers.risk_api import router as demo_risk_router
+    from Demo.app.routers.tools_http import router as demo_tools_router
+    from Demo.app.routers.mcp_server import router as demo_mcp_router
+    from Demo.app.routers.demo_api import router as demo_demo_router
+    from Demo.app.routers.security_api import router as demo_security_router
+    from Demo.app.routers.medications_api import router as demo_medications_router
+    from Demo.app.routers.auth_api import router as demo_auth_router
 except Exception as e:
     demo_app = None
+    demo_events_router = None
+    demo_incidents_router = None
+    demo_risk_router = None
+    demo_tools_router = None
+    demo_mcp_router = None
+    demo_demo_router = None
+    demo_security_router = None
+    demo_medications_router = None
+    demo_auth_router = None
     print(f"[NIRA] Demo app import note: {e}")
 
+DEMO_STATIC = DEMO_DIR / "app" / "static"
+
 from Live.app.config import settings
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize SQLite database schema
+    try:
+        from Demo.app.database.session import init_db
+        init_db()
+    except Exception as e:
+        print(f"[NIRA DB Init Note] {e}")
+    yield
+
 
 # Master Unified Application
 app = FastAPI(
     title="NIRA — Unified Ambient AI Safety Platform",
-    description="Amazon Developer Hackathon 2026. Caretaker Portal, Real-Time Ingestion, and Demo Showcase.",
-    version="2.0.0"
+    description="Amazon Developer Hackathon 2026. Unified Ambient Elderly Care, Live Ingestion, and Demo Systems.",
+    version="2.0.0",
+    lifespan=lifespan
 )
 
 app.add_middleware(
@@ -63,10 +98,14 @@ app.add_middleware(
 # Mount Live Static Files
 app.mount("/live/static", StaticFiles(directory=str(LIVE_STATIC)), name="live_static_mount")
 
+# Mount Demo Static Files (also at /static for universal asset loading)
+if DEMO_STATIC.exists():
+    app.mount("/static", StaticFiles(directory=str(DEMO_STATIC)), name="demo_static_mount")
+
 # Mount Live Application sub-router & endpoints
 app.mount("/live-engine", live_app)
 
-# Mount Demo App if available under /demo (Untouched Demo/ folder)
+# Mount Demo App if available under /demo
 if demo_app is not None:
     app.mount("/demo", demo_app)
 
@@ -87,7 +126,7 @@ def gateway_index():
 @app.get("/login", summary="Caretaker Login & Registration Portal")
 def login_portal():
     """Serves the Caretaker Portal with Sign In and full Registration forms."""
-    login_file = LIVE_STATIC / "login.html"
+    login_file = DEMO_STATIC / "login.html" if DEMO_STATIC.exists() else LIVE_STATIC / "login.html"
     if login_file.exists():
         return FileResponse(login_file)
     return FileResponse(LIVE_STATIC / "gateway.html")
@@ -102,13 +141,45 @@ def live_console():
     return RedirectResponse(url="/")
 
 
+@app.get("/dashboard", summary="NIRA Ambient Safety Dashboard")
+def dashboard_console():
+    """Serves the primary NIRA Ambient Care Dashboard."""
+    dash_file = DEMO_STATIC / "index.html"
+    if dash_file.exists():
+        return FileResponse(dash_file)
+    return RedirectResponse(url="/live")
+
+
+@app.get("/admin", summary="NIRA Family Admin Guardian Portal")
+def admin_portal():
+    """Serves the Family Admin Guardian Console."""
+    admin_file = DEMO_STATIC / "admin.html"
+    if admin_file.exists():
+        return FileResponse(admin_file)
+    return RedirectResponse(url="/dashboard")
+
+
+# Include Demo System routers on root app
+for r in [
+    demo_events_router,
+    demo_incidents_router,
+    demo_risk_router,
+    demo_tools_router,
+    demo_mcp_router,
+    demo_demo_router,
+    demo_security_router,
+    demo_medications_router,
+    demo_auth_router,
+]:
+    if r is not None:
+        app.include_router(r)
+
 # Forward Live APIs to live_app routers
 for route in live_app.routes:
     if hasattr(route, "path") and (route.path.startswith("/api/v1/live") or route.path.startswith("/live")):
-        # Routers already mounted via /live-engine and submounted
         pass
 
-# Also include the routers directly on root app for direct access /api/v1/live/*
+# Also include the Live routers directly on root app for direct access /api/v1/live/*
 from Live.app.routers.core_api import router as live_core_router
 from Live.app.routers.auth import router as live_auth_router
 from Live.app.routers.location import router as live_location_router

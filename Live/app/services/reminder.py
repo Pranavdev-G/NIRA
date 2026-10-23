@@ -129,7 +129,7 @@ class LiveReminderService:
             alert_sent = False
         else:
             med["status"] = "MISSED"
-            system_response = f"Please remember to take your {med['name']} {med['dose']} right away. I am sending an update to your caretaker {caretaker.get('caretaker_name', 'Dharaneesh')}."
+            system_response = f"Please remember to take your {med['name']} {med['dose']} right away. I am sending an update to your caretaker {caretaker.get('caretaker_name', 'David Vance')}."
 
             # Dispatch TextBEE notification to caretaker
             sms_text = (

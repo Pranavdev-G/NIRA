@@ -515,9 +515,9 @@
       </div>
 
       <div class="header-badge">
-        <span>Caretaker: <strong id="lblCaretakerName">Dharaneesh N</strong></span>
+        <span>Caretaker: <strong id="lblCaretakerName">David Vance</strong></span>
         <span>&bull;</span>
-        <span id="lblCaretakerPhone">📱 9489240892</span>
+        <span id="lblCaretakerPhone">📱 +1 (555) 018-4421</span>
       </div>
 
       <div class="header-badge">
@@ -811,8 +811,8 @@
       if (cgStr) {
         try {
           const cg = JSON.parse(cgStr);
-          document.getElementById('lblCaretakerName').textContent = cg.name || cg.caretaker_name || 'Dharaneesh N';
-          document.getElementById('lblCaretakerPhone').textContent = `📱 ${cg.mobile || cg.mobile_number || '9489240892'}`;
+          document.getElementById('lblCaretakerName').textContent = cg.name || cg.caretaker_name || 'David Vance';
+          document.getElementById('lblCaretakerPhone').textContent = `📱 ${cg.mobile || cg.mobile_number || '+1 (555) 018-4421'}`;
         } catch(e) {}
       }
     }

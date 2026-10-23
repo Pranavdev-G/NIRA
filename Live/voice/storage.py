@@ -24,10 +24,7 @@ except ImportError:
 logger = logging.getLogger("NIRA.VoiceStorage")
 
 DEFAULT_DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "aegis_care.db"))
-DEFAULT_MONGO_URI = (
-    "mongodb+srv://dharaneesh0530_db_user:Dharaneesh!30@cluster0.hgkmalq.mongodb.net/?retryWrites=true&w=majority"
-)
-MONGODB_URI = os.getenv("MONGODB_URI", DEFAULT_MONGO_URI)
+MONGODB_URI = os.getenv("MONGODB_URI", "")
 MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME", "nira_db")
 
 
@@ -45,8 +42,8 @@ class VoiceStorage:
         self._init_tables()
 
     def _init_mongo(self):
-        """Initializes MongoDB Atlas connection if pymongo is installed."""
-        if not PYMONGO_AVAILABLE:
+        """Initializes MongoDB Atlas connection if pymongo is installed and URI configured."""
+        if not PYMONGO_AVAILABLE or not self.mongo_uri:
             return
         try:
             self._mongo_client = MongoClient(

@@ -1,0 +1,30 @@
+# ==============================================================================
+# NIRA Ambient Care — Core & Production Dependencies
+# Amazon Developer Hackathon 2026
+# ==============================================================================
+
+# Core Web & API Framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.8.0
+pydantic-settings>=2.4.0
+python-dotenv>=1.0.0
+requests>=2.31.0
+httpx>=0.27.0
+
+# Database & Persistence
+sqlalchemy>=2.0.0
+pymongo>=4.6.0
+
+# Computer Vision, Pose Estimation & ML
+numpy>=1.24.0
+opencv-python>=4.8.0
+ultralytics>=8.0.0
+
+# Speech, Audio & AI Inference
+huggingface-hub>=0.23.0
+scipy>=1.11.0
+
+# Testing & Quality Assurance
+pytest>=8.0.0
+pytest-asyncio>=0.23.0

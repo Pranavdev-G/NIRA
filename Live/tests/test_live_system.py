@@ -40,9 +40,9 @@ def test_gateway_and_login_page_renders():
 def test_caretaker_registration_and_login_flow():
     """Verify registration with all 9 fields and signin with username/mobile/email."""
     payload = {
-        "caretaker_name": "Dharaneesh N",
-        "mobile_number": "9489240892",
-        "email": "dharaneesh@nira-health.org",
+        "caretaker_name": "David Vance",
+        "mobile_number": "+15550184421",
+        "email": "david.vance@example.com",
         "caring_person_name": "Eleanor Vance",
         "address": "Residence Unit 4B - Beacon Hill, Boston MA",
         "latitude": 42.3601,
@@ -59,13 +59,13 @@ def test_caretaker_registration_and_login_flow():
     assert reg_resp.status_code == 200
     reg_data = reg_resp.json()
     assert reg_data["success"] is True
-    assert reg_data["caregiver"]["name"] == "Dharaneesh N"
-    assert reg_data["caregiver"]["mobile"] == "9489240892"
+    assert reg_data["caregiver"]["name"] == "David Vance"
+    assert reg_data["caregiver"]["mobile"] == "+15550184421"
 
     # Sign in via mobile
     login_mobile = client.post(
         "/api/v1/live/auth/login",
-        json={"identifier": "9489240892", "password": "SecurePassword!2026"}
+        json={"identifier": "+15550184421", "password": "SecurePassword!2026"}
     )
     assert login_mobile.status_code == 200
     assert login_mobile.json()["success"] is True
@@ -73,7 +73,7 @@ def test_caretaker_registration_and_login_flow():
     # Sign in via email
     login_email = client.post(
         "/api/v1/live/auth/login",
-        json={"identifier": "dharaneesh@nira-health.org", "password": "SecurePassword!2026"}
+        json={"identifier": "david.vance@example.com", "password": "SecurePassword!2026"}
     )
     assert login_email.status_code == 200
     assert login_email.json()["success"] is True

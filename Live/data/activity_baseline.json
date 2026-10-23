@@ -1,8 +1,8 @@
 {
   "version": "2.0.0",
   "resident_id": "resident_live",
-  "total_learned_events": 4,
-  "suppressed_false_alarms": 9,
+  "total_learned_events": 5,
+  "suppressed_false_alarms": 11,
   "hourly_zones": {
     "0": {
       "bathroom": {
@@ -982,10 +982,10 @@
       "living_room": {
         "observations_count": 1,
         "mean_inactivity_sec": 180.0,
-        "max_observed_safe_sec": 180.0,
-        "tolerated_threshold_sec": 180.0,
-        "dismissed_alarms_count": 0,
-        "last_updated": "2026-10-22T18:15:09.033091+00:00"
+        "max_observed_safe_sec": 700.0,
+        "tolerated_threshold_sec": 805.0,
+        "dismissed_alarms_count": 2,
+        "last_updated": "2026-10-23T19:48:02.231522+00:00"
       },
       "bedroom": {
         "observations_count": 1,
@@ -1253,19 +1253,20 @@
       "last_update": "2026-10-23T10:00:00+00:00"
     },
     "living_room": {
-      "visit_count": 2,
-      "median_duration_sec": 3360.0,
+      "visit_count": 3,
+      "median_duration_sec": 3139.2,
       "mean_duration_sec": 3600.0,
       "p75_duration_sec": 4140.0,
       "p90_duration_sec": 3600.0,
       "safe_max_duration_sec": 7200.0,
-      "confidence": 0.54,
+      "confidence": 0.56,
       "history_samples": [
         3600.0,
+        600.0,
         600.0
       ],
-      "safe_exceptions_count": 1,
-      "last_update": "2026-10-23T17:39:56.529955+00:00"
+      "safe_exceptions_count": 2,
+      "last_update": "2026-10-23T19:48:02.221778+00:00"
     },
     "bedroom": {
       "visit_count": 1,

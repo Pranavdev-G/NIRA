@@ -14,11 +14,11 @@ from Live.app.services.textbee import format_phone_e164
 logger = logging.getLogger("NIRA.LiveSession")
 
 DEFAULT_CAREGIVER_DATA: Dict[str, Any] = {
-    "id": "cg_default_dharaneesh",
-    "caretaker_name": "Dharaneesh N",
-    "mobile_number": "9489240892",
-    "email": "dharaneesh@nira-health.org",
-    "username": "dharaneesh",
+    "id": "cg_default_david_vance",
+    "caretaker_name": "David Vance",
+    "mobile_number": "+15550184421",
+    "email": "david.vance@example.com",
+    "username": "david_vance",
     "caring_person_name": "Eleanor Vance",
     "address": "Residence Unit 4B - Beacon Hill, Boston MA 02108",
     "latitude": 42.3601,
@@ -79,8 +79,8 @@ class LiveSessionManager:
             "age": _active_caregiver.get("age", 79),
             "disabilities": _active_caregiver.get("disabilities", "None noted"),
             "health_issues": _active_caregiver.get("health_issues", "Hypertension"),
-            "caretaker_name": _active_caregiver.get("caretaker_name", "Dharaneesh N"),
-            "caretaker_phone": _active_caregiver.get("mobile_number", "9489240892")
+            "caretaker_name": _active_caregiver.get("caretaker_name", "David Vance"),
+            "caretaker_phone": _active_caregiver.get("mobile_number", "+15550184421")
         }
 
     @classmethod
@@ -157,7 +157,7 @@ class LiveSessionManager:
         doc = {
             "id": cg_id,
             "caretaker_name": data.get("caretaker_name", "Caretaker"),
-            "mobile_number": str(data.get("mobile_number", "9489240892")).strip(),
+            "mobile_number": str(data.get("mobile_number", "+15550184421")).strip(),
             "email": str(data.get("email", "")).strip().lower(),
             "username": username.lower(),
             "password_hash": hash_password(data.get("password", "admin123")),
@@ -237,10 +237,10 @@ class LiveSessionManager:
         global _active_caregiver
         if (
             clean_id_lower in [_active_caregiver.get("email", "").lower(), _active_caregiver.get("username", "").lower(), _active_caregiver.get("mobile_number")]
-            or clean_id in ["admin", "dharaneesh", "9489240892", "+919489240892"]
+            or clean_id in ["admin", "caregiver", "david_vance", "+15550184421", "5550184421"]
         ):
             if (
-                password in ["admin123", "password", "9489240892", "admin"]
+                password in ["admin123", "password", "5550184421", "admin"]
                 or verify_password(password, _active_caregiver.get("password_hash", ""))
             ):
                 cls.set_active_caregiver(_active_caregiver)

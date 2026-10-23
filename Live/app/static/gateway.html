@@ -282,9 +282,9 @@
 
     <div style="display: flex; align-items: center; gap: 12px;">
       <div class="user-pill">
-        <span>Caretaker: <strong id="barCaretakerName">Dharaneesh N</strong></span>
+        <span>Caretaker: <strong id="barCaretakerName">David Vance</strong></span>
         <span style="color: var(--text-muted);">&bull;</span>
-        <span id="barCaretakerPhone">📱 9489240892</span>
+        <span id="barCaretakerPhone">📱 +1 (555) 018-4421</span>
       </div>
       <button class="btn-signout" onclick="handleSignOut()">Sign Out</button>
     </div>
@@ -350,8 +350,8 @@
       if (cgStr) {
         try {
           const cg = JSON.parse(cgStr);
-          document.getElementById('barCaretakerName').textContent = cg.name || cg.caretaker_name || 'Dharaneesh N';
-          document.getElementById('barCaretakerPhone').textContent = `📱 ${cg.mobile || cg.mobile_number || '9489240892'}`;
+          document.getElementById('barCaretakerName').textContent = cg.name || cg.caretaker_name || 'David Vance';
+          document.getElementById('barCaretakerPhone').textContent = `📱 ${cg.mobile || cg.mobile_number || '+1 (555) 018-4421'}`;
         } catch(e) {}
       }
     }

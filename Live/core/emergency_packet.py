@@ -121,10 +121,10 @@ class EmergencyPacketBuilder:
 
         # 7. Caregiver Information
         caregiver_data = {
-            "name": caregiver.get("caretaker_name") or caregiver.get("name") or "Dharaneesh N",
-            "phone": caregiver.get("mobile_number") or caregiver.get("phone") or "9489240892",
+            "name": caregiver.get("caretaker_name") or caregiver.get("name") or "David Vance",
+            "phone": caregiver.get("mobile_number") or caregiver.get("phone") or "+15550184421",
             "relationship": caregiver.get("relationship", "Primary Caregiver / Son"),
-            "email": caregiver.get("email", "dharaneesh@nira-health.org")
+            "email": caregiver.get("email", "david.vance@example.com")
         }
 
         # 8. Smart Home State

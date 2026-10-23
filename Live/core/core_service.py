@@ -429,7 +429,7 @@ class CoreService:
                     incident_id=incident.incident_id,
                     patient_name=patient.get("name", "Eleanor Vance"),
                     severity=incident.severity.value,
-                    recipient_phone=caregiver.get("mobile_number", "9489240892"),
+                    recipient_phone=caregiver.get("mobile_number", "+15550184421"),
                     latitude=patient.get("latitude", 42.3601),
                     longitude=patient.get("longitude", -71.0589),
                     address=patient.get("address")
@@ -437,8 +437,8 @@ class CoreService:
                 self.incident_manager.record_caregiver_action(
                     incident_id=incident.incident_id,
                     action_type="TEXTBEE_EMERGENCY_SMS_DISPATCHED",
-                    caregiver_name=caregiver.get("caretaker_name", "Dharaneesh N"),
-                    phone=caregiver.get("mobile_number", "9489240892"),
+                    caregiver_name=caregiver.get("caretaker_name", "David Vance"),
+                    phone=caregiver.get("mobile_number", "+15550184421"),
                     notes=f"Batch ID: {res.get('batch_id', 'TXB-DISPATCHED')}"
                 )
                 self.bus.publish_sync("sms_dispatched", res)
