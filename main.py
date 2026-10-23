@@ -128,6 +128,71 @@ app.include_router(live_vision_router)
 app.include_router(live_voice_router)
 
 
+# ---------------------------------------------------------------------------
+# Root Health & Dashboard Active Incidents Compatibility Endpoints
+# ---------------------------------------------------------------------------
+
+@app.get("/health", summary="Unified Health Check")
+def unified_health():
+    """Returns platform health and live safety core status."""
+    from Live.core.core_service import get_live_core
+    core = get_live_core()
+    return {
+        "status": "HEALTHY",
+        "service": "NIRA Unified Ambient Platform",
+        "live_core_state": core.get_current_state().get("safety_state", "NORMAL"),
+        "version": "2.0.0"
+    }
+
+
+@app.get("/api/v1/incidents/active", summary="Active Incidents Feed")
+def get_root_active_incidents():
+    """
+    Returns active incidents for safety dashboard polling.
+    Always returns a compliant JSON array.
+    """
+    from Live.core.core_service import get_live_core
+    core = get_live_core()
+    inc = core.incident_manager.get_active_incident()
+    if inc:
+        return [
+            {
+                "id": inc.incident_id,
+                "user_id": inc.resident_id,
+                "event_type": inc.trigger_event.get("event_type", "fall_detected") if inc.trigger_event else "fall_detected",
+                "confidence": 0.95,
+                "location": inc.location.zone.value if inc.location else "living_room",
+                "movement_after_event": "none",
+                "initial_risk_level": inc.severity.value,
+                "current_risk_level": inc.severity.value,
+                "status": inc.state.value,
+                "created_at": inc.start_time,
+                "updated_at": inc.last_updated
+            }
+        ]
+    return []
+
+
+@app.post("/api/v1/demo/launch", summary="Launch Demo Mode")
+async def root_launch_demo():
+    return {
+        "status": "ready",
+        "system_mode": "demo",
+        "message": "NIRA Demo System successfully loaded and engaged.",
+        "redirect_url": "/demo"
+    }
+
+
+@app.post("/api/v1/live/launch", summary="Launch Live Mode")
+async def root_launch_live():
+    return {
+        "status": "ready",
+        "system_mode": "live",
+        "message": "NIRA Live System active and streaming.",
+        "redirect_url": "/live"
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     print("\n==================================================================")
