@@ -50,6 +50,7 @@ try:
     from Demo.app.routers.security_api import router as demo_security_router
     from Demo.app.routers.medications_api import router as demo_medications_router
     from Demo.app.routers.auth_api import router as demo_auth_router
+    from Demo.app.routers.live_api import router as demo_live_router
 except Exception as e:
     demo_app = None
     demo_events_router = None
@@ -61,6 +62,7 @@ except Exception as e:
     demo_security_router = None
     demo_medications_router = None
     demo_auth_router = None
+    demo_live_router = None
     print(f"[NIRA] Demo app import note: {e}")
 
 DEMO_STATIC = DEMO_DIR / "app" / "static"
@@ -170,6 +172,7 @@ for r in [
     demo_security_router,
     demo_medications_router,
     demo_auth_router,
+    demo_live_router,
 ]:
     if r is not None:
         app.include_router(r)
