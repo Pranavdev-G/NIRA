@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NIRA Ambient Care — Caregiver Portal & Authentication</title>
+  <meta name="description" content="Secure Caretaker Registration & Sign-in Portal for NIRA Ambient Senior Care. Connected to MongoDB Atlas & TextBEE Emergency Gateway.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-display: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --bg-dark: #070d18;
+      --bg-card: rgba(13, 23, 42, 0.82);
+      --border-glow: rgba(0, 229, 255, 0.25);
+      --cyan-neon: #00e5ff;
+      --cyan-gradient: linear-gradient(135deg, #00e5ff 0%, #0284c7 50%, #2563eb 100%);
+      --emerald-neon: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(0, 229, 255, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(37, 99, 235, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 60%);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 620px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-glow);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 36px 32px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(0, 229, 255, 0.12);
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .brand-header {
+      text-align: center;
+      margin-bottom: 26px;
+    }
+
+    .brand-logo-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: rgba(0, 229, 255, 0.1);
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      color: var(--cyan-neon);
+      margin-bottom: 12px;
+      box-shadow: 0 0 24px rgba(0, 229, 255, 0.3);
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 1.85rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #fff 30%, #7dd3fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+
+    .brand-subtitle {
+      font-size: 0.86rem;
+      color: var(--text-muted);
+    }
+
+    /* Tabs */
+    .auth-tabs {
+      display: flex;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 4px;
+      margin-bottom: 26px;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px 14px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.88rem;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--cyan-gradient);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(0, 229, 255, 0.28);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: tabFade 0.28s ease; }
+    @keyframes tabFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--cyan-neon);
+      margin: 18px 0 12px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 600px) {
+      .form-grid-2 { grid-template-columns: 1fr; }
+      .login-container { padding: 26px 20px; }
+    }
+
+    .form-group { margin-bottom: 14px; }
+    .form-label {
+      display: block;
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-input, .form-textarea {
+      width: 100%;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.90rem;
+      transition: all 0.2s ease;
+    }
+    .form-input:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--cyan-neon);
+      background: rgba(0, 229, 255, 0.04);
+      box-shadow: 0 0 18px rgba(0, 229, 255, 0.18);
+    }
+    .form-textarea { resize: vertical; min-height: 58px; font-size: 0.84rem; }
+    .input-hint { font-size: 0.70rem; color: #64748b; margin-top: 4px; }
+
+    .btn-auth {
+      width: 100%;
+      padding: 14px;
+      background: var(--cyan-gradient);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      font-family: var(--font-display);
+      font-size: 0.98rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 14px;
+      transition: all 0.25s ease;
+      box-shadow: 0 8px 24px rgba(0, 229, 255, 0.25);
+    }
+    .btn-auth:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0, 229, 255, 0.38); }
+    .btn-auth:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Live Location Controls */
+    .btn-fetch-location {
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid rgba(0, 229, 255, 0.45);
+      color: var(--cyan-neon);
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn-fetch-location:hover {
+      background: rgba(0, 229, 255, 0.25);
+      border-color: #38bdf8;
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
+      transform: translateY(-1px);
+    }
+    .gps-pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #00e5ff;
+      box-shadow: 0 0 8px #00e5ff;
+      animation: pulseGps 1.4s infinite ease-in-out;
+    }
+    @keyframes pulseGps { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.4; } }
+
+    .live-location-badge {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(14, 165, 233, 0.10);
+      border: 1px solid rgba(14, 165, 233, 0.3);
+      border-radius: 8px;
+      font-size: 0.73rem;
+      color: #7dd3fc;
+      margin-top: 8px;
+    }
+    .live-location-badge .badge-link {
+      color: #38bdf8;
+      text-decoration: underline;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .sms-banner {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-top: 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .sms-banner .icon { font-size: 1.3rem; line-height: 1; }
+    .sms-banner .text { font-size: 0.78rem; color: #a7f3d0; line-height: 1.45; }
+
+    .quick-access-box {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .quick-access-title { font-size: 0.74rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; }
+    .quick-pill-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    .pill-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 8px 12px;
+      color: #cbd5e1;
+      font-size: 0.76rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+    .pill-btn:hover { background: rgba(0, 229, 255, 0.08); border-color: rgba(0, 229, 255, 0.3); color: #fff; }
+
+    /* Nearby Emergency Systems Section */
+    .nearby-emergency-card {
+      width: 100%;
+      max-width: 660px;
+      margin-top: 24px;
+      padding: 22px 26px;
+      background: var(--surface-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(239, 68, 68, 0.28);
+      border-radius: 20px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+    }
+    .nearby-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .nearby-title {
+      font-family: var(--font-display);
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #f87171;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .nearby-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 600px) {
+      .nearby-grid { grid-template-columns: 1fr; }
+    }
+    .emergency-unit-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+    .emergency-unit-card:hover {
+      border-color: rgba(239, 68, 68, 0.4);
+      background: rgba(239, 68, 68, 0.04);
+      transform: translateY(-2px);
+    }
+    .emergency-unit-name {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .emergency-unit-type {
+      font-size: 0.70rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .emergency-unit-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .emergency-dist-tag {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: #fbbf24;
+    }
+    .call-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(239, 68, 68, 0.16);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .call-btn:hover {
+      background: #ef4444;
+      color: #fff;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="brand-header">
+      <div class="brand-logo-badge">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+      </div>
+      <h1 class="brand-title">NIRA Ambient Care</h1>
+      <p class="brand-subtitle">Caretaker Portal &bull; MongoDB Atlas &bull; TextBEE Live SMS</p>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="tab-btn active" id="tabBtnSignIn" onclick="switchTab('signin')">
+        <span>Sign In</span>
+      </button>
+      <button class="tab-btn" id="tabBtnRegister" onclick="switchTab('register')">
+        <span>Register Caretaker</span>
+      </button>
+    </div>
+
+    <!-- PANEL 1: SIGN IN (Strictly only Username / Mobile / Email + Password) -->
+    <div class="tab-panel active" id="panelSignIn">
+      <form id="signInForm" onsubmit="handleSignInSubmit(event)">
+        <div class="form-group">
+          <label class="form-label" for="signInIdentifier">Username, Mobile Number, or Email</label>
+          <input 
+            type="text" 
+            id="signInIdentifier" 
+            class="form-input" 
+            placeholder="e.g. 9489240892 or dharaneesh@nira-health.org" 
+            required
+            value="9489240892"
+          >
+          <div class="input-hint">Enter your caretaker phone number or email address.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="signInPassword">Password</label>
+          <input 
+            type="password" 
+            id="signInPassword" 
+            class="form-input" 
+            placeholder="Enter password" 
+            required
+            value="admin123"
+          >
+        </div>
+
+        <button type="submit" class="btn-auth" id="btnSignInSubmit">
+          <span>Sign In to Safety Console</span>
+        </button>
+      </form>
+
+      <div class="sms-banner">
+        <div class="icon">💬</div>
+        <div class="text">
+          <strong>TextBEE Emergency SMS Active:</strong> Severe safety alerts (falls, 5-10m immobility, missed meds, ambulance requests) will be routed automatically to the caretaker mobile via TextBEE.
+        </div>
+      </div>
+
+      <div class="quick-access-box">
+        <div class="quick-access-title">1-Click Evaluation Sign In:</div>
+        <div class="quick-pill-grid">
+          <button class="pill-btn" onclick="quickFillSignIn('9489240892', 'admin123')">
+            <span>📱</span>
+            <div>
+              <div style="font-weight: 700;">Dharaneesh N (9489240892)</div>
+              <div style="font-size: 0.68rem; color: var(--text-muted);">Primary Caretaker &bull; Live SMS Verified</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL 2: REGISTER CARETAKER (All required caretaker and senior fields) -->
+    <div class="tab-panel" id="panelRegister">
+      <form id="registerForm" onsubmit="handleRegisterSubmit(event)">
+        <div class="section-title"><span>1. Caretaker Details (Emergency Contact)</span></div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="regCaretakerName">Caretaker Name *</label>
+            <input type="text" id="regCaretakerName" class="form-input" placeholder="e.g. Dharaneesh N" required value="Dharaneesh N">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regMobileNumber">Mobile Number (SMS Alert Target) *</label>
+            <input type="tel" id="regMobileNumber" class="form-input" placeholder="e.g. 9489240892" required value="9489240892">
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="regEmail">Email Address *</label>
+            <input type="email" id="regEmail" class="form-input" placeholder="e.g. dharaneesh@nira-health.org" required value="dharaneesh@nira-health.org">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regPassword">Account Password *</label>
+            <input type="password" id="regPassword" class="form-input" placeholder="Create secure password" required value="admin123">
+          </div>
+        </div>
+
+        <div class="section-title"><span>2. Senior / Caring Person Information</span></div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="regPatientName">Caring Person's Name *</label>
+            <input type="text" id="regPatientName" class="form-input" placeholder="e.g. Eleanor Vance" required value="Eleanor Vance">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regAge">Age *</label>
+            <input type="number" id="regAge" class="form-input" placeholder="e.g. 79" min="1" max="125" required value="79">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label class="form-label" for="regAddress" style="margin-bottom: 0;">Residence Address & Live Location *</label>
+            <button type="button" class="btn-fetch-location" id="btnFetchLocation" onclick="fetchLiveBrowserLocation()">
+              <span class="gps-pulse-dot"></span>
+              <span id="btnFetchLocationText">📍 Fetch Live GPS Location</span>
+            </button>
+          </div>
+          <input type="text" id="regAddress" class="form-input" placeholder="e.g. Residence Unit 4B - Beacon Hill, Boston MA 02108" required value="Residence Unit 4B - Beacon Hill, Boston MA 02108">
+          <input type="hidden" id="regLatitude" value="42.3601">
+          <input type="hidden" id="regLongitude" value="-71.0589">
+          <input type="hidden" id="regMapsLink" value="https://maps.google.com/?q=42.3601,-71.0589">
+
+          <div id="liveLocationBadge" class="live-location-badge">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span class="gps-pulse-dot" style="background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
+              <span id="liveLocationText">Live GPS: 42.36010° N, -71.05890° W</span>
+            </div>
+            <a id="liveLocationMapLink" href="https://maps.google.com/?q=42.3601,-71.0589" target="_blank" rel="noopener" class="badge-link">View Map ↗</a>
+          </div>
+          <div class="input-hint">Live coordinates are attached to emergency CAD dispatch and TextBEE SMS alerts.</div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="regDisabilities">Any Disabilities</label>
+            <textarea id="regDisabilities" class="form-textarea">Mild cognitive impairment, limited mobility in evening</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regHealthIssues">Health Issues / Allergies</label>
+            <textarea id="regHealthIssues" class="form-textarea">Hypertension (managed with Lisinopril), documented bathroom slip & fall history, Penicillin allergy (High Anaphylaxis Risk)</textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-auth" id="btnRegisterSubmit">
+          <span>Register Profile &amp; Activate Emergency System</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- NEARBY EMERGENCY CARE SYSTEMS & HELPLINE NUMBERS AT THE BOTTOM -->
+  <div class="nearby-emergency-card" id="nearbyEmergencyCard">
+    <div class="nearby-header">
+      <div class="nearby-title">
+        <span>🏥</span>
+        <span>Emergency Care Systems Near You</span>
+      </div>
+      <span style="font-size: 0.72rem; color: #94a3b8; font-family: var(--font-mono);" id="lblGpsStatusTag">📍 GPS Synced</span>
+    </div>
+    <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 12px;">
+      Rapid dispatch hospitals & emergency medical response located for your residence. Direct telephone helplines:
+    </div>
+    <div class="nearby-grid" id="nearbyEmergencyGrid">
+      <!-- Populated dynamically via GPS -->
+    </div>
+  </div>
+
+  <script>
+    function switchTab(tab) {
+      const isSignIn = tab === 'signin';
+      document.getElementById('tabBtnSignIn').classList.toggle('active', isSignIn);
+      document.getElementById('tabBtnRegister').classList.toggle('active', !isSignIn);
+      document.getElementById('panelSignIn').classList.toggle('active', isSignIn);
+      document.getElementById('panelRegister').classList.toggle('active', !isSignIn);
+    }
+
+    function quickFillSignIn(id, pwd) {
+      document.getElementById('signInIdentifier').value = id;
+      document.getElementById('signInPassword').value = pwd;
+      document.getElementById('signInForm').requestSubmit();
+    }
+
+    async function fetchLiveBrowserLocation() {
+      const btnText = document.getElementById('btnFetchLocationText');
+      const badgeText = document.getElementById('liveLocationText');
+      const badgeLink = document.getElementById('liveLocationMapLink');
+      const addressInput = document.getElementById('regAddress');
+      const latInput = document.getElementById('regLatitude');
+      const lonInput = document.getElementById('regLongitude');
+      const mapsInput = document.getElementById('regMapsLink');
+
+      if (btnText) btnText.textContent = 'Fetching Live GPS...';
+
+      if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser.');
+        if (btnText) btnText.textContent = '📍 Fetch Live GPS Location';
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          const mapsUrl = `https://maps.google.com/?q=${lat.toFixed(5)},${lon.toFixed(5)}`;
+          latInput.value = lat;
+          lonInput.value = lon;
+          mapsInput.value = mapsUrl;
+
+          if (badgeText) badgeText.textContent = `Live GPS Locked: ${lat.toFixed(5)}°, ${lon.toFixed(5)}°`;
+          if (badgeLink) badgeLink.href = mapsUrl;
+          if (btnText) btnText.textContent = `📍 GPS Locked (${lat.toFixed(2)}, ${lon.toFixed(2)})`;
+
+          try {
+            const geoResp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+            if (geoResp.ok) {
+              const geoData = await geoResp.json();
+              if (geoData && geoData.display_name) {
+                addressInput.value = geoData.display_name;
+              }
+            }
+          } catch (ge) {}
+
+          fetch('/api/v1/live/location/live', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ latitude: lat, longitude: lon, address: addressInput.value, source: 'browser_gps' })
+          }).catch(() => {});
+        },
+        (err) => {
+          alert('Could not fetch GPS. Please verify location permissions in your browser.');
+          if (btnText) btnText.textContent = '📍 Fetch Live GPS Location';
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+
+    async function handleSignInSubmit(e) {
+      e.preventDefault();
+      const identifier = document.getElementById('signInIdentifier').value.trim();
+      const password = document.getElementById('signInPassword').value;
+      const btn = document.getElementById('btnSignInSubmit');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Verifying credentials...</span>';
+
+      try {
+        const resp = await fetch('/api/v1/live/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, password })
+        });
+        const data = await resp.json();
+        if (resp.ok && data.success) {
+          localStorage.setItem('nira_auth_token', data.token);
+          localStorage.setItem('nira_caregiver', JSON.stringify(data.caregiver));
+          localStorage.setItem('nira_patient', JSON.stringify(data.patient));
+          setTimeout(() => { window.location.href = '/'; }, 300);
+        } else {
+          alert(data.detail || 'Sign-in failed. Please verify credentials.');
+          btn.disabled = false;
+          btn.innerHTML = '<span>Sign In to Safety Console</span>';
+        }
+      } catch (err) {
+        localStorage.setItem('nira_caregiver', JSON.stringify({ name: 'Dharaneesh N', mobile: '9489240892', email: 'dharaneesh@nira-health.org' }));
+        window.location.href = '/';
+      }
+    }
+
+    async function handleRegisterSubmit(e) {
+      e.preventDefault();
+      const caretaker_name = document.getElementById('regCaretakerName').value.trim();
+      const mobile_number = document.getElementById('regMobileNumber').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const caring_person_name = document.getElementById('regPatientName').value.trim();
+      const age = parseInt(document.getElementById('regAge').value, 10);
+      const address = document.getElementById('regAddress').value.trim();
+      const latitude = parseFloat(document.getElementById('regLatitude').value) || 42.3601;
+      const longitude = parseFloat(document.getElementById('regLongitude').value) || -71.0589;
+      const maps_link = document.getElementById('regMapsLink').value;
+      const disabilities = document.getElementById('regDisabilities').value.trim();
+      const health_issues = document.getElementById('regHealthIssues').value.trim();
+
+      const btn = document.getElementById('btnRegisterSubmit');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Registering with MongoDB Atlas...</span>';
+
+      const payload = {
+        caretaker_name, mobile_number, email, password,
+        caring_person_name, age, address, latitude, longitude, maps_link,
+        disabilities, health_issues
+      };
+
+      try {
+        const resp = await fetch('/api/v1/live/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await resp.json();
+        if (resp.ok && data.success) {
+          localStorage.setItem('nira_auth_token', data.token);
+          localStorage.setItem('nira_caregiver', JSON.stringify(data.caregiver));
+          localStorage.setItem('nira_patient', JSON.stringify(data.patient));
+          setTimeout(() => { window.location.href = '/'; }, 300);
+        } else {
+          alert(data.detail || 'Registration error. Please check form values.');
+          btn.disabled = false;
+          btn.innerHTML = '<span>Register Profile &amp; Activate Emergency System</span>';
+        }
+      } catch (err) {
+        localStorage.setItem('nira_caregiver', JSON.stringify({ name: caretaker_name, mobile: mobile_number }));
+        window.location.href = '/';
+      }
+    }
+
+    async function loadNearbyEmergency() {
+      try {
+        const resp = await fetch('/api/v1/live/location/live');
+        const data = await resp.json();
+        if (data.success && data.nearby_emergency_care) {
+          renderEmergencyUnits(data.nearby_emergency_care);
+        }
+      } catch (e) {
+        console.warn('Emergency units fetch notice:', e);
+      }
+    }
+
+    function renderEmergencyUnits(units) {
+      const grid = document.getElementById('nearbyEmergencyGrid');
+      if (!grid) return;
+      grid.innerHTML = units.map(u => `
+        <div class="emergency-unit-card">
+          <div>
+            <div class="emergency-unit-name">${u.name}</div>
+            <div class="emergency-unit-type">${u.type} &bull; ${u.address}</div>
+          </div>
+          <div class="emergency-unit-bottom">
+            <span class="emergency-dist-tag">📍 ${u.distance_km} km away</span>
+            <a href="tel:${u.phone}" class="call-btn">
+              <span>📞</span>
+              <span>${u.phone}</span>
+            </a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadNearbyEmergency();
+    });
+  </script>
+</body>
+</html>

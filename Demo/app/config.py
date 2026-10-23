@@ -39,10 +39,6 @@ class Settings(BaseSettings):
     TEXTBEE_DEVICE_ID: Optional[str] = None
     TEXTBEE_BASE_URL: str = "https://api.textbee.dev/api/v1"
 
-    # MongoDB Atlas Database
-    MONGODB_URI: str = "mongodb+srv://dharaneesh0530_db_user:Dharaneesh!30@cluster0.hgkmalq.mongodb.net/?retryWrites=true&w=majority"
-    MONGODB_DB_NAME: str = "nira_db"
-
     # CORS
     CORS_ORIGINS: List[str] = ["*"]
     CORS_ALLOW_CREDENTIALS: bool = True
