@@ -34,6 +34,8 @@ EMERGENCY_PATTERNS = [
     r"\bhelp\b(?!\s*with\s*(the\s*)?(dishes|laundry|chores))",
     r"\bhelp\s+me\b",
     r"\bplease\s+help\b",
+    r"\bneed\s+(some\s+|urgent\s+|immediate\s+)?help\b",
+    r"\bi\s+need\s+help\b",
     r"\bcan't\s+get\s+up\b",
     r"\bcannot\s+get\s+up\b",
     r"\bunable\s+to\s+get\s+up\b",
@@ -48,11 +50,12 @@ EMERGENCY_PATTERNS = [
     r"\bhard\s+to\s+breathe\b",
     r"\bsuffocating\b",
     r"\bchoking\b",
-    r"\bcall\s+(someone|911|an\s+ambulance|help|doctor|police|emergency)\b",
+    r"\bcall\s+(someone|911|an\s+ambulance|help|doctor|police|emergency|my\s+(son|daughter|family|caretaker|caregiver))\b",
     r"\bbadly\s+hurt\b",
     r"\bseverely\s+hurt\b",
     r"\bbroken\s+(hip|bone|arm|leg|rib)\b",
-    r"\bbleeding\s+(heavily|badly|a\s+lot|profusely)\b",
+    r"\bbleeding\b",
+    r"\bthere('?s)?\s+blood\b",
     r"\bheart\s+attack\b",
     r"\bstroke\b",
     r"\bpassed\s+out\b",
@@ -82,7 +85,7 @@ RISK_PATTERNS = [
     r"\bunsteady\b",
     r"\bwobbly\b",
     r"\bshaky\b",
-    r"\bchest\s+(pain|tightness|pressure)\b",
+    r"\bchest\s+(pain|tightness|pressure|feels\s+(a\s+bit\s+|very\s+)?tight|tight)\b",
     r"\bnauseous\b",
     r"\bsick\b",
     r"\bvomi?ting\b",
@@ -103,15 +106,22 @@ NEGATED_POSITIVE_PATTERNS = [
     r"\bnot\s+fine\b",
     r"\bnot\s+good\b",
     r"\bnot\s+doing\s+well\b",
-    r"\bnot\s+feeling\s+(very\s+|too\s+|so\s+|really\s+|quite\s+)?(good|well|fine|great|okay|alright)\b",
-    r"\bdon'?t\s+feel\s+(very\s+|too\s+|so\s+|really\s+|quite\s+)?(good|well|fine|great|okay|alright)\b",
+    r"\bnot\s+feeling\s+(very\s+|too\s+|so\s+|really\s+|quite\s+)?(good|well|fine|great|okay|alright|right)\b",
+    r"\bdon'?t\s+feel\s+(very\s+|too\s+|so\s+|really\s+|quite\s+)?(good|well|fine|great|okay|alright|right)\b",
+    r"\bnot\s+right\b",
+    r"\bsomething\s+is\s+wrong\b",
+    r"\bsomething('?s)?\s+wrong\b",
+    r"\bdefinitely\s+not\s+(okay|fine|good|well)\b",
+    r"\breally\s+not\s+(okay|fine|good|well)\b",
+    r"\bcertainly\s+not\s+(okay|fine|good|well)\b",
     r"\bnot\s+all\s+right\b",
     r"\bnot\s+alright\b",
     r"\bain'?t\s+(okay|good|well|fine|doing\s+well)\b",
     r"\bnever\s+felt\s+worse\b",
-    r"\bno[,\s]+(i'?m\s+)?not\s+okay\b",
-    r"\bno[,\s]+(i'?m\s+)?not\s+fine\b",
-    r"\bno[,\s]+(i'?m\s+)?not\s+good\b",
+    r"\bno[,\s]+(i'?m\s+|i\s+am\s+)?not\s+okay\b",
+    r"\bno[,\s]+(i'?m\s+|i\s+am\s+)?not\s+fine\b",
+    r"\bno[,\s]+(i'?m\s+|i\s+am\s+)?not\s+good\b",
+    r"\bno[,\s]+(i'?m\s+|i\s+am\s+)?not\s+alright\b",
     r"\bno[,\s]+i\s+am\s+not\b"
 ]
 
@@ -125,9 +135,7 @@ SAFE_PATTERNS = [
     r"\bi\s+am\s+fine\b",
     r"\byes[,\s]+i'?m\s+fine\b",
     r"\bno[,\s]+i'?m\s+(fine|okay|good|alright)\b",
-    r"\bi'?m\s+doing\s+good\b",
-    r"\bi'?m\s+doing\s+fine\b",
-    r"\bi'?m\s+doing\s+well\b",
+    r"\b(i'?m|i\s+am)\s+doing\s+(good|fine|well|okay|alright)\b",
     r"\beverything\s+is\s+(alright|fine|okay|good)\b",
     r"\bi\s+feel\s+(fine|good|great|okay|alright)\b",
     r"\ball\s+good\b",
@@ -345,9 +353,9 @@ class ResponseAnalyzer:
 
         # -----------------------------------------------------------------------
         # RULE 5: SAFE CONFIRMATION
-        # Must have safe matches AND no unresolved negation
+        # Must have safe matches AND no unresolved negation AND no contrast
         # -----------------------------------------------------------------------
-        if safe_matches and not is_negated:
+        if safe_matches and not is_negated and not has_contrast:
             reason = "Resident verbally confirmed they are okay and require no assistance."
             if "fine" in cleaned:
                 reason = "Resident confirmed they feel fine."

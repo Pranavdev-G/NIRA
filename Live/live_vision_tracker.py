@@ -15,10 +15,11 @@ import os
 import sys
 import time
 import math
+import uuid
 import logging
 import threading
 from pathlib import Path
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, Optional, List, Tuple, Callable
 import numpy as np
 
 try:
@@ -37,18 +38,22 @@ try:
     from Live.voice.response_analyzer import ResponseAnalyzer
     from Live.voice.models import VoiceInteractionStatus
     from Live.voice.service import VoiceService
+    from Live.live_ingest_stream import LiveIngestStream, build_live_event
 except ImportError:
     try:
         from activity_routine_learner import DailyActivityRoutineLearner, get_activity_learner
         from voice.response_analyzer import ResponseAnalyzer
         from voice.models import VoiceInteractionStatus
         from voice.service import VoiceService
+        from live_ingest_stream import LiveIngestStream, build_live_event
     except ImportError:
         DailyActivityRoutineLearner = None
         get_activity_learner = None
         ResponseAnalyzer = None
         VoiceInteractionStatus = None
         VoiceService = None
+        LiveIngestStream = None
+        build_live_event = None
 
 logger = logging.getLogger("NIRA.LiveVisionTracker")
 
@@ -59,12 +64,23 @@ STATE_UNRESPONSIVE = "UNRESPONSIVENESS"
 STATE_ALARM_INQUIRY = "ALARM_INQUIRY_ACTIVE"
 STATE_CONFIRMED_SAFE = "CONFIRMED_SAFE"
 
+# Authoritative Vision Evidence Event Types
+EVENT_PERSON_DETECTED = "PERSON_DETECTED"
+EVENT_FALL_DETECTED = "FALL_DETECTED"
+EVENT_POSTURE_CHANGE = "POSTURE_CHANGE"
+EVENT_INACTIVITY_DETECTED = "INACTIVITY_DETECTED"
+EVENT_RECOVERY_DETECTED = "RECOVERY_DETECTED"
+EVENT_PERSON_MISSING = "PERSON_MISSING"
+EVENT_CAMERA_OFFLINE = "CAMERA_OFFLINE"
+EVENT_VISION_HEALTH = "VISION_HEALTH"
+
 
 class LiveVisionTracker:
     """
     Connects to live camera devices or edge video feeds and evaluates
     real-time fall status, face tracking, prolonged inactivity (3-5 mins),
     and conversational voice check-in wake-ups.
+    Produces normalized evidence events to the central NIRA safety backend.
     """
     def __init__(
         self,
@@ -74,7 +90,8 @@ class LiveVisionTracker:
         simulation_speedup_factor: float = 1.0,     # Accelerates immobility timer for test runs
         zone: str = "living_room",
         auto_mic_on_alarm: bool = True,
-        voice_service: Optional[Any] = None
+        voice_service: Optional[Any] = None,
+        ingest_stream: Optional[Any] = None
     ):
         self.backend_url = backend_url.rstrip("/")
         self.unresponsive_threshold_sec = max(10.0, float(unresponsive_threshold_sec))
@@ -83,6 +100,8 @@ class LiveVisionTracker:
         self.auto_mic_on_alarm = auto_mic_on_alarm
         self.voice_service = voice_service
         self._voice_service_initialized = False
+        self.ingest_stream = ingest_stream or (LiveIngestStream(backend_url=self.backend_url) if LiveIngestStream else None)
+        self.event_listeners: List[Callable[[Dict[str, Any]], None]] = []
 
         # Vision models
         self.pose_model = None
@@ -130,6 +149,106 @@ class LiveVisionTracker:
         # Centroid motion history for biomechanical fall velocity
         self.centroid_history: List[Tuple[float, float, float]] = []
 
+        # Evidence and Health Tracking
+        self.camera_offline_alerted = False
+        self.person_missing_alerted = False
+        self.person_missing_timeout_sec = 45.0
+        self.last_person_detected_event_time = 0.0
+        self.current_correlation_id = f"vis-{uuid.uuid4().hex[:10]}"
+        self.last_posture: Optional[str] = None
+        self.frames_processed_count = 0
+        self.last_health_published_time = 0.0
+
+    def add_event_listener(self, listener: Callable[[Dict[str, Any]], None]):
+        """Registers a callback for structured vision evidence events."""
+        if listener not in self.event_listeners:
+            self.event_listeners.append(listener)
+
+    def emit_evidence_event(
+        self,
+        event_type: str,
+        confidence: float = 0.95,
+        zone: Optional[str] = None,
+        measurements: Optional[Dict[str, Any]] = None,
+        correlation_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Produces and dispatches a structured vision evidence event.
+        Strictly observes the boundary: Vision detects, Core decides.
+        """
+        target_zone = zone or self.zone
+        corr_id = correlation_id or self.current_correlation_id
+        details = measurements or {}
+
+        if build_live_event:
+            evt = build_live_event(
+                event_type=event_type,
+                source="live_vision",
+                zone=target_zone,
+                confidence=confidence,
+                payload={
+                    "state": self.current_state,
+                    "measurements": details,
+                    "unresponsive_seconds": round(self.accumulated_motionless_sec, 1),
+                    "motion_rate": round(self.last_motion_rate, 1)
+                },
+                correlation_id=corr_id,
+                metadata={
+                    "pose_model": "yolov8n-pose" if self.pose_model else "optical_fallback",
+                    "fall_model": "nira_fall_model" if self.fall_model else "kinematics",
+                    "resolved_path": self.resolved_model_path
+                }
+            )
+        else:
+            evt = {
+                "event_id": f"evt_{uuid.uuid4().hex[:12]}",
+                "event_type": event_type,
+                "source": "live_vision",
+                "resident_id": "resident_live",
+                "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "zone": target_zone,
+                "confidence": confidence,
+                "correlation_id": corr_id,
+                "payload": details,
+                "metadata": {}
+            }
+
+        for cb in list(self.event_listeners):
+            try:
+                cb(evt)
+            except Exception as e:
+                logger.debug(f"Event listener error: {e}")
+
+        if self.ingest_stream:
+            self.ingest_stream.publish_event(evt, blocking=False)
+
+        return evt
+
+    def get_health(self) -> Dict[str, Any]:
+        """Returns structured diagnostic health state of vision system."""
+        return {
+            "source": "live_vision",
+            "is_operational": True,
+            "pose_model_loaded": self.pose_model is not None,
+            "fall_model_loaded": self.fall_model is not None,
+            "resolved_model_path": self.resolved_model_path,
+            "current_state": self.current_state,
+            "zone": self.zone,
+            "frames_processed": self.frames_processed_count,
+            "camera_connected": not self.camera_offline_alerted,
+            "last_motion_rate": self.last_motion_rate
+        }
+
+    def publish_health(self, zone: Optional[str] = None) -> Dict[str, Any]:
+        """Publishes VISION_HEALTH evidence event to central backend."""
+        health = self.get_health()
+        return self.emit_evidence_event(
+            event_type=EVENT_VISION_HEALTH,
+            confidence=1.0 if health["is_operational"] else 0.0,
+            zone=zone or self.zone,
+            measurements=health
+        )
+
     def reset(self):
         """Resets state machine, alarm, and counters when stream stops or starts."""
         self.current_state = STATE_NORMAL
@@ -142,6 +261,9 @@ class LiveVisionTracker:
         self.consecutive_normal_frames = 0
         self.prev_gray = None
         self.person_previously_seen = False
+        self.camera_offline_alerted = False
+        self.person_missing_alerted = False
+        self.last_posture = None
         self.alarm_active = False
         self.alarm_prompt = None
         self.alarm_reason = None
@@ -274,12 +396,11 @@ class LiveVisionTracker:
             from ultralytics import YOLO
 
             live_dir = Path(__file__).resolve().parent
-            root_dir = live_dir.parent
 
             # 1. Pose model for face keypoints and biomechanics
             pose_candidates = [
+                os.getenv("NIRA_POSE_MODEL_PATH"),
                 str(live_dir / "yolov8n-pose.pt"),
-                str(root_dir / "Demo" / "yolov8n-pose.pt"),
                 "yolov8n-pose.pt"
             ]
             for p in pose_candidates:
@@ -294,6 +415,7 @@ class LiveVisionTracker:
 
             # 2. Kaggle fall detector model
             fall_candidates = [
+                os.getenv("NIRA_FALL_MODEL_PATH"),
                 str(live_dir / "nira_fall_model.pt"),
                 str(live_dir / "runs" / "fall_detection" / "weights" / "best.pt"),
                 "yolov8n.pt"
@@ -360,7 +482,15 @@ class LiveVisionTracker:
 
         current_zone = location or self.zone
 
-        if frame is None or not hasattr(frame, "shape"):
+        if frame is None or not hasattr(frame, "shape") or (hasattr(frame, "size") and frame.size == 0):
+            if not self.camera_offline_alerted:
+                self.camera_offline_alerted = True
+                self.emit_evidence_event(
+                    event_type=EVENT_CAMERA_OFFLINE,
+                    confidence=1.0,
+                    zone=current_zone,
+                    measurements={"error": "frame_none_or_empty"}
+                )
             return {
                 "state": self.current_state,
                 "detected_class": "Normal Movement",
@@ -378,6 +508,9 @@ class LiveVisionTracker:
                 "last_transcript": self.last_voice_transcript,
                 "timestamp": now
             }
+
+        self.camera_offline_alerted = False
+        self.frames_processed_count += 1
 
         fh, fw = frame.shape[:2]
         frame_area = float(fh * fw)
@@ -594,8 +727,49 @@ class LiveVisionTracker:
                 primary_class = "Fall / Collapse Detected (Out of Frame Drop)"
 
         if is_person_detected:
+            if not self.person_previously_seen or (now - self.last_person_detected_event_time >= 30.0):
+                self.last_person_detected_event_time = now
+                self.emit_evidence_event(
+                    event_type=EVENT_PERSON_DETECTED,
+                    confidence=primary_conf,
+                    zone=current_zone,
+                    measurements={
+                        "detected_class": primary_class,
+                        "centroid": current_centroid,
+                        "head_position": current_head_pos,
+                        "torso_angle": torso_angle
+                    }
+                )
             self.person_previously_seen = True
             self.last_person_seen_time = now
+            self.person_missing_alerted = False
+
+            # Posture Change Detection
+            current_posture = "floor_collapse" if is_fall_candidate else ("sitting" if "sitting" in primary_class.lower() else "upright")
+            if self.last_posture is not None and current_posture != self.last_posture:
+                self.emit_evidence_event(
+                    event_type=EVENT_POSTURE_CHANGE,
+                    confidence=primary_conf,
+                    zone=current_zone,
+                    measurements={
+                        "previous_posture": self.last_posture,
+                        "current_posture": current_posture,
+                        "torso_angle": torso_angle
+                    }
+                )
+            self.last_posture = current_posture
+        else:
+            # Person Missing Detection
+            if self.person_previously_seen:
+                missing_sec = now - self.last_person_seen_time
+                if missing_sec >= self.person_missing_timeout_sec and not self.person_missing_alerted:
+                    self.person_missing_alerted = True
+                    self.emit_evidence_event(
+                        event_type=EVENT_PERSON_MISSING,
+                        confidence=0.88,
+                        zone=current_zone,
+                        measurements={"missing_seconds": round(missing_sec, 1), "zone": current_zone}
+                    )
 
         # -------------------------------------------------------------------
         # 6. Temporal Debouncing
@@ -651,7 +825,24 @@ class LiveVisionTracker:
                         motion_rate=motion_rate,
                         duration_sec=self.accumulated_motionless_sec
                     )
-                if self.current_state != STATE_UNRESPONSIVE:
+                # Recovery detected from fall or prolonged inactivity
+                if self.current_state in [STATE_FALL, STATE_PROLONGED_INACTIVITY, STATE_UNRESPONSIVE]:
+                    self.emit_evidence_event(
+                        event_type=EVENT_RECOVERY_DETECTED,
+                        confidence=0.92,
+                        zone=current_zone,
+                        measurements={
+                            "previous_state": self.current_state,
+                            "motion_rate": motion_rate,
+                            "centroid_displacement": round(centroid_displacement, 1),
+                            "prior_motionless_sec": round(self.accumulated_motionless_sec, 1)
+                        }
+                    )
+                    self.current_state = STATE_NORMAL
+                    self.alarm_active = False
+                    self.fall_start_time = None
+                    self.accumulated_motionless_sec = 0.0
+                elif self.current_state != STATE_UNRESPONSIVE:
                     self.accumulated_motionless_sec = 0.0
                     self.alarm_active = False
 
@@ -669,6 +860,17 @@ class LiveVisionTracker:
                 self.alarm_active = True
                 self.alarm_prompt = "NIRA safety alert: Are you okay? Please respond."
                 self.alarm_reason = "Sudden fall / collapse detected."
+                self.emit_evidence_event(
+                    event_type=EVENT_FALL_DETECTED,
+                    confidence=primary_conf,
+                    zone=current_zone,
+                    measurements={
+                        "torso_angle": torso_angle,
+                        "primary_class": primary_class,
+                        "alarm_prompt": self.alarm_prompt,
+                        "requires_voice_checkin": True
+                    }
+                )
                 self.dispatch_live_fall_alert(
                     event_type="fall_detected",
                     confidence=primary_conf,
@@ -699,6 +901,18 @@ class LiveVisionTracker:
                 self.alarm_active = True
                 self.alarm_prompt = anomaly_diag.get("suggested_question", "Are you okay? I noticed you haven't moved in a while.")
                 self.alarm_reason = anomaly_diag.get("reason", f"Resident motionless for {self.accumulated_motionless_sec:.1f}s.")
+
+                self.emit_evidence_event(
+                    event_type=EVENT_INACTIVITY_DETECTED,
+                    confidence=0.92,
+                    zone=current_zone,
+                    measurements={
+                        "motionless_seconds": round(self.accumulated_motionless_sec, 1),
+                        "threshold_sec": effective_thresh,
+                        "anomaly_score": anomaly_diag.get("anomaly_score", 0.8),
+                        "alarm_prompt": self.alarm_prompt
+                    }
+                )
 
                 if now - self.last_alert_sent_time > 10.0:
                     self.last_alert_sent_time = now
@@ -890,27 +1104,25 @@ class LiveVisionTracker:
         location: str = "living_room",
         details: Optional[Dict[str, Any]] = None
     ):
-        """Dispatches real-time detected fall/unresponsiveness event to NIRA backend."""
-        payload = {
-            "event_type": event_type,
-            "source": "live_webcam_detector",
-            "confidence": confidence,
-            "location": location,
-            "movement_after_event": "none" if event_type in ["unresponsiveness_detected", "prolonged_inactivity_detected"] else "slow",
-            "details": details or {
-                "detector": "yolov8-kaggle-fall",
-                "mode": "live_physical_model"
-            }
+        """Dispatches real-time detected fall/unresponsiveness evidence event to NIRA backend."""
+        det = details or {
+            "detector": "yolov8-kaggle-fall",
+            "mode": "live_physical_model"
         }
-        if requests:
-            import threading
-            def _post_async():
-                try:
-                    requests.post(f"{self.backend_url}/api/v1/events/ingest", json=payload, timeout=1.0)
-                except Exception as e:
-                    logger.debug(f"Failed to post to backend: {e}")
-            threading.Thread(target=_post_async, daemon=True).start()
-        return {"status": "dispatched_async"}
+        type_mapping = {
+            "fall_detected": EVENT_FALL_DETECTED,
+            "prolonged_inactivity_detected": EVENT_INACTIVITY_DETECTED,
+            "unresponsiveness_detected": "UNRESPONSIVENESS_DETECTED",
+            "false_alarm_cleared_by_voice": "FALSE_ALARM_CLEARED_BY_VOICE",
+            "voice_confirmed_emergency": "VOICE_CONFIRMED_EMERGENCY"
+        }
+        mapped_type = type_mapping.get(event_type, event_type.upper())
+        return self.emit_evidence_event(
+            event_type=mapped_type,
+            confidence=confidence,
+            zone=location,
+            measurements=det
+        )
 
 
 # Standalone live execution with local webcam

@@ -308,6 +308,21 @@ class DailyActivityRoutineLearner:
         old_thresh = z_data.get("tolerated_threshold_sec", cfg["base_inactivity_sec"])
         max_cap = cfg["max_cap_sec"]
 
+        # Safety boundary: Floor collapse must NEVER be learned as normal behavior
+        is_floor = "floor" in zone.lower() or "fall" in feedback.lower() or "collapse" in feedback.lower()
+        if is_floor:
+            logger.warning("Floor collapse feedback received; floor immobility threshold remains strictly bounded to safety minimum.")
+            return {
+                "zone": zone_key,
+                "hour": hour,
+                "old_threshold_sec": old_thresh,
+                "new_threshold_sec": old_thresh,
+                "max_cap_sec": max_cap,
+                "suppressed_false_alarms_total": self.profile.get("suppressed_false_alarms", 0),
+                "feedback": feedback,
+                "note": "Floor collapse threshold cannot be adapted upward."
+            }
+
         # Bayesian adaptation: Increase tolerance by 15-20% above the observed safe duration,
         # bounded by the zone's safe clinical ceiling
         new_candidate = max(old_thresh, inactivity_duration_sec * 1.15)
@@ -363,15 +378,58 @@ class DailyActivityRoutineLearner:
         self._save_profile()
         return count
 
+    def get_baseline_quality(
+        self,
+        zone: str = "living_room",
+        hour: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """
+        Exposes structured quality, confidence, and safe bounding metrics of the learned activity baseline.
+        """
+        if hour is None:
+            hour = datetime.now().hour
+        h_str = str(hour % 24)
+
+        zone_key = "general"
+        for k in ZONE_RISK_PROFILES:
+            if k in zone.lower():
+                zone_key = k
+                break
+
+        cfg = self.get_zone_config(zone_key)
+        zone_data = self.profile.get("hourly_zones", {}).get(h_str, {}).get(zone_key, {})
+        obs_count = zone_data.get("observations_count", 0)
+        dismissed_count = zone_data.get("dismissed_alarms_count", 0)
+        total_samples = obs_count + dismissed_count
+        tolerated = self.get_tolerated_inactivity_threshold(zone_key, hour)
+        mean_inactivity = zone_data.get("mean_inactivity_sec", cfg["base_inactivity_sec"])
+
+        # Quality/confidence score: reaches 1.0 after ~15 observations
+        confidence = round(min(1.0, max(0.1, total_samples / 15.0)), 2)
+
+        return {
+            "zone": zone_key,
+            "hour": hour,
+            "zone_risk_tier": cfg["risk_tier"],
+            "expected_activity": round(mean_inactivity, 1),
+            "tolerated_inactivity": tolerated,
+            "learned_sample_count": total_samples,
+            "false_alarms_prevented": self.profile.get("suppressed_false_alarms", 0),
+            "baseline_confidence": confidence,
+            "min_safety_bound_sec": max(180.0, cfg["base_inactivity_sec"]),
+            "max_cap_bound_sec": cfg["max_cap_sec"]
+        }
+
     def get_routine_profile(self) -> Dict[str, Any]:
-        """Returns the full routine profile and summary."""
+        """Returns the full routine profile, authentic summary, and baseline quality."""
         summary = self.get_summary()
         return {
             "profile": self.profile,
             "summary": summary,
             "circadian_curve": [0.1, 0.05, 0.02, 0.02, 0.04, 0.12, 0.35, 0.65, 0.82, 0.88, 0.75, 0.8, 0.72, 0.45, 0.3, 0.55, 0.78, 0.85, 0.8, 0.65, 0.45, 0.28, 0.18, 0.12],
-            "false_alarms_prevented": max(self.profile.get("suppressed_false_alarms", 0), 14),
-            "learned_safe_adaptations": max(self.profile.get("total_learned_events", 0), 8)
+            "false_alarms_prevented": self.profile.get("suppressed_false_alarms", 0),
+            "learned_safe_adaptations": self.profile.get("total_learned_events", 0),
+            "baseline_quality": self.get_baseline_quality()
         }
 
     def get_summary(self) -> Dict[str, Any]:
@@ -380,6 +438,8 @@ class DailyActivityRoutineLearner:
         living_room_thresh = self.get_tolerated_inactivity_threshold("living_room", curr_hour)
         bedroom_thresh = self.get_tolerated_inactivity_threshold("bedroom", curr_hour)
         bathroom_thresh = self.get_tolerated_inactivity_threshold("bathroom", curr_hour)
+        kitchen_thresh = self.get_tolerated_inactivity_threshold("kitchen", curr_hour)
+        hallway_thresh = self.get_tolerated_inactivity_threshold("hallway", curr_hour)
 
         return {
             "total_learned_events": self.profile.get("total_learned_events", 0),
@@ -388,8 +448,11 @@ class DailyActivityRoutineLearner:
             "current_thresholds": {
                 "living_room_sec": living_room_thresh,
                 "bedroom_sec": bedroom_thresh,
-                "bathroom_sec": bathroom_thresh
+                "bathroom_sec": bathroom_thresh,
+                "kitchen_sec": kitchen_thresh,
+                "hallway_sec": hallway_thresh
             },
+            "baseline_quality": self.get_baseline_quality("living_room", curr_hour),
             "circadian_state": (
                 "NIGHT_SLEEP_WINDOW" if curr_hour in NIGHT_HOURS
                 else ("AFTERNOON_NAP_WINDOW" if curr_hour in AFTERNOON_NAP_HOURS else "ACTIVE_DAY_WINDOW")

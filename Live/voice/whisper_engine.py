@@ -4,8 +4,9 @@ Amazon Developer Hackathon 2026.
 
 Primary Model: openai/whisper-large-v3-turbo
 Features:
-  - Hardware auto-detection (CUDA GPU, Apple Silicon MPS, CPU fallback)
+  - Hardware selection (Configurable: CPU, CUDA/GPU, MPS, or auto-detect)
   - Singleton Model Lifecycle Manager (loads once, reuses across requests)
+  - Lazy loading, error recovery, clean shutdown, and availability status
   - Authentic transcription quality metrics (no fabricated confidence scores)
   - Multilingual speech recognition & separate translation capabilities
 """
@@ -30,68 +31,125 @@ logger = logging.getLogger("NIRA.WhisperEngine")
 DEFAULT_MODEL_ID = "openai/whisper-large-v3-turbo"
 
 
-def detect_optimal_hardware() -> Tuple[str, torch.dtype]:
+class WhisperModelUnavailableError(Exception):
+    """Raised when Whisper models or dependencies cannot be loaded."""
+    pass
+
+
+def detect_optimal_hardware(requested_device: Optional[str] = None) -> Tuple[str, torch.dtype]:
     """
-    Auto-detects the highest-performance acceleration hardware:
-      - CUDA GPU: FP16
-      - Apple MPS: FP16 / FP32
-      - CPU: FP32 with multi-threaded optimizations
+    Detects or configures hardware acceleration device:
+      - 'cuda' / 'gpu': FP16 on CUDA device (falls back to CPU if unavailable)
+      - 'mps': FP16 on Apple Silicon MPS (falls back to CPU if unavailable)
+      - 'cpu': FP32 with multi-threaded optimizations
+      - 'auto' / None: Checks environment (NIRA_WHISPER_DEVICE) then auto-detects
     """
+    req = (requested_device or os.getenv("NIRA_WHISPER_DEVICE", "auto")).lower().strip()
+
+    if req in ["cuda", "cuda:0", "gpu"]:
+        if torch.cuda.is_available():
+            logger.info(f"Hardware acceleration: CUDA requested and active ({torch.cuda.get_device_name(0)})")
+            return "cuda:0", torch.float16
+        logger.warning("CUDA requested but not available. Falling back to CPU.")
+
+    elif req == "mps":
+        if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            logger.info("Hardware acceleration: Apple Silicon (MPS) active")
+            return "mps", torch.float16
+        logger.warning("MPS requested but not available. Falling back to CPU.")
+
+    elif req == "cpu":
+        try:
+            num_cores = os.cpu_count() or 4
+            torch.set_num_threads(max(1, min(num_cores, 8)))
+        except Exception:
+            pass
+        return "cpu", torch.float32
+
+    # Auto-detection
     if torch.cuda.is_available():
-        device = "cuda:0"
-        dtype = torch.float16
-        logger.info(f"Hardware acceleration: CUDA GPU detected ({torch.cuda.get_device_name(0)})")
+        logger.info(f"Hardware acceleration: Auto-detected CUDA GPU ({torch.cuda.get_device_name(0)})")
+        return "cuda:0", torch.float16
     elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
-        device = "mps"
-        dtype = torch.float16
-        logger.info("Hardware acceleration: Apple Silicon (MPS) detected")
+        logger.info("Hardware acceleration: Auto-detected Apple Silicon (MPS)")
+        return "mps", torch.float16
     else:
-        device = "cpu"
-        dtype = torch.float32
-        # Optimize CPU threads for inference
         try:
             num_cores = os.cpu_count() or 4
             torch.set_num_threads(max(1, min(num_cores, 8)))
         except Exception:
             pass
         logger.info(f"Hardware acceleration: CPU inference active (threads: {torch.get_num_threads()})")
-
-    return device, dtype
+        return "cpu", torch.float32
 
 
 class WhisperModelManager:
     """
     Thread-safe Singleton Lifecycle Manager for Whisper large-v3-turbo.
-    Ensures model weights are loaded ONCE into memory at application startup
-    and kept available throughout the lifetime of the process.
+    Ensures model weights are loaded ONCE into memory, supports clean shutdown,
+    and reports live availability status without crashing on unavailable hardware.
     """
     _instance: Optional["WhisperModelManager"] = None
     _lock = threading.Lock()
 
-    def __init__(self, model_id: str = DEFAULT_MODEL_ID):
+    def __init__(self, model_id: str = DEFAULT_MODEL_ID, device: Optional[str] = None):
         self.model_id = model_id
-        self.device, self.torch_dtype = detect_optimal_hardware()
+        self.device, self.torch_dtype = detect_optimal_hardware(requested_device=device)
         self.hf_pipeline = None
         self.whisper_model = None
         self.backend = "none"
         self._load_lock = threading.Lock()
         self._is_loaded = False
         self._load_duration_sec = 0.0
+        self._last_error: Optional[str] = None
 
     @classmethod
-    def get_instance(cls, model_id: str = DEFAULT_MODEL_ID) -> "WhisperModelManager":
+    def get_instance(
+        cls,
+        model_id: str = DEFAULT_MODEL_ID,
+        device: Optional[str] = None
+    ) -> "WhisperModelManager":
         with cls._lock:
             if cls._instance is None:
-                cls._instance = cls(model_id=model_id)
+                cls._instance = cls(model_id=model_id, device=device)
             return cls._instance
 
-    def load_model(self, force_reload: bool = False):
-        """Loads Whisper large-v3-turbo into memory once."""
+    @classmethod
+    def reset_instance(cls):
+        """Resets the singleton instance (primarily used in testing)."""
+        with cls._lock:
+            if cls._instance is not None:
+                cls._instance.unload_model()
+                cls._instance = None
+
+    def is_available(self) -> bool:
+        """Checks if inference backend is currently loaded and ready."""
+        return self._is_loaded and (self.hf_pipeline is not None or self.whisper_model is not None)
+
+    def get_status(self) -> Dict[str, Any]:
+        """Returns structured lifecycle and availability metadata."""
+        return {
+            "model_id": self.model_id,
+            "device": self.device,
+            "torch_dtype": str(self.torch_dtype),
+            "backend": self.backend,
+            "is_loaded": self._is_loaded,
+            "is_available": self.is_available(),
+            "load_duration_sec": self._load_duration_sec,
+            "last_error": self._last_error,
+            "cuda_available": torch.cuda.is_available()
+        }
+
+    def load_model(self, force_reload: bool = False) -> bool:
+        """
+        Loads Whisper large-v3-turbo into memory once.
+        Returns True if successfully loaded, raises WhisperModelUnavailableError on failure.
+        """
         global HAS_TRANSFORMERS, HAS_OPENAI_WHISPER
 
         with self._load_lock:
             if self._is_loaded and not force_reload:
-                return
+                return True
 
             t0 = time.perf_counter()
             logger.info(f"Loading Whisper model '{self.model_id}' on {self.device}...")
@@ -129,10 +187,12 @@ class WhisperModelManager:
                     )
                     self.backend = "transformers"
                     self._is_loaded = True
+                    self._last_error = None
                     self._load_duration_sec = round(time.perf_counter() - t0, 2)
                     logger.info(f"Whisper large-v3-turbo loaded successfully via Transformers in {self._load_duration_sec}s.")
-                    return
+                    return True
                 except Exception as e:
+                    self._last_error = f"Transformers loading error: {e}"
                     logger.warning(f"Transformers loading error ({e}). Attempting openai-whisper fallback...")
 
             # Strategy 2: Fallback to official openai-whisper library
@@ -146,19 +206,41 @@ class WhisperModelManager:
 
             if HAS_OPENAI_WHISPER:
                 try:
-                    # Model name mapping: 'large-v3-turbo' or 'turbo'
+                    import whisper as openai_whisper
                     model_name = "large-v3-turbo" if "turbo" in self.model_id.lower() else "large-v3"
                     logger.info(f"Loading {model_name} via openai-whisper on {self.device}...")
                     self.whisper_model = openai_whisper.load_model(model_name, device=self.device)
                     self.backend = "openai-whisper"
                     self._is_loaded = True
+                    self._last_error = None
                     self._load_duration_sec = round(time.perf_counter() - t0, 2)
                     logger.info(f"Whisper large-v3-turbo loaded successfully via openai-whisper in {self._load_duration_sec}s.")
-                    return
+                    return True
                 except Exception as e:
+                    self._last_error = f"openai-whisper loading failed: {e}"
                     logger.error(f"openai-whisper loading failed: {e}")
 
-            raise RuntimeError(f"Could not load Whisper model '{self.model_id}'. Ensure transformers or openai-whisper is installed.")
+            err_msg = (
+                f"Could not load Whisper model '{self.model_id}'. "
+                f"Ensure transformers or openai-whisper is installed. Detail: {self._last_error}"
+            )
+            self._is_loaded = False
+            raise WhisperModelUnavailableError(err_msg)
+
+    def unload_model(self):
+        """Clean shutdown and memory release of Whisper weights."""
+        with self._load_lock:
+            self.hf_pipeline = None
+            self.whisper_model = None
+            self.backend = "none"
+            self._is_loaded = False
+            self._load_duration_sec = 0.0
+            if torch.cuda.is_available():
+                try:
+                    torch.cuda.empty_cache()
+                except Exception:
+                    pass
+            logger.info("Whisper model unloaded from memory.")
 
 
 class WhisperSpeechToText(SpeechToText):
@@ -169,27 +251,22 @@ class WhisperSpeechToText(SpeechToText):
     def __init__(
         self,
         model_id: str = DEFAULT_MODEL_ID,
+        device: Optional[str] = None,
         auto_load: bool = True
     ):
         self.model_id = model_id
-        self.manager = WhisperModelManager.get_instance(model_id=model_id)
+        self.manager = WhisperModelManager.get_instance(model_id=model_id, device=device)
         if auto_load:
-            self.manager.load_model()
+            try:
+                self.manager.load_model()
+            except WhisperModelUnavailableError as e:
+                logger.warning(f"Whisper auto-load failed: {e}")
 
     def is_loaded(self) -> bool:
-        return self.manager._is_loaded
+        return self.manager.is_available()
 
     def get_hardware_info(self) -> Dict[str, Any]:
-        return {
-            "device": self.manager.device,
-            "torch_dtype": str(self.manager.torch_dtype),
-            "backend": self.manager.backend,
-            "model_id": self.model_id,
-            "is_loaded": self.manager._is_loaded,
-            "load_time_sec": self.manager._load_duration_sec,
-            "cuda_available": torch.cuda.is_available(),
-            "cpu_threads": torch.get_num_threads()
-        }
+        return self.manager.get_status()
 
     def transcribe(
         self,
@@ -200,13 +277,11 @@ class WhisperSpeechToText(SpeechToText):
     ) -> TranscriptionResult:
         """
         Transcribes audio using the persistent Whisper large-v3-turbo model.
+        Handles empty or invalid audio gracefully before model invocation.
         """
-        if not self.is_loaded():
-            self.manager.load_model()
-
         t_start = time.perf_counter()
 
-        # Handle empty or invalid audio array
+        # Handle empty or invalid audio array before loading heavy model weights
         if isinstance(audio, np.ndarray):
             if audio.size == 0 or np.all(np.abs(audio) < 1e-4):
                 return TranscriptionResult(
@@ -218,6 +293,7 @@ class WhisperSpeechToText(SpeechToText):
                     transcription_quality="empty",
                     metrics={"no_speech_prob": 1.0, "reason": "Silence or empty audio buffer"}
                 )
+
             # Ensure float32 mono 16kHz
             processed, is_valid, msg = AudioPreprocessor.preprocess(audio, target_sample_rate=TARGET_SAMPLE_RATE)
             if not is_valid:
@@ -236,6 +312,10 @@ class WhisperSpeechToText(SpeechToText):
             audio_input = audio
             audio_duration = 0.0
 
+        # Ensure model is loaded
+        if not self.is_loaded():
+            self.manager.load_model()
+
         # Run inference using loaded backend
         transcript_text = ""
         detected_language = language or "en"
@@ -253,7 +333,6 @@ class WhisperSpeechToText(SpeechToText):
                 batch_size=1
             )
             transcript_text = result.get("text", "").strip()
-            # If chunks provide language or timestamps, capture them
             chunks = result.get("chunks", [])
             metrics["chunks_count"] = len(chunks)
             metrics["backend"] = "transformers"
@@ -267,7 +346,6 @@ class WhisperSpeechToText(SpeechToText):
             transcript_text = result.get("text", "").strip()
             detected_language = result.get("language", detected_language)
 
-            # Extract real Whisper metrics without fabrication
             segments = result.get("segments", [])
             if segments:
                 avg_logprob = float(np.mean([s.get("avg_logprob", 0.0) for s in segments]))
@@ -280,7 +358,6 @@ class WhisperSpeechToText(SpeechToText):
                 metrics["avg_no_speech_prob"] = round(avg_no_speech, 3)
                 metrics["compression_ratio"] = round(avg_comp, 3)
 
-                # Objective quality classification
                 if avg_no_speech > 0.6:
                     quality = "low_speech_detected"
                 elif avg_logprob > -0.5:
@@ -292,7 +369,7 @@ class WhisperSpeechToText(SpeechToText):
 
             metrics["backend"] = "openai-whisper"
         else:
-            raise RuntimeError("No active Whisper backend ready for inference.")
+            raise WhisperModelUnavailableError("No active Whisper backend ready for inference.")
 
         t_elapsed = round(time.perf_counter() - t_start, 3)
 

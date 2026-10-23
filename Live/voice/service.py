@@ -34,12 +34,13 @@ from .response_analyzer import ResponseAnalyzer
 from .storage import VoiceStorage
 
 try:
-    from Live.live_ingest_stream import LiveIngestStream
+    from Live.live_ingest_stream import LiveIngestStream, build_live_event
 except ImportError:
     try:
-        from live_ingest_stream import LiveIngestStream
+        from live_ingest_stream import LiveIngestStream, build_live_event
     except ImportError:
         LiveIngestStream = None
+        build_live_event = None
 
 logger = logging.getLogger("NIRA.VoiceService")
 
@@ -254,16 +255,42 @@ class VoiceService:
         # Stream event into live event pipeline if available
         if self.live_stream:
             try:
-                self.live_stream.ingest_live_sensor("voice", {
-                    "event_type": f"voice_check_in_{result.status.value.lower()}",
-                    "confidence": 1.0,
-                    "location": room_id,
-                    "transcript": result.transcript,
-                    "safety_state": result.status.value,
-                    "urgency": result.urgency.value,
-                    "reason": result.reason,
-                    "interaction_id": result.interaction_id
-                })
+                if build_live_event:
+                    evt = build_live_event(
+                        event_type=f"voice_check_in_{result.status.value.lower()}",
+                        source="live_voice",
+                        zone=room_id,
+                        confidence=1.0,
+                        correlation_id=corr_id,
+                        resident_id=elderly_id,
+                        payload={
+                            "transcript": result.transcript,
+                            "safety_state": result.status.value,
+                            "urgency": result.urgency.value,
+                            "reason": result.reason,
+                            "action": result.action.value,
+                            "interaction_id": result.interaction_id,
+                            "is_negated": analysis.is_negated,
+                            "is_mixed": analysis.is_mixed
+                        },
+                        metadata={
+                            "model": result.model,
+                            "audio_duration_sec": audio_dur,
+                            "latency_sec": total_latency
+                        }
+                    )
+                    self.live_stream.publish_event(evt, blocking=False)
+                else:
+                    self.live_stream.ingest_live_sensor("voice", {
+                        "event_type": f"voice_check_in_{result.status.value.lower()}",
+                        "confidence": 1.0,
+                        "location": room_id,
+                        "transcript": result.transcript,
+                        "safety_state": result.status.value,
+                        "urgency": result.urgency.value,
+                        "reason": result.reason,
+                        "interaction_id": result.interaction_id
+                    })
             except Exception as e:
                 logger.debug(f"Event streaming to NIRA pipeline failed: {e}")
 
@@ -303,4 +330,28 @@ class VoiceService:
             self.storage.log_interaction(result)
         except Exception:
             pass
+
+        # Publish voice fallback / sensor health event
+        if self.live_stream:
+            try:
+                if build_live_event:
+                    fallback_evt = build_live_event(
+                        event_type="voice_check_in_uncertain",
+                        source="live_voice",
+                        zone=metadata.get("room_id", "living_room"),
+                        confidence=0.5,
+                        correlation_id=metadata.get("correlation_id"),
+                        resident_id=elderly_id,
+                        payload={
+                            "status": status.value,
+                            "reason": reason,
+                            "action": action.value,
+                            "interaction_id": interaction_id,
+                            "metadata": metadata
+                        }
+                    )
+                    self.live_stream.publish_event(fallback_evt, blocking=False)
+            except Exception as e:
+                logger.debug(f"Failed to stream fallback voice event: {e}")
+
         return result
