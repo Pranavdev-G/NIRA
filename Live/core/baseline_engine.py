@@ -132,6 +132,92 @@ class BaselineEngineAdapter:
             except Exception as e:
                 logger.debug(f"[BaselineEngine] Reinforce note: {e}")
 
+    def evaluate_zone_dwell(
+        self,
+        zone: ZoneType,
+        dwell_seconds: float,
+        hour: Optional[int] = None,
+        movement_rate: float = 0.5,
+        posture: str = "standing",
+        heart_rate: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """Evaluates room dwell time against learned baseline and clinical hazard rules."""
+        zone_str = zone.value if isinstance(zone, ZoneType) else str(zone)
+        if self._learner is not None:
+            try:
+                return self._learner.evaluate_zone_dwell(
+                    zone=zone_str,
+                    dwell_seconds=dwell_seconds,
+                    hour=hour,
+                    movement_rate=movement_rate,
+                    posture=posture,
+                    heart_rate=heart_rate
+                )
+            except Exception as e:
+                logger.debug(f"[BaselineEngine] Dwell evaluation note: {e}")
+
+        # Fallback prior
+        expected = 600.0 if zone == ZoneType.BATHROOM else 1800.0
+        ratio = dwell_seconds / expected
+        is_anomaly = ratio >= 1.5
+        return {
+            "is_anomaly": is_anomaly,
+            "behavior_state": "PROLONGED_ZONE_STAY" if is_anomaly else "NORMAL",
+            "risk_level": "MEDIUM" if is_anomaly else "LOW",
+            "ratio": round(ratio, 2),
+            "baseline_deviation": max(0.0, round(ratio - 1.0, 3)),
+            "expected_duration_sec": expected,
+            "dwell_seconds": round(dwell_seconds, 1),
+            "suggested_question": f"Eleanor, you've been in the {zone_str} longer than usual. Are you okay?" if is_anomaly else "",
+            "reason": f"Dwell duration {dwell_seconds:.1f}s vs expected {expected:.1f}s."
+        }
+
+    def get_expected_visit_duration(self, zone: ZoneType) -> float:
+        """Returns expected stay duration in seconds for this room."""
+        zone_str = zone.value if isinstance(zone, ZoneType) else str(zone)
+        if self._learner is not None:
+            try:
+                return float(self._learner.get_expected_visit_duration(zone_str))
+            except Exception:
+                pass
+        return 600.0 if zone == ZoneType.BATHROOM else 1800.0
+
+    def record_safe_visit(
+        self,
+        zone: ZoneType,
+        duration_sec: float,
+        hour: Optional[int] = None,
+        feedback: str = "Resident confirmed safe upon check-in"
+    ):
+        """Gradually updates room dwell baseline with verified safe visit."""
+        zone_str = zone.value if isinstance(zone, ZoneType) else str(zone)
+        if self._learner is not None:
+            try:
+                self._learner.record_safe_visit(zone_str, duration_sec, hour, feedback=feedback)
+            except Exception as e:
+                logger.debug(f"[BaselineEngine] Safe visit record note: {e}")
+
+    def record_room_transition(self, from_room: ZoneType, to_room: ZoneType):
+        """Records movement transitions between rooms to learn daily sequence graph."""
+        f_str = from_room.value if isinstance(from_room, ZoneType) else str(from_room)
+        t_str = to_room.value if isinstance(to_room, ZoneType) else str(to_room)
+        if self._learner is not None:
+            try:
+                self._learner.record_room_transition(f_str, t_str)
+            except Exception as e:
+                logger.debug(f"[BaselineEngine] Room transition note: {e}")
+
+    def evaluate_sequence_anomaly(self, from_room: ZoneType, to_room: ZoneType) -> Dict[str, Any]:
+        """Detects whether moving between two rooms is unusual."""
+        f_str = from_room.value if isinstance(from_room, ZoneType) else str(from_room)
+        t_str = to_room.value if isinstance(to_room, ZoneType) else str(to_room)
+        if self._learner is not None:
+            try:
+                return self._learner.evaluate_sequence_anomaly(f_str, t_str)
+            except Exception:
+                pass
+        return {"is_unusual_sequence": False, "baseline_deviation": 0.0}
+
     def get_summary(self) -> Dict[str, Any]:
         """Returns baseline profile summary and false alarm suppression metrics."""
         if self._learner is not None:

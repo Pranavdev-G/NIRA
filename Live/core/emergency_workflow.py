@@ -26,6 +26,7 @@ VALID_TRANSITIONS: Dict[SafetyState, Set[SafetyState]] = {
         SafetyState.WELLNESS_CHECK,
         SafetyState.CAREGIVER_ESCALATION,
         SafetyState.EMERGENCY_ESCALATION,
+        SafetyState.DISPATCH_READY,
         SafetyState.RESOLVED,
         SafetyState.NORMAL
     },
@@ -33,6 +34,7 @@ VALID_TRANSITIONS: Dict[SafetyState, Set[SafetyState]] = {
         SafetyState.WELLNESS_CHECK,
         SafetyState.CAREGIVER_ESCALATION,
         SafetyState.EMERGENCY_ESCALATION,
+        SafetyState.DISPATCH_READY,
         SafetyState.RESOLVED,
         SafetyState.NORMAL
     },
@@ -41,17 +43,20 @@ VALID_TRANSITIONS: Dict[SafetyState, Set[SafetyState]] = {
         SafetyState.RESPONSIVE,
         SafetyState.CAREGIVER_ESCALATION,
         SafetyState.EMERGENCY_ESCALATION,
+        SafetyState.DISPATCH_READY,
         SafetyState.RESOLVED
     },
     SafetyState.WAITING_FOR_RESPONSE: {
         SafetyState.RESPONSIVE,
         SafetyState.CAREGIVER_ESCALATION,
         SafetyState.EMERGENCY_ESCALATION,
+        SafetyState.DISPATCH_READY,
         SafetyState.RESOLVED
     },
     SafetyState.RESPONSIVE: {
         SafetyState.CAREGIVER_ESCALATION,
         SafetyState.EMERGENCY_ESCALATION,
+        SafetyState.DISPATCH_READY,
         SafetyState.RESOLVED,
         SafetyState.NORMAL
     },

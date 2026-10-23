@@ -62,6 +62,9 @@ NIGHT_HOURS = {22, 23, 0, 1, 2, 3, 4, 5, 6}
 AFTERNOON_NAP_HOURS = {13, 14, 15}
 
 
+from Live.core.time_provider import get_time_provider
+
+
 class ContextEngine:
     """
     Maintains real-time situational awareness across rooms, environmental sensors,
@@ -75,13 +78,14 @@ class ContextEngine:
 
     def _create_default_context(self, zone: ZoneType) -> ContextState:
         meta = ZONE_METADATA.get(zone, ZONE_METADATA[ZoneType.UNKNOWN])
-        now = datetime.now()
+        now = get_time_provider().now()
         h = now.hour
         is_night = h in NIGHT_HOURS
         is_nap = h in AFTERNOON_NAP_HOURS
 
         phase = "NIGHT_SLEEP" if is_night else ("AFTERNOON_NAP" if is_nap else "ACTIVE_DAY")
 
+        # Phase 25: is_wet_floor defaults to False; is_dark defaults to False unless confirmed by sensor
         return ContextState(
             zone=zone,
             zone_risk_tier=meta["tier"],
@@ -89,10 +93,10 @@ class ContextEngine:
             is_night=is_night,
             is_afternoon_nap=is_nap,
             hazard_multiplier=meta["hazard_weight"],
-            is_dark=is_night,
-            is_wet_floor=(zone == ZoneType.BATHROOM),
+            is_dark=False,
+            is_wet_floor=False,
             temperature_c=21.5,
-            last_updated=datetime.now(timezone.utc).isoformat()
+            last_updated=get_time_provider().now_iso()
         )
 
     def update_environment(

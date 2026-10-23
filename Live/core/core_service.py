@@ -45,6 +45,7 @@ from Live.core.incident_manager import IncidentManager
 from Live.core.realtime_bus import get_realtime_bus, RealtimeBus
 from Live.core.persistence import CorePersistenceManager
 from Live.core.emergency_packet import EmergencyPacketBuilder
+from Live.core.time_provider import get_time_provider
 
 logger = logging.getLogger("NIRA.LiveCore.Service")
 
@@ -116,12 +117,47 @@ class CoreService:
         incident = self.incident_manager.get_active_incident()
 
         if incident is None:
-            # Trigger new incident if risk is Elevated (Medium+) or Fall/Critical event
-            if risk.risk_level in [SeverityLevel.MEDIUM, SeverityLevel.HIGH, SeverityLevel.CRITICAL] or event.event_type in [EventType.FALL_DETECTED, EventType.INACTIVITY_CRITICAL]:
+            is_emergency_event = event.event_type in [
+                EventType.FALL_DETECTED,
+                EventType.INACTIVITY_CRITICAL,
+                EventType.VOICE_HELP_REQUEST,
+                EventType.VOICE_EMERGENCY,
+                EventType.VOICE_RESPONSE_HELP
+            ]
+            is_dwell_anomaly = event.event_type in [
+                EventType.PROLONGED_ZONE_STAY,
+                EventType.ZONE_DWELL_ANOMALY
+            ]
+            payload_data = event.payload if isinstance(event.payload, dict) else {}
+            payload_risk = str(payload_data.get("risk_level", "")).upper()
+            is_critical_payload = (
+                payload_risk in ["CRITICAL", "HIGH"]
+                or payload_data.get("behavior_state") == "CRITICAL_COLLAPSE_IN_ZONE"
+            )
+
+            if (
+                risk.risk_level in [SeverityLevel.MEDIUM, SeverityLevel.HIGH, SeverityLevel.CRITICAL]
+                or is_emergency_event
+                or is_dwell_anomaly
+                or is_critical_payload
+            ):
+                if is_emergency_event or is_critical_payload or risk.risk_level == SeverityLevel.CRITICAL:
+                    sev = SeverityLevel.CRITICAL
+                    score = max(risk.overall_score, 0.88)
+                elif risk.risk_level == SeverityLevel.HIGH:
+                    sev = SeverityLevel.HIGH
+                    score = max(risk.overall_score, 0.70)
+                elif is_dwell_anomaly or risk.risk_level == SeverityLevel.MEDIUM:
+                    sev = SeverityLevel.MEDIUM
+                    score = max(risk.overall_score, 0.50)
+                else:
+                    sev = risk.risk_level
+                    score = risk.overall_score
+
                 incident = self.incident_manager.create_incident(
                     trigger_event=event,
-                    severity=risk.risk_level,
-                    risk_score=risk.overall_score,
+                    severity=sev,
+                    risk_score=score,
                     location=event.location
                 )
                 self.persistence.save_incident(incident)
@@ -129,12 +165,17 @@ class CoreService:
                 # Broadcast incident creation
                 self.bus.publish_sync("incident_created", incident.model_dump())
 
-                # If action is WELLNESS_CHECK, immediately initiate inquiry
-                if risk.recommended_action == RecommendedAction.TRIGGER_WELLNESS_CHECK or event.event_type in [EventType.FALL_DETECTED, EventType.INACTIVITY_CRITICAL]:
-                    self.start_wellness_check(
-                        incident_id=incident.incident_id,
-                        prompt="Are you okay Eleanor? Please let me know if you need assistance."
-                    )
+                # If spontaneous help or emergency voice (Phase 31): trigger emergency workflow immediately
+                if event.event_type in [EventType.VOICE_HELP_REQUEST, EventType.VOICE_EMERGENCY]:
+                    self.trigger_caregiver_sms_action(incident)
+                    self.trigger_ambulance_cad_action(incident)
+                elif (
+                    risk.recommended_action == RecommendedAction.TRIGGER_WELLNESS_CHECK
+                    or is_emergency_event
+                    or is_dwell_anomaly
+                    or is_critical_payload
+                ):
+                    self.start_wellness_check(incident_id=incident.incident_id)
         else:
             # Update existing active incident
             incident.risk_score = risk.overall_score
@@ -167,17 +208,40 @@ class CoreService:
     # ------------------------------------------------------------------
     # 3. Conversational Wellness Check & Auto-Microphone
     # ------------------------------------------------------------------
+    def _generate_contextual_prompt(self, incident: Optional[IncidentRecord] = None) -> str:
+        """Generates context-aware vocal inquiry based on active room, posture, and dwell time (Phase 34)."""
+        if incident and incident.trigger_event:
+            ev_type = incident.trigger_event.get("event_type", "")
+            payload = incident.trigger_event.get("payload", {})
+            posture = str(payload.get("posture", "")).lower()
+
+            if "floor" in posture or "fall" in ev_type:
+                return "Eleanor, I noticed you are on the floor. Do you need help getting up?"
+            if "fall" in ev_type:
+                return "Eleanor, I noticed a fall. Are you able to respond?"
+            if ev_type in ["prolonged_zone_stay", "zone_dwell_anomaly"]:
+                zone_name = incident.location.zone.value.replace("_", " ") if incident.location else "room"
+                return f"Eleanor, you've been in the {zone_name} longer than usual. Are you okay?"
+            if "inactivity" in ev_type:
+                return "Eleanor, I haven't seen much movement for a while. Are you alright?"
+            if "movement" in ev_type:
+                return "Eleanor, I noticed some unusual movement. Are you feeling okay?"
+
+        if self._current_zone == ZoneType.BATHROOM:
+            return "Eleanor, you've been in the bathroom longer than usual. Are you okay?"
+
+        return "Are you okay Eleanor? Please let me know if you need any assistance."
+
     def start_wellness_check(
         self,
         incident_id: Optional[str] = None,
         prompt: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Triggers vocal inquiry and automatically turns on the microphone.
+        Triggers vocal inquiry and automatically turns on the microphone (Phases 34, 35).
         """
         inc = self.incident_manager.get_active_incident() if not incident_id else self.incident_manager.get_incident(incident_id)
         if not inc:
-            # Synthesize event to anchor incident
             dummy_event = LiveEvent(
                 event_id="evt-wellness-manual",
                 event_type=EventType.INACTIVITY_WARNING,
@@ -187,16 +251,28 @@ class CoreService:
             )
             inc = self.incident_manager.create_incident(dummy_event, severity=SeverityLevel.MEDIUM, risk_score=0.55)
 
-        default_prompt = "Are you okay Eleanor? Please let me know if you need any assistance."
-        check_prompt = prompt or default_prompt
+        check_prompt = prompt or self._generate_contextual_prompt(inc)
 
         updated_inc = self.incident_manager.start_wellness_check(inc.incident_id, check_prompt)
         if updated_inc:
             self.persistence.save_incident(updated_inc)
-            # Broadcast to dashboard to synthesize speech and start auto-mic
+
+            # Connect with ContinuousMicrophoneMonitor if available (Phase 30)
+            try:
+                from Live.voice.continuous_monitor import get_continuous_mic_monitor
+                mic_monitor = get_continuous_mic_monitor(core_service=self)
+                mic_monitor.set_priority_wellness_mode(inc.incident_id, inc.incident_id)
+            except Exception as e:
+                logger.debug(f"[CoreService] Note setting mic priority mode: {e}")
+
+            # Broadcast to dashboard to synthesize speech and start auto-mic (Phase 35)
             self.bus.publish_sync("wellness_check_started", {
                 "incident_id": inc.incident_id,
+                "correlation_id": inc.incident_id,
+                "room": inc.location.zone.value if inc.location else self._current_zone.value,
                 "prompt": check_prompt,
+                "urgency": inc.severity.value,
+                "timestamp": get_time_provider().now_iso(),
                 "auto_mic_active": True
             })
 
@@ -215,89 +291,126 @@ class CoreService:
         duration_sec: Optional[float] = None
     ) -> Dict[str, Any]:
         """
-        Authoritative processing of resident vocal response captured by speech-to-text.
+        Authoritative processing of resident vocal response using ResponseAnalyzer (Phases 32, 33).
+        Priority: EMERGENCY > RISK > UNCERTAIN > SAFE.
         """
         inc = self.incident_manager.get_active_incident() if not incident_id else self.incident_manager.get_incident(incident_id)
-        clean_text = str(response_text).lower().strip()
+        if not inc:
+            return {"success": False, "error": "No active incident to associate response"}
 
-        # Classify intent
-        if any(w in clean_text for w in ["okay", "fine", "safe", "alright", "good", "no problem", "glasses"]):
+        # Authoritative classification using ResponseAnalyzer (Phase 32)
+        from Live.voice.response_analyzer import ResponseAnalyzer
+        from Live.voice.models import VoiceInteractionStatus
+
+        analysis = ResponseAnalyzer.analyze_response(response_text)
+        status = analysis.status
+
+        if status == VoiceInteractionStatus.EMERGENCY:
+            classification = "EMERGENCY"
+            system_reply = "Help is on the way Eleanor. Alerting emergency medical services and your caretaker now."
+        elif status == VoiceInteractionStatus.RISK:
+            classification = "RISK"
+            system_reply = "I noticed you're not feeling well. Alerting your caretaker to check in with you."
+        elif status == VoiceInteractionStatus.SAFE:
             classification = "SAFE"
-        elif any(w in clean_text for w in ["help", "fell", "pain", "hurt", "emergency", "ambulance", "can't get up"]):
-            classification = "HELP"
+            system_reply = "Thank you Eleanor. I have confirmed you are safe. Normal ambient monitoring resumed."
         else:
-            classification = "AMBIGUOUS"
+            classification = "UNCERTAIN"
+            system_reply = "I am alerting your caretaker to check in with you."
 
-        if inc:
-            updated_inc = self.incident_manager.record_voice_response(
-                incident_id=inc.incident_id,
-                response_text=response_text,
-                classification=classification,
-                duration_sec=duration_sec
+        updated_inc = self.incident_manager.record_voice_response(
+            incident_id=inc.incident_id,
+            response_text=response_text,
+            classification=classification,
+            duration_sec=duration_sec
+        )
+        if updated_inc:
+            self.persistence.save_incident(updated_inc)
+
+        # Action routing based on authoritative classification
+        if classification == "SAFE":
+            # Safe visit confirmed: gradually update room baseline and reset hysteresis (Phases 20, 49)
+            target_zone = inc.location.zone if (inc.location and inc.location.zone != ZoneType.UNKNOWN) else self._current_zone
+            self.baseline_engine.record_safe_visit(
+                zone=target_zone,
+                duration_sec=duration_sec or 600.0,
+                feedback=f"Resident answered safe: '{response_text}'"
             )
-            if updated_inc:
-                self.persistence.save_incident(updated_inc)
+            self.baseline_engine.reinforce_safe_confirmation(
+                zone=target_zone,
+                duration_sec=duration_sec or 30.0,
+                feedback=f"Resident answered: '{response_text}'"
+            )
+            self.risk_engine.reset_hysteresis()
+        elif classification == "EMERGENCY":
+            # Critical voice override (Phase 21): Trigger SMS & CAD immediately
+            self.trigger_caregiver_sms_action(updated_inc or inc)
+            self.trigger_ambulance_cad_action(updated_inc or inc)
+        else:
+            # RISK or UNCERTAIN: Alert Caregiver
+            self.trigger_caregiver_sms_action(updated_inc or inc)
 
-            # If SAFE: reinforce adaptive baseline to suppress false alarms
-            if classification == "SAFE":
-                self.baseline_engine.reinforce_safe_confirmation(
-                    zone=inc.location.zone,
-                    duration_sec=duration_sec or 30.0,
-                    feedback=f"Resident answered: '{response_text}'"
-                )
-                self.risk_engine.reset_hysteresis()
-                system_reply = "Thank you Eleanor. I have confirmed you are safe. Normal ambient monitoring resumed."
-            elif classification == "HELP":
-                system_reply = "Help is on the way Eleanor. Alerting emergency medical services and your caretaker now."
-                # Trigger Caregiver SMS & Emergency CAD
-                self.trigger_caregiver_sms_action(updated_inc)
-                self.trigger_ambulance_cad_action(updated_inc)
-            else:
-                system_reply = "I am alerting your caretaker to check in with you."
-                self.trigger_caregiver_sms_action(updated_inc)
+        self.bus.publish_sync("voice_response_processed", {
+            "incident_id": inc.incident_id,
+            "transcript": response_text,
+            "classification": classification,
+            "system_reply": system_reply,
+            "new_state": self.incident_manager.current_state.value
+        })
 
-            self.bus.publish_sync("voice_response_processed", {
-                "incident_id": inc.incident_id,
-                "transcript": response_text,
-                "classification": classification,
-                "system_reply": system_reply,
-                "new_state": self.incident_manager.current_state.value
-            })
-
-            return {
-                "success": True,
-                "incident_id": inc.incident_id,
-                "classification": classification,
-                "system_reply": system_reply,
-                "state": self.incident_manager.current_state.value
-            }
-
-        return {"success": False, "error": "No active incident to associate response"}
+        return {
+            "success": True,
+            "incident_id": inc.incident_id,
+            "classification": classification,
+            "system_reply": system_reply,
+            "state": self.incident_manager.current_state.value
+        }
 
     def handle_silence_timeout(self, incident_id: Optional[str] = None) -> Dict[str, Any]:
-        """Handles 15-second vocal silence / unresponsiveness timeout."""
+        """
+        Severity-aware silence escalation policy (Phase 38).
+        Silence is evidence, but silence alone on mild dwell does not dispatch ambulance.
+        """
         inc = self.incident_manager.get_active_incident() if not incident_id else self.incident_manager.get_incident(incident_id)
         if not inc:
             return {"success": False, "error": "No active incident"}
 
-        updated_inc = self.incident_manager.record_silence_timeout(inc.incident_id)
+        # Severity-aware escalation criteria (Phase 38)
+        trigger_type = inc.trigger_event.get("event_type", "") if inc.trigger_event else ""
+        is_fall_incident = "fall" in trigger_type.lower()
+        is_critical = (
+            inc.severity == SeverityLevel.CRITICAL
+            or inc.risk_score >= 0.75
+            or is_fall_incident
+        )
+
+        updated_inc = self.incident_manager.record_silence_timeout(inc.incident_id, is_critical_hazard=is_critical)
         if updated_inc:
             self.persistence.save_incident(updated_inc)
-            # Immediate escalation to Caregiver SMS and Paramedic CAD
-            self.trigger_caregiver_sms_action(updated_inc)
-            self.trigger_ambulance_cad_action(updated_inc)
+
+            if is_critical:
+                # Confirmed Fall / Floor Posture / High Risk + Silence -> Immediate CAD & SMS
+                self.trigger_caregiver_sms_action(updated_inc)
+                self.trigger_ambulance_cad_action(updated_inc)
+                escalation_level = "EMERGENCY_CAD_AND_SMS"
+            else:
+                # Mild/Moderate Bathroom Dwell + Silence -> Alert Caregiver first
+                self.trigger_caregiver_sms_action(updated_inc)
+                escalation_level = "CAREGIVER_ALERT"
 
             self.bus.publish_sync("silence_timeout_escalated", {
                 "incident_id": inc.incident_id,
                 "state": self.incident_manager.current_state.value,
-                "severity": updated_inc.severity.value
+                "severity": updated_inc.severity.value,
+                "escalation_level": escalation_level
             })
 
         return {
             "success": True,
             "incident_id": inc.incident_id,
             "state": self.incident_manager.current_state.value,
-            "escalated": True
+            "escalated": True,
+            "escalation_level": escalation_level if updated_inc else "NONE"
         }
 
     # ------------------------------------------------------------------
@@ -408,20 +521,34 @@ class CoreService:
         return packet
 
     def get_current_state(self) -> Dict[str, Any]:
-        """Returns the authoritative real-time Live safety state snapshot."""
+        """Returns the authoritative real-time Live safety state snapshot (Phases 50, 71)."""
         active_inc = self.incident_manager.get_active_incident()
         risk = self._last_risk or self.assess_risk()
+
+        # Query multi-room states if CameraManager is registered
+        rooms_state = []
+        resident_tracking = {}
+        try:
+            from Live.vision.camera_manager import get_camera_manager
+            mgr = get_camera_manager(core_service=self)
+            rooms_state = mgr.get_all_rooms()
+            resident_tracking = mgr.get_active_resident_state()
+        except Exception as e:
+            logger.debug(f"[CoreService] Camera manager query note: {e}")
 
         return {
             "safety_state": self.incident_manager.current_state.value,
             "risk_score": risk.overall_score,
             "risk_level": risk.risk_level.value,
             "active_zone": self._current_zone.value,
+            "current_room": resident_tracking.get("current_room", self._current_zone.value),
+            "resident_tracking": resident_tracking,
+            "rooms": rooms_state,
             "active_incident_id": active_inc.incident_id if active_inc else None,
             "active_incident": active_inc.model_dump() if active_inc else None,
             "vitals": self._current_vitals,
             "pipeline_stats": self.pipeline.get_stats(),
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": get_time_provider().now_iso()
         }
 
 

@@ -202,8 +202,8 @@ class IncidentManager:
 
         return inc
 
-    def record_silence_timeout(self, incident_id: str) -> Optional[IncidentRecord]:
-        """Handles 15s silence / no vocal response after wellness check."""
+    def record_silence_timeout(self, incident_id: str, is_critical_hazard: bool = False) -> Optional[IncidentRecord]:
+        """Handles silence / no vocal response after wellness check (Severity-aware, Phase 38)."""
         inc = self.get_incident(incident_id)
         if not inc:
             return None
@@ -213,15 +213,29 @@ class IncidentManager:
             inc.voice_interaction.resident_response = "[SILENCE - NO VOCAL RESPONSE]"
             inc.voice_interaction.classification = "UNRESPONSIVE"
 
-        # Escalate directly to EMERGENCY_ESCALATION
+        # Severity-aware escalation (Phase 38)
+        is_critical = is_critical_hazard or (inc.severity == SeverityLevel.CRITICAL) or (inc.risk_score >= 0.75)
+        if inc.trigger_event:
+            trig_type = str(inc.trigger_event.get("event_type", "")).lower()
+            if "fall" in trig_type:
+                is_critical = True
+
+        target_state = SafetyState.EMERGENCY_ESCALATION if is_critical else SafetyState.CAREGIVER_ESCALATION
+        desc = (
+            "Resident unresponsive following critical trigger. Escalating to emergency dispatch."
+            if is_critical else
+            "Resident did not respond to wellness check. Escalating to caregiver check-in."
+        )
+
         success, entry = self._fsm.transition(
-            target_state=SafetyState.EMERGENCY_ESCALATION,
+            target_state=target_state,
             action="SILENCE_TIMEOUT_ESCALATION",
-            description="Resident failed to respond within timeout window. Potential unconscious collapse.",
+            description=desc,
             actor="SAFETY_TIMER"
         )
         inc.state = self._fsm.current_state
-        inc.severity = SeverityLevel.CRITICAL
+        if is_critical:
+            inc.severity = SeverityLevel.CRITICAL
         inc.last_updated = now_iso
         inc.timeline.append(entry)
         return inc

@@ -9,19 +9,59 @@ from datetime import datetime, timezone
 from pydantic import BaseModel, Field, ConfigDict
 
 
+from Live.core.time_provider import get_time_provider
+
+
 class EventType(str, Enum):
-    # Fall & Vision
+    # Person Tracking & Multi-Room Handoff (Phases 3-6, 40)
+    PERSON_DETECTED = "person_detected"
+    PERSON_NOT_VISIBLE = "person_not_visible"
+    ROOM_ENTRY = "room_entry"
+    ROOM_EXIT = "room_exit"
+
+    # Zone Dwell & Routine Behavior (Phases 14, 15, 22, 40)
+    ZONE_DWELL_START = "zone_dwell_start"
+    ZONE_DWELL_UPDATE = "zone_dwell_update"
+    ZONE_DWELL_ANOMALY = "zone_dwell_anomaly"
+    PROLONGED_ZONE_STAY = "prolonged_zone_stay"
+    ABNORMAL_MOVEMENT = "abnormal_movement"
+    UNUSUAL_ROUTINE = "unusual_routine"
+    UNUSUAL_ROOM_SEQUENCE = "unusual_room_sequence"
+
+    # Fall & Kinematics (Phases 10, 12, 13, 40)
+    FALL_CANDIDATE = "fall_candidate"
     FALL_DETECTED = "fall_detected"
     POSTURE_CHANGE = "posture_change"
+    RECOVERY_MOVEMENT = "recovery_movement"
+    NO_RECOVERY = "no_recovery"
+    PERSISTENT_FLOOR_POSTURE = "persistent_floor_posture"
     INACTIVITY_WARNING = "inactivity_warning"
     INACTIVITY_CRITICAL = "inactivity_critical"
 
-    # Voice Check-In
+    # Camera & Model Health (Phases 8, 40, 45)
+    CAMERA_ONLINE = "camera_online"
+    CAMERA_OFFLINE = "camera_offline"
+    MODEL_READY = "model_ready"
+    MODEL_ERROR = "model_error"
+    FRAME_ERROR = "frame_error"
+
+    # Voice Assistant & Spontaneous Speech (Phases 28-35, 40)
+    VOICE_SPEECH_DETECTED = "voice_speech_detected"
+    VOICE_TRANSCRIBED = "voice_transcribed"
     VOICE_WELLNESS_PROMPT = "voice_wellness_prompt"
+    VOICE_HELP_REQUEST = "voice_help_request"
+    VOICE_EMERGENCY = "voice_emergency"
     VOICE_RESPONSE_SAFE = "voice_response_safe"
     VOICE_RESPONSE_HELP = "voice_response_help"
+    VOICE_SAFE = "voice_safe"
+    VOICE_RISK = "voice_risk"
+    VOICE_UNCERTAIN = "voice_uncertain"
+    VOICE_TIMEOUT = "voice_timeout"
     VOICE_SILENCE_TIMEOUT = "voice_silence_timeout"
     VOICE_AMBIENT_DISTRESS = "voice_ambient_distress"
+    MIC_ONLINE = "mic_online"
+    MIC_OFFLINE = "mic_offline"
+    MIC_RECOVERED = "mic_recovered"
 
     # Vitals & Wearable
     HEART_RATE_NORMAL = "heart_rate_normal"
@@ -49,9 +89,12 @@ class EventType(str, Enum):
 
 class EventSource(str, Enum):
     CAMERA_VISION = "camera_vision"
+    ROOM_TRACKER = "room_tracker"
+    CAMERA_MANAGER = "camera_manager"
     FALL_DETECTOR = "fall_detector"
     INACTIVITY_MONITOR = "inactivity_monitor"
     VOICE_ASSISTANT = "voice_assistant"
+    CONTINUOUS_MIC = "continuous_mic"
     WEARABLE_SENSOR = "wearable_sensor"
     HEART_RATE_MONITOR = "heart_rate_monitor"
     RADAR_MMWAVE = "radar_mmwave"

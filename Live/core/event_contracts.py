@@ -18,6 +18,8 @@ from Live.core.models import (
     LocationModel
 )
 
+from Live.core.time_provider import get_time_provider
+
 logger = logging.getLogger("NIRA.LiveCore.EventContracts")
 
 MAX_EVENT_STALENESS_SECONDS = 300.0  # 5 minutes
@@ -42,7 +44,7 @@ def validate_event_freshness(timestamp_str: str) -> Tuple[bool, str]:
     if dt is None:
         return False, "Invalid ISO-8601 timestamp format"
 
-    now = datetime.now(timezone.utc)
+    now = get_time_provider().now()
     age_seconds = (now - dt).total_seconds()
 
     if age_seconds > MAX_EVENT_STALENESS_SECONDS:
@@ -60,7 +62,7 @@ def normalize_zone(zone_raw: Any) -> ZoneType:
         return ZoneType.UNKNOWN
     clean = str(zone_raw).lower().replace(" ", "_").strip()
     for z in ZoneType:
-        if z.value in clean:
+        if z.value in clean or clean in z.value:
             return z
     return ZoneType.UNKNOWN
 
@@ -72,11 +74,47 @@ def normalize_event_type(raw_type: Any) -> EventType:
         if et.value == clean or et.name.lower() == clean:
             return et
 
-    # Heuristic mapping for raw inputs
+    # Specific heuristic mappings
+    if "prolonged" in clean or "stay" in clean or "long_stay" in clean:
+        return EventType.PROLONGED_ZONE_STAY
+    if "zone_dwell_start" in clean or "dwell_start" in clean:
+        return EventType.ZONE_DWELL_START
+    if "zone_dwell_anomaly" in clean or "dwell_anomaly" in clean:
+        return EventType.ZONE_DWELL_ANOMALY
+    if "dwell" in clean:
+        return EventType.ZONE_DWELL_UPDATE
+    if "entry" in clean:
+        return EventType.ROOM_ENTRY
+    if "exit" in clean:
+        return EventType.ROOM_EXIT
+    if "not_visible" in clean or "lost" in clean:
+        return EventType.PERSON_NOT_VISIBLE
+    if "detected" in clean and "person" in clean:
+        return EventType.PERSON_DETECTED
+    if "candidate" in clean and "fall" in clean:
+        return EventType.FALL_CANDIDATE
     if "fall" in clean:
         return EventType.FALL_DETECTED
+    if "recovery" in clean and "no" in clean:
+        return EventType.NO_RECOVERY
+    if "recovery" in clean:
+        return EventType.RECOVERY_MOVEMENT
+    if "floor" in clean:
+        return EventType.PERSISTENT_FLOOR_POSTURE
     if "inactivity" in clean or "immobile" in clean:
         return EventType.INACTIVITY_WARNING
+    if "camera" in clean and "off" in clean:
+        return EventType.CAMERA_OFFLINE
+    if "camera" in clean and "on" in clean:
+        return EventType.CAMERA_ONLINE
+    if "mic" in clean and "off" in clean:
+        return EventType.MIC_OFFLINE
+    if "mic" in clean and "recov" in clean:
+        return EventType.MIC_RECOVERED
+    if "mic" in clean and "on" in clean:
+        return EventType.MIC_ONLINE
+    if "transcribed" in clean:
+        return EventType.VOICE_TRANSCRIBED
     if "heart" in clean or "bpm" in clean:
         return EventType.HEART_RATE_NORMAL
     if "safe" in clean:
@@ -94,8 +132,14 @@ def normalize_event_source(raw_source: Any) -> EventSource:
         if src.value == clean or src.name.lower() == clean:
             return src
 
+    if "room_tracker" in clean:
+        return EventSource.ROOM_TRACKER
+    if "camera_manager" in clean:
+        return EventSource.CAMERA_MANAGER
     if "camera" in clean or "vision" in clean:
         return EventSource.CAMERA_VISION
+    if "continuous_mic" in clean:
+        return EventSource.CONTINUOUS_MIC
     if "voice" in clean or "mic" in clean or "whisper" in clean:
         return EventSource.VOICE_ASSISTANT
     if "wearable" in clean or "band" in clean:
@@ -132,7 +176,7 @@ def normalize_raw_event(raw: Dict[str, Any]) -> Tuple[Optional[LiveEvent], Optio
 
         ts_str = raw.get("timestamp")
         if not ts_str:
-            ts_str = datetime.now(timezone.utc).isoformat()
+            ts_str = get_time_provider().now_iso()
 
         is_fresh, freshness_reason = validate_event_freshness(ts_str)
         if not is_fresh:

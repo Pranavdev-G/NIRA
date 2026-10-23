@@ -276,10 +276,9 @@ class LiveVisionTracker:
             live_dir = Path(__file__).resolve().parent
             root_dir = live_dir.parent
 
-            # 1. Pose model for face keypoints and biomechanics
+            # 1. Pose model for face keypoints and biomechanics (Strictly Live-contained, Phase 9)
             pose_candidates = [
                 str(live_dir / "yolov8n-pose.pt"),
-                str(root_dir / "Demo" / "yolov8n-pose.pt"),
                 "yolov8n-pose.pt"
             ]
             for p in pose_candidates:
