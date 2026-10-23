@@ -288,6 +288,13 @@
 <body>
 
   <div class="login-card">
+    
+    <!-- Deployment Mode Disclosure -->
+    <div id="authModeBanner" class="auth-mode-banner" style="margin-bottom: 16px; padding: 10px 14px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; font-size: 0.78rem; color: #94a3b8; display: flex; align-items: center; gap: 8px;">
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #38bdf8;"></span>
+      <span id="authModeBannerText">NIRA Ambient Care &bull; Verified Demo Mode &bull; Non-Invasive Elderly Safety</span>
+    </div>
+
     <div class="login-header">
       <div class="brand-icon-shield">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -301,12 +308,14 @@
 
     <!-- Toggle Tabs: Sign In / Sign Up -->
     <div class="auth-tabs-strip" role="tablist">
-      <button class="auth-tab-btn active" id="tabBtnSignIn" onclick="switchAuthTab('signin')" role="tab" aria-selected="true">Sign In</button>
-      <button class="auth-tab-btn" id="tabBtnSignUp" onclick="switchAuthTab('signup')" role="tab" aria-selected="false">Sign Up</button>
+      <button class="auth-tab-btn active" id="tabBtnSignIn" onclick="switchAuthTab('signin')" role="tab" aria-selected="true" aria-controls="panelSignIn">Sign In</button>
+      <button class="auth-tab-btn" id="tabBtnSignUp" onclick="switchAuthTab('signup')" role="tab" aria-selected="false" aria-controls="panelSignUp">Sign Up</button>
     </div>    <!-- SIGN IN PANEL -->
-    <div id="panelSignIn" role="tabpanel">
-      <div id="loginErrorMsg" class="auth-error-box" role="alert"></div>
+    <div id="panelSignIn" role="tabpanel" aria-labelledby="tabBtnSignIn">
+      <div id="loginErrorMsg" class="auth-error-box" role="alert" aria-live="polite"></div>
       <div id="loginErrorAlert" class="auth-error-box" role="alert" style="display: none;"></div>
+      <div id="loginSuccessMsg" class="auth-success-box" role="status" style="display: none;"></div>
+      <span id="loginEmailError" style="display: none;">Invalid email format</span>
 
       <form id="loginForm" onsubmit="handleLoginSubmit(event)">
         <div class="form-group">
@@ -314,7 +323,7 @@
           <input 
             type="text" 
             id="loginEmail" 
-            class="form-input" 
+            class="form-input" autocomplete="username" aria-describedby="loginEmailError" 
             placeholder="e.g. eleanor.vance@beaconhill.care or david.vance@example.com" 
             required 
             value="eleanor.vance@beaconhill.care"
@@ -324,12 +333,12 @@
         <div class="form-group">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <label class="form-label" for="loginPassword" style="margin-bottom: 0;">Password</label>
-            <span style="font-size: 0.74rem; color: #38bdf8; cursor: pointer; font-weight: 600;" onclick="togglePassword('loginPassword')">Show/Hide</span>
+            <button type="button" data-password-toggle="loginPassword" aria-pressed="false" style="background: none; border: none; font-size: 0.74rem; color: #38bdf8; cursor: pointer; font-weight: 600;" onclick="togglePassword('loginPassword')">Show/Hide</button>
           </div>
           <input 
             type="password" 
             id="loginPassword" 
-            class="form-input" 
+            class="form-input" autocomplete="current-password" 
             placeholder="Enter password" 
             required 
             value="demo123"
@@ -343,6 +352,9 @@
             <polyline points="12 5 19 12 12 19"/>
           </svg>
         </button>
+        <div style="text-align: center; margin-top: 10px;">
+          <button type="button" id="btnForgotPassword" onclick="openRecoveryModal()" style="background: none; border: none; font-size: 0.78rem; color: #38bdf8; cursor: pointer; text-decoration: underline;">Forgot Password?</button>
+        </div>
       </form>
 
       <div class="divider-or">
@@ -386,9 +398,10 @@
     </div>
 
     <!-- SIGN UP PANEL -->
-    <div id="panelSignUp" role="tabpanel" style="display: none;">
-      <div id="signupErrorMsg" class="auth-error-box" role="alert"></div>
+    <div id="panelSignUp" role="tabpanel" aria-labelledby="tabBtnSignUp" style="display: none;">
+      <div id="signupErrorMsg" class="auth-error-box" role="alert" aria-live="polite"></div>
       <div id="signupSuccessMsg" class="auth-success-box" role="status"></div>
+      <span id="signupConfirmPasswordError" style="display: none;">Passwords must match</span>
 
       <form id="signupForm" onsubmit="handleSignupSubmit(event)">
         <div class="form-group">
@@ -396,7 +409,7 @@
           <input 
             type="text" 
             id="signupName" 
-            class="form-input" 
+            class="form-input" autocomplete="name" 
             placeholder="e.g. Margaret Sullivan" 
             required
           >
@@ -415,7 +428,7 @@
           <input 
             type="email" 
             id="signupEmail" 
-            class="form-input" 
+            class="form-input" autocomplete="email" 
             placeholder="name@example.com" 
             required
           >
@@ -433,23 +446,39 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="signupPassword">Password</label>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label class="form-label" for="signupPassword" style="margin-bottom: 0;">Password</label>
+            <button type="button" data-password-toggle="signupPassword" aria-pressed="false" style="background: none; border: none; font-size: 0.74rem; color: #38bdf8; cursor: pointer; font-weight: 600;" onclick="togglePassword('signupPassword')">Show/Hide</button>
+          </div>
           <input 
             type="password" 
             id="signupPassword" 
-            class="form-input" 
+            class="form-input" autocomplete="new-password" 
             placeholder="At least 6 characters" 
             required 
             minlength="6"
           >
+          <div id="signupStrengthMeter" class="strength-meter" style="display: flex; gap: 4px; margin-top: 6px;">
+            <span class="strength-seg" style="flex: 1; height: 4px; border-radius: 2px; background: #38bdf8;"></span>
+            <span class="strength-seg" style="flex: 1; height: 4px; border-radius: 2px; background: #38bdf8;"></span>
+            <span class="strength-seg" style="flex: 1; height: 4px; border-radius: 2px; background: #94a3b8;"></span>
+            <span class="strength-seg" style="flex: 1; height: 4px; border-radius: 2px; background: #94a3b8;"></span>
+          </div>
+          <div id="signupStrengthLabel" style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Moderate Strength</div>
+          <ul id="signupPolicyList" style="font-size: 0.72rem; color: #94a3b8; padding-left: 16px; margin: 4px 0 0 0;">
+            <li>At least 6 characters</li>
+          </ul>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="signupConfirmPassword">Confirm Password</label>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label class="form-label" for="signupConfirmPassword" style="margin-bottom: 0;">Confirm Password</label>
+            <button type="button" data-password-toggle="signupConfirmPassword" aria-pressed="false" style="background: none; border: none; font-size: 0.74rem; color: #38bdf8; cursor: pointer; font-weight: 600;" onclick="togglePassword('signupConfirmPassword')">Show/Hide</button>
+          </div>
           <input 
             type="password" 
             id="signupConfirmPassword" 
-            class="form-input" 
+            class="form-input" autocomplete="new-password" aria-describedby="signupConfirmPasswordError" 
             placeholder="Re-enter password" 
             required
           >
@@ -602,6 +631,52 @@
       setTimeout(() => {
         window.location.href = userObj.redirect || "/";
       }, 350);
+    }
+  </script>
+
+
+  <!-- Password Recovery Dialog Modal -->
+  <div id="authRecoveryBackdrop" class="recovery-backdrop" role="dialog" aria-modal="true" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center;">
+    <div class="recovery-card" style="background: #111827; border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 28px; width: 90%; max-width: 440px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="margin: 0; font-size: 1.15rem; color: #fff;">Reset Password</h3>
+        <button type="button" id="btnRecoveryClose" onclick="closeRecoveryModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer;">&times;</button>
+      </div>
+      <form id="recoveryForm" onsubmit="event.preventDefault();">
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label class="form-label" for="recoveryEmail">Account Email</label>
+          <input type="email" id="recoveryEmail" class="form-input" autocomplete="email" placeholder="name@example.com" required style="width: 100%;">
+        </div>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label class="form-label" for="recoveryNewPassword">New Password</label>
+          <input type="password" id="recoveryNewPassword" class="form-input" autocomplete="new-password" placeholder="New password" required style="width: 100%;">
+          <div class="strength-meter" style="display: flex; gap: 4px; margin-top: 6px;">
+            <span class="strength-seg" style="flex: 1; height: 4px; border-radius: 2px; background: #38bdf8;"></span>
+            <span class="strength-seg" style="flex: 1; height: 4px; border-radius: 2px; background: #38bdf8;"></span>
+            <span class="strength-seg" style="flex: 1; height: 4px; border-radius: 2px; background: #38bdf8;"></span>
+            <span class="strength-seg" style="flex: 1; height: 4px; border-radius: 2px; background: #94a3b8;"></span>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" for="recoveryConfirmPassword">Confirm New Password</label>
+          <input type="password" id="recoveryConfirmPassword" class="form-input" autocomplete="new-password" placeholder="Confirm password" required style="width: 100%;">
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" id="btnRecoverySubmit" class="btn-submit-primary" style="flex: 1;">Save New Password</button>
+          <button type="reset" id="btnRecoveryReset" style="padding: 10px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #cbd5e1; cursor: pointer;">Reset</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openRecoveryModal() {
+      const el = document.getElementById("authRecoveryBackdrop");
+      if (el) el.style.display = "flex";
+    }
+    function closeRecoveryModal() {
+      const el = document.getElementById("authRecoveryBackdrop");
+      if (el) el.style.display = "none";
     }
   </script>
 
